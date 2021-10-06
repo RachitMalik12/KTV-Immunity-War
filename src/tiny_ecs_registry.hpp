@@ -22,6 +22,7 @@ public:
 	ComponentContainer<SoftShell> softShells;
 	ComponentContainer<HardShell> hardShells;
 	ComponentContainer<DebugComponent> debugComponents;
+	ComponentContainer<Projectile> projectiles;
 	ComponentContainer<vec3> colors;
 
 	// constructor that adds all containers for looping over them
@@ -39,6 +40,7 @@ public:
 		registry_list.push_back(&softShells);
 		registry_list.push_back(&hardShells);
 		registry_list.push_back(&debugComponents);
+		registry_list.push_back(&projectiles);
 		registry_list.push_back(&colors);
 	}
 

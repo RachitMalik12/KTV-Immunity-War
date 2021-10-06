@@ -21,6 +21,11 @@ struct SoftShell
 {
 
 };
+// The projectile shot by the wizard character.
+struct Projectile
+{
+
+};
 
 // All data relevant to the shape and motion of entities
 struct Motion {
@@ -113,7 +118,8 @@ struct Mesh
 enum class TEXTURE_ASSET_ID {
 	FISH = 0,
 	TURTLE = FISH + 1,
-	TEXTURE_COUNT = TURTLE + 1
+	FIREBALL = TURTLE + 1,
+	TEXTURE_COUNT = FIREBALL + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
