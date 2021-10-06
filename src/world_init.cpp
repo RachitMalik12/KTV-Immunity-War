@@ -57,6 +57,35 @@ Entity createFish(RenderSystem* renderer, vec2 position)
 	return entity;
 }
 
+
+Entity createFireball(RenderSystem* renderer, vec2 position, vec2 velocity) {
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = velocity;
+	motion.position = position;
+
+	// Setting initial values
+	motion.scale = vec2({ FIREBALL_BB_WIDTH, FIREBALL_BB_HEIGHT });
+
+	// fireball stuff
+	registry.projectiles.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::FIREBALL,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
 Entity createTurtle(RenderSystem* renderer, vec2 position)
 {
 	auto entity = Entity();

@@ -13,6 +13,7 @@ const size_t MAX_TURTLES = 15;
 const size_t MAX_FISH = 5;
 const size_t TURTLE_DELAY_MS = 2000 * 3;
 const size_t FISH_DELAY_MS = 5000 * 3;
+const size_t PLAYER_SPEED = 150;
 
 // Create the fish world
 WorldSystem::WorldSystem()
@@ -169,7 +170,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Spawning new fish
 	next_fish_spawn -= elapsed_ms_since_last_update * current_speed;
 	if (registry.softShells.components.size() <= MAX_FISH && next_fish_spawn < 0.f) {
-		// !!!  TODO A1: Create new fish with createFish({0,0}), as for the Turtles above
+		next_fish_spawn = (FISH_DELAY_MS / 2) + uniform_dist(rng) * (FISH_DELAY_MS / 2);
+		Entity entity = createFish(renderer, { 0, 0 });
+		Motion& motion = registry.motions.get(entity);
+		motion.position =
+			vec2(screen_width + 50.f,
+				50.f + uniform_dist(rng) * (screen_height - 100.f));
+		motion.velocity = vec2(-200.f, 0.f);
 	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -293,12 +300,6 @@ bool WorldSystem::is_over() const {
 
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A1: HANDLE SALMON MOVEMENT HERE
-	// key is of 'type' GLFW_KEY_
-	// action can be GLFW_PRESS GLFW_RELEASE GLFW_REPEAT
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
 		int w, h;
@@ -308,11 +309,57 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	// Debugging
-	if (key == GLFW_KEY_D) {
+	/*if (key == GLFW_KEY_D) {
 		if (action == GLFW_RELEASE)
 			debugging.in_debug_mode = false;
 		else
 			debugging.in_debug_mode = true;
+	}*/
+
+	Motion& salmonMotion = registry.motions.get(player_salmon);
+	vec2 currentVelocity = vec2(salmonMotion.velocity.x, salmonMotion.velocity.y);
+	if (action == GLFW_PRESS && key == GLFW_KEY_W) {
+		salmonMotion.velocity = vec2(currentVelocity.x, currentVelocity.y - (float)PLAYER_SPEED);
+	}
+	if (action == GLFW_RELEASE && key == GLFW_KEY_W) {
+		salmonMotion.velocity = vec2(currentVelocity.x, currentVelocity.y + (float)PLAYER_SPEED);
+	}
+
+	if (action == GLFW_PRESS && key == GLFW_KEY_S) {
+		salmonMotion.velocity = vec2(currentVelocity.x, currentVelocity.y + (float)PLAYER_SPEED);
+	}
+	if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
+		salmonMotion.velocity = vec2(currentVelocity.x, currentVelocity.y - (float)PLAYER_SPEED);
+	}
+
+	if (action == GLFW_PRESS && key == GLFW_KEY_A) {
+		salmonMotion.velocity = vec2(currentVelocity.x - (float)PLAYER_SPEED, currentVelocity.y);
+	}
+	if (action == GLFW_RELEASE && key == GLFW_KEY_A) {
+		salmonMotion.velocity = vec2(currentVelocity.x + (float)PLAYER_SPEED, currentVelocity.y);
+	}
+
+	if (action == GLFW_PRESS && key == GLFW_KEY_D) {
+		salmonMotion.velocity = vec2(currentVelocity.x + (float)PLAYER_SPEED, currentVelocity.y);
+	}
+	if (action == GLFW_RELEASE && key == GLFW_KEY_D) {
+		salmonMotion.velocity = vec2(currentVelocity.x - (float)PLAYER_SPEED, currentVelocity.y);
+	}
+
+	if (action == GLFW_PRESS && key == GLFW_KEY_T) {
+		createFireball(renderer, salmonMotion.position, { 0, -300.f });
+	}
+
+	if (action == GLFW_PRESS && key == GLFW_KEY_G) {
+		createFireball(renderer, salmonMotion.position, { 0, 300.f });
+	}
+
+	if (action == GLFW_PRESS && key == GLFW_KEY_H) {
+		createFireball(renderer, salmonMotion.position, { 300.f, 0});
+	}
+
+	if (action == GLFW_PRESS && key == GLFW_KEY_F) {
+		createFireball(renderer, salmonMotion.position, { -300.f, 0 });
 	}
 
 	// Control the current speed with `<` `>`
