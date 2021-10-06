@@ -27,7 +27,6 @@
 **/$RECYCLE.BIN/
 **/Desktop.ini
 **/ext/project_path.hpp 
-**/ext/project_path.hpp.in 
 
 !ext/
 !template/ext/
