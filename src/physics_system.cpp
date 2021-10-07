@@ -93,14 +93,46 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 			Entity entity_i = motion_container.entities[i];
 
 			// visualize the radius with two axis-aligned lines
+			// TODO: retire cross graphic once collisions are updated
 			const vec2 bonding_box = get_bounding_box(motion_i);
-			float radius = sqrt(dot(bonding_box/2.f, bonding_box/2.f));
+			float radius = sqrt(dot(bonding_box / 2.f, bonding_box / 2.f));
 			vec2 line_scale1 = { motion_i.scale.x / 10, 2*radius };
 			Entity line1 = createLine(motion_i.position, line_scale1);
-			vec2 line_scale2 = { 2*radius, motion_i.scale.x / 10};
+			vec2 line_scale2 = { 2*radius, motion_i.scale.x / 10 };
 			Entity line2 = createLine(motion_i.position, line_scale2);
+			
+		}
+	}
 
-			// !!! TODO A2: implement debugging of bounding boxes and mesh
+	// I suspect that the above debug mode will be changed once new collisions are implemented, so I'm putting both the bounding boxes and grayboxes in the same mode for now.
+	if (debugging.in_graybox_mode)
+	{
+		uint size_before_adding_new = (uint)motion_container.components.size();
+		for (uint i = 0; i < size_before_adding_new; i++)
+		{
+			Motion& motion_i = motion_container.components[i];
+			Entity entity_i = motion_container.entities[i];
+		
+			// visualize the bounding box with a hollow red box.
+			// TODO: Move to debug mode and use createLine
+			const vec2 bounding_box = get_bounding_box(motion_i);
+			vec2 horizontal_scale = { bounding_box.x,2 };
+			vec2 vertical_scale = { 2,bounding_box.y };
+			vec2 left_position = motion_i.position;
+			left_position.x -= bounding_box.x / 2;
+			vec2 right_position = motion_i.position;
+			right_position.x += bounding_box.x / 2;
+			vec2 up_position = motion_i.position;
+			up_position.y -= bounding_box.y / 2;
+			vec2 down_position = motion_i.position;
+			down_position.y += bounding_box.y / 2;
+			Entity left_line = createBox(left_position, vertical_scale);
+			Entity right_line = createBox(right_position, vertical_scale);
+			Entity up_line = createBox(up_position, horizontal_scale);
+			Entity down_line = createBox(down_position, horizontal_scale);
+
+			// visualize all sprites as grayboxes. Code currently unneeded.
+			// Entity graybox = createBox(motion_i.position, bounding_box);
 		}
 	}
 

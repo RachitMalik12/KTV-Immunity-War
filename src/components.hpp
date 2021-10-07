@@ -46,6 +46,7 @@ struct Collision
 // Data structure for toggling debug mode
 struct Debug {
 	bool in_debug_mode = 0;
+	bool in_graybox_mode = 0;
 	bool in_freeze_mode = 0;
 };
 extern Debug debugging;
@@ -138,7 +139,8 @@ enum class GEOMETRY_BUFFER_ID {
 	SPRITE = SALMON + 1,
 	PEBBLE = SPRITE + 1,
 	DEBUG_LINE = PEBBLE + 1,
-	SCREEN_TRIANGLE = DEBUG_LINE + 1,
+	GRAYBOX = DEBUG_LINE + 1,
+	SCREEN_TRIANGLE = GRAYBOX + 1,
 	GEOMETRY_COUNT = SCREEN_TRIANGLE + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;

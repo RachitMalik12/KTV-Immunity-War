@@ -22,6 +22,7 @@ public:
 	ComponentContainer<SoftShell> softShells;
 	ComponentContainer<HardShell> hardShells;
 	ComponentContainer<DebugComponent> debugComponents;
+	ComponentContainer<DebugComponent> grayboxComponents;
 	ComponentContainer<Projectile> projectiles;
 	ComponentContainer<vec3> colors;
 
@@ -40,6 +41,7 @@ public:
 		registry_list.push_back(&softShells);
 		registry_list.push_back(&hardShells);
 		registry_list.push_back(&debugComponents);
+		registry_list.push_back(&grayboxComponents);
 		registry_list.push_back(&projectiles);
 		registry_list.push_back(&colors);
 	}

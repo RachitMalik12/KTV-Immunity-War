@@ -139,6 +139,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	while (registry.debugComponents.entities.size() > 0)
 	    registry.remove_all_components_of(registry.debugComponents.entities.back());
 
+	// Remove graybox info from the last step
+	while (registry.grayboxComponents.entities.size() > 0)
+		registry.remove_all_components_of(registry.grayboxComponents.entities.back());
+
 	// Removing out of screen entities
 	auto& motions_registry = registry.motions;
 
@@ -309,12 +313,18 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	// Debugging
-	/*if (key == GLFW_KEY_D) {
-		if (action == GLFW_RELEASE)
-			debugging.in_debug_mode = false;
-		else
-			debugging.in_debug_mode = true;
-	}*/
+	if (key == GLFW_KEY_BACKSLASH) {
+		if (action == GLFW_RELEASE) {
+			debugging.in_debug_mode = !debugging.in_debug_mode;
+		}
+	}
+
+	// Grayboxing
+	if (key == GLFW_KEY_RIGHT_BRACKET) {
+		if (action == GLFW_RELEASE) {
+			debugging.in_graybox_mode = !debugging.in_graybox_mode;
+		}
+	}
 
 	Motion& salmonMotion = registry.motions.get(player_salmon);
 	vec2 currentVelocity = vec2(salmonMotion.velocity.x, salmonMotion.velocity.y);
