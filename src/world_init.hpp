@@ -32,6 +32,8 @@ Entity createEnemy(RenderSystem* render, vec2 pos, vec2 velocity);
 
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);
+// a graybox for debugging purposes
+Entity createBox(vec2 position, vec2 size);
 // a pebble
 Entity createPebble(vec2 pos, vec2 size);
 

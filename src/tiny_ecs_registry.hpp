@@ -20,6 +20,7 @@ public:
 	ComponentContainer<RenderRequest> renderRequests;
 	ComponentContainer<ScreenState> screenStates;
 	ComponentContainer<DebugComponent> debugComponents;
+	ComponentContainer<DebugComponent> grayboxComponents;
 	ComponentContainer<Projectile> projectiles;
 	ComponentContainer<Block> blocks;
 	ComponentContainer<Wall> walls;
@@ -39,6 +40,7 @@ public:
 		registry_list.push_back(&renderRequests);
 		registry_list.push_back(&screenStates);
 		registry_list.push_back(&debugComponents);
+		registry_list.push_back(&grayboxComponents);
 		registry_list.push_back(&projectiles);
 		registry_list.push_back(&blocks);
 		registry_list.push_back(&walls);
