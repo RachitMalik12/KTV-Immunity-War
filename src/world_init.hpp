@@ -27,6 +27,8 @@ Entity createBlock(RenderSystem* renderer, vec2 pos, std::string color);
 
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);
+// a graybox for debugging purposes
+Entity createBox(vec2 position, vec2 size);
 // a pebble
 Entity createPebble(vec2 pos, vec2 size);
 
