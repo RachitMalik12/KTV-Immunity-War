@@ -21,6 +21,12 @@ struct Block
 
 };
 
+// Enemy that will be attacked by wizard using projectile
+struct Enemy
+{
+
+};
+
 // All data relevant to the shape and motion of entities
 struct Motion {
 	vec2 position = { 0, 0 };
@@ -115,7 +121,8 @@ enum class TEXTURE_ASSET_ID {
 	TREE_YELLOW = TREE_ORANGE + 1,
 	FIREBALL = TREE_YELLOW + 1,
 	WIZARD = FIREBALL + 1,
-	TEXTURE_COUNT = WIZARD + 1
+	ENEMY = WIZARD + 1,
+	TEXTURE_COUNT = ENEMY + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

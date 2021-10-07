@@ -150,6 +150,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// Spawning new enemy
+	next_enemy_spawn -= elapsed_ms_since_last_update * current_speed;
+	if (registry.enemies.components.size() <= MAX_FISH && next_enemy_spawn < 0.f) {
+		// !!!  TODO A1: Create new fish with createFish({0,0}), as for the Turtles above
+		// Reset timer
+		next_enemy_spawn = (FISH_DELAY_MS / 2) + uniform_dist(rng) * (FISH_DELAY_MS / 2);
+		// Create fish
+		Entity entity = createEnemy(renderer, { 0,0 }, { 0,0 });
+		// Setting random initial position (to the right of screen) and constant velocity
+		Motion& motion = registry.motions.get(entity);
+		motion.position =
+			vec2(screen_width + 200.f,
+				50.f + uniform_dist(rng) * (screen_height - 100.f));
+		motion.velocity = vec2(-200.f, 0.f);
+	}
+
 	// Processing the salmon state
 	assert(registry.screenStates.components.size() <= 1);
     ScreenState &screen = registry.screenStates.components[0];
