@@ -213,13 +213,14 @@ void RenderSystem::initializeGlGeometryBuffers()
 	std::vector<ColoredVertex> box_vertices;
 	std::vector<uint16_t> box_indices;
 
+	constexpr float box_depth = 0.5f;
 	constexpr vec3 gray = { 0.5,0.5,0.5 };
 
 	box_vertices = {
-		{{-0.5,-0.5, depth}, gray},
-		{{-0.5, 0.5, depth}, gray},
-		{{ 0.5, 0.5, depth}, gray},
-		{{ 0.5,-0.5, depth}, gray},
+		{{-0.5,-0.5, box_depth}, gray},
+		{{-0.5, 0.5, box_depth}, gray},
+		{{ 0.5, 0.5, box_depth}, gray},
+		{{ 0.5,-0.5, box_depth}, gray},
 	};
 
 	box_indices = { 0, 1, 3, 1, 2, 3 };
