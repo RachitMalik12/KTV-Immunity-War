@@ -152,38 +152,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	// Spawning new turtles
-	next_turtle_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (registry.hardShells.components.size() <= MAX_TURTLES && next_turtle_spawn < 0.f) {
-		// Reset timer
-		next_turtle_spawn = (TURTLE_DELAY_MS / 2) + uniform_dist(rng) * (TURTLE_DELAY_MS / 2);
-		// Create turtle
-		Entity entity = createTurtle(renderer, {0,0});
-		// Setting random initial position and constant velocity
-		Motion& motion = registry.motions.get(entity);
-		motion.position =
-			vec2(screen_width -200.f, 
-				 50.f + uniform_dist(rng) * (screen_height - 100.f));
-		motion.velocity = vec2(-100.f, 0.f);
-	}
-
-	// Spawning new fish
-	next_fish_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (registry.softShells.components.size() <= MAX_FISH && next_fish_spawn < 0.f) {
-		next_fish_spawn = (FISH_DELAY_MS / 2) + uniform_dist(rng) * (FISH_DELAY_MS / 2);
-		Entity entity = createFish(renderer, { 0, 0 });
-		Motion& motion = registry.motions.get(entity);
-		motion.position =
-			vec2(screen_width + 50.f,
-				50.f + uniform_dist(rng) * (screen_height - 100.f));
-		motion.velocity = vec2(-200.f, 0.f);
-	}
-
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A3: HANDLE PEBBLE SPAWN HERE
-	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 3
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 	// Processing the salmon state
 	assert(registry.screenStates.components.size() <= 1);
     ScreenState &screen = registry.screenStates.components[0];
@@ -231,8 +199,13 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 
 	// Create a new salmon
-	player_salmon = createSalmon(renderer, { 100, 200 });
-	registry.colors.insert(player_salmon, {1, 0.8f, 0.8f});
+	player_wizard = createWizard(renderer, { 100, 200 });
+	// registry.colors.insert(player_salmon, {1, 0.8f, 0.8f});
+
+	// Create some blocks
+	createBlock(renderer, { 700, 600 }, "red");
+	createBlock(renderer, { 700, 300 }, "orange");
+	createBlock(renderer, { 700, 100 }, "yellow");
 
 	// !! TODO A3: Enable static pebbles on the ground
 	// Create pebbles on the floor for reference
@@ -262,30 +235,30 @@ void WorldSystem::handle_collisions() {
 		if (registry.players.has(entity)) {
 			//Player& player = registry.players.get(entity);
 
-			// Checking Player - HardShell collisions
-			if (registry.hardShells.has(entity_other)) {
-				// initiate death unless already dying
-				if (!registry.deathTimers.has(entity)) {
-					// Scream, reset timer, and make the salmon sink
-					registry.deathTimers.emplace(entity);
-					Mix_PlayChannel(-1, salmon_dead_sound, 0);
-					registry.motions.get(entity).angle = 3.1415f;
-					registry.motions.get(entity).velocity = { 0, 80 };
+			//// Checking Player - HardShell collisions
+			//if (registry.hardShells.has(entity_other)) {
+			//	// initiate death unless already dying
+			//	if (!registry.deathTimers.has(entity)) {
+			//		// Scream, reset timer, and make the salmon sink
+			//		registry.deathTimers.emplace(entity);
+			//		Mix_PlayChannel(-1, salmon_dead_sound, 0);
+			//		registry.motions.get(entity).angle = 3.1415f;
+			//		registry.motions.get(entity).velocity = { 0, 80 };
 
-					// !!! TODO A1: change the salmon color on death
-				}
-			}
-			// Checking Player - SoftShell collisions
-			else if (registry.softShells.has(entity_other)) {
-				if (!registry.deathTimers.has(entity)) {
-					// chew, count points, and set the LightUp timer
-					registry.remove_all_components_of(entity_other);
-					Mix_PlayChannel(-1, salmon_eat_sound, 0);
-					++points;
+			//		// !!! TODO A1: change the salmon color on death
+			//	}
+			//}
+			//// Checking Player - SoftShell collisions
+			//else if (registry.softShells.has(entity_other)) {
+			//	if (!registry.deathTimers.has(entity)) {
+			//		// chew, count points, and set the LightUp timer
+			//		registry.remove_all_components_of(entity_other);
+			//		Mix_PlayChannel(-1, salmon_eat_sound, 0);
+			//		++points;
 
-					// !!! TODO A1: create a new struct called LightUp in components.hpp and add an instance to the salmon entity by modifying the ECS registry
-				}
-			}
+			//		// !!! TODO A1: create a new struct called LightUp in components.hpp and add an instance to the salmon entity by modifying the ECS registry
+			//	}
+			//}
 		}
 	}
 
@@ -308,15 +281,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
         restart_game();
 	}
 
-	// Debugging
-	/*if (key == GLFW_KEY_D) {
-		if (action == GLFW_RELEASE)
-			debugging.in_debug_mode = false;
-		else
-			debugging.in_debug_mode = true;
-	}*/
-
-	Motion& salmonMotion = registry.motions.get(player_salmon);
+	Motion& salmonMotion = registry.motions.get(player_wizard);
 	vec2 currentVelocity = vec2(salmonMotion.velocity.x, salmonMotion.velocity.y);
 	if (action == GLFW_PRESS && key == GLFW_KEY_W) {
 		salmonMotion.velocity = vec2(currentVelocity.x, currentVelocity.y - (float)PLAYER_SPEED);
@@ -361,6 +326,15 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (action == GLFW_PRESS && key == GLFW_KEY_F) {
 		createFireball(renderer, salmonMotion.position, { -300.f, 0 });
 	}
+
+	// Debugging
+	if (key == GLFW_KEY_Z) {
+		if (action == GLFW_RELEASE)
+			debugging.in_debug_mode = false;
+		else
+			debugging.in_debug_mode = true;
+	}
+
 
 	// Control the current speed with `<` `>`
 	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA) {
