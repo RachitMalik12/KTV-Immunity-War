@@ -10,21 +10,20 @@ struct Player
 
 };
 
-// Turtles and pebbles have a hard shell
-struct HardShell
-{
-
-};
-
-// Fish and Salmon have a soft shell
-struct SoftShell
-{
-
-};
 // The projectile shot by the wizard character.
 struct Projectile
 {
 
+};
+
+struct Block
+{
+
+};
+
+struct Wall
+{
+	bool vertical = false;
 };
 
 // All data relevant to the shape and motion of entities
@@ -117,10 +116,12 @@ struct Mesh
  */
 
 enum class TEXTURE_ASSET_ID {
-	FISH = 0,
-	TURTLE = FISH + 1,
-	FIREBALL = TURTLE + 1,
-	TEXTURE_COUNT = FIREBALL + 1
+	TREE_RED = 0,
+	TREE_ORANGE = TREE_RED + 1,
+	TREE_YELLOW = TREE_ORANGE + 1,
+	FIREBALL = TREE_YELLOW + 1,
+	WIZARD = FIREBALL + 1,
+	TEXTURE_COUNT = WIZARD + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -141,7 +142,8 @@ enum class GEOMETRY_BUFFER_ID {
 	DEBUG_LINE = PEBBLE + 1,
 	GRAYBOX = DEBUG_LINE + 1,
 	SCREEN_TRIANGLE = GRAYBOX + 1,
-	GEOMETRY_COUNT = SCREEN_TRIANGLE + 1
+	WALLS = SCREEN_TRIANGLE + 1,
+	GEOMETRY_COUNT = WALLS + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 

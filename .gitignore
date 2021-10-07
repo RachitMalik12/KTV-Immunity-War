@@ -26,6 +26,7 @@
 **/__MACOSX/
 **/$RECYCLE.BIN/
 **/Desktop.ini
+**/ext/project_path.hpp 
 
 !ext/
 !template/ext/

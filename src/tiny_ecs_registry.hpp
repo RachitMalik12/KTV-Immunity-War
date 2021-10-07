@@ -19,11 +19,11 @@ public:
 	ComponentContainer<Mesh*> meshPtrs;
 	ComponentContainer<RenderRequest> renderRequests;
 	ComponentContainer<ScreenState> screenStates;
-	ComponentContainer<SoftShell> softShells;
-	ComponentContainer<HardShell> hardShells;
 	ComponentContainer<DebugComponent> debugComponents;
 	ComponentContainer<DebugComponent> grayboxComponents;
 	ComponentContainer<Projectile> projectiles;
+	ComponentContainer<Block> blocks;
+	ComponentContainer<Wall> walls;
 	ComponentContainer<vec3> colors;
 
 	// constructor that adds all containers for looping over them
@@ -38,11 +38,11 @@ public:
 		registry_list.push_back(&meshPtrs);
 		registry_list.push_back(&renderRequests);
 		registry_list.push_back(&screenStates);
-		registry_list.push_back(&softShells);
-		registry_list.push_back(&hardShells);
 		registry_list.push_back(&debugComponents);
 		registry_list.push_back(&grayboxComponents);
 		registry_list.push_back(&projectiles);
+		registry_list.push_back(&blocks);
+		registry_list.push_back(&walls);
 		registry_list.push_back(&colors);
 	}
 

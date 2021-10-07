@@ -26,19 +26,71 @@ bool collides(const Motion& motion1, const Motion& motion2)
 	return false;
 }
 
+bool blockCollides(vec2 nextPosition, const Motion& block) {
+	vec2 dp = nextPosition - block.position;
+	float dist_squared = dot(dp, dp);
+	const vec2 wall_bonding_box = get_bounding_box(block) / 2.f;
+	const float r_squared = dot(wall_bonding_box, wall_bonding_box);
+	if (dist_squared < r_squared)
+		return true;
+	return false;
+
+}
+
+bool wallCollides(vec2 nextPosition, Entity wall) {
+	bool hitAWall = false;
+	Motion& motion = registry.motions.get(wall);
+	bool isVertical = registry.walls.get(wall).vertical;
+	vec2 wallPos = motion.position;
+	vec2 wallScale = motion.scale;
+	if (isVertical) {
+		float left = wallPos.x - (wallScale.x / 2);
+		float right = wallPos.x + (wallScale.x / 2);
+		if (nextPosition.x >= left && nextPosition.x <= right) {
+			hitAWall = true;
+		}
+	}
+	else {
+		float top = wallPos.y - (wallScale.y / 2);
+		float bottom = wallPos.y + (wallScale.y / 2);
+		if (nextPosition.y >= top && nextPosition.y <= bottom) {
+			hitAWall = true;
+		}
+	}
+	return hitAWall;
+}
+
 void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_height_px)
 {
 	// Move fish based on how much time has passed, this is to (partially) avoid
 	// having entities move at different speed based on the machine.
 	auto& motion_registry = registry.motions;
+	auto& blocks_registry = registry.blocks;
+	auto& walls_registry = registry.walls;
 	for(uint i = 0; i< motion_registry.size(); i++)
 	{
-		// !!! TODO A1: update motion.position based on step_seconds and motion.velocity
 		Motion& motion = motion_registry.components[i];
 		Entity entity = motion_registry.entities[i];
 		float step_seconds = 1.0f * (elapsed_ms / 1000.f);
-		motion.position  = vec2(motion.position.x + motion.velocity.x * step_seconds,
+		vec2 nextPosition = vec2(motion.position.x + motion.velocity.x * step_seconds,
 			motion.position.y + motion.velocity.y * step_seconds);
+		bool hitABlock = false;
+		for (uint j = 0; j < blocks_registry.size(); j++) {
+			Entity blockEntity = blocks_registry.entities[j];
+			if (blockCollides(nextPosition, motion_registry.get(blockEntity))) {
+				hitABlock = true;
+			}
+		}
+		bool hitAWall = false;
+		for (uint j = 0; j < walls_registry.size(); j++) {
+			Entity wallEntity = walls_registry.entities[j];
+			if (wallCollides(nextPosition, wallEntity)) {
+				hitABlock = true;
+			}
+		}
+		if (!hitABlock && !hitAWall) {
+			motion.position = nextPosition;
+		}
 	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -100,7 +152,6 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 			Entity line1 = createLine(motion_i.position, line_scale1);
 			vec2 line_scale2 = { 2*radius, motion_i.scale.x / 10 };
 			Entity line2 = createLine(motion_i.position, line_scale2);
-			
 		}
 	}
 
