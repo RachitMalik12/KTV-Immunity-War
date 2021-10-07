@@ -21,9 +21,14 @@ struct Block
 
 };
 
+
 // Enemy that will be attacked by wizard using projectile
 struct Enemy
 {
+
+struct Wall
+{
+	bool vertical = false;
 
 };
 
@@ -142,7 +147,8 @@ enum class GEOMETRY_BUFFER_ID {
 	PEBBLE = SPRITE + 1,
 	DEBUG_LINE = PEBBLE + 1,
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,
-	GEOMETRY_COUNT = SCREEN_TRIANGLE + 1
+	WALLS = SCREEN_TRIANGLE + 1,
+	GEOMETRY_COUNT = WALLS + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
