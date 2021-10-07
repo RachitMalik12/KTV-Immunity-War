@@ -26,6 +26,8 @@ struct Block
 struct Enemy
 {
 
+};
+
 struct Wall
 {
 	bool vertical = false;
