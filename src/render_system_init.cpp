@@ -208,6 +208,31 @@ void RenderSystem::initializeGlGeometryBuffers()
 	meshes[geom_index].vertex_indices = line_indices;
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::DEBUG_LINE, line_vertices, line_indices);
 
+	//////////////////////////////////
+	// Initialize walls
+	std::vector<ColoredVertex> wall_line_vertices;
+	std::vector<uint16_t> wall_line_indices;
+
+	constexpr float wall_depth = 0.5f;
+	constexpr vec3 green = { 0.0, 0.4, 0.33 };
+
+	// Corner points
+	wall_line_vertices = {
+		{{-0.5,-0.5, wall_depth}, green},
+		{{-0.5, 0.5, wall_depth}, green},
+		{{ 0.5, 0.5, wall_depth}, green},
+		{{ 0.5,-0.5, wall_depth}, green},
+	};
+
+	// Two triangles
+	wall_line_indices = { 0, 1, 3, 1, 2, 3 };
+
+	geom_index = (int)GEOMETRY_BUFFER_ID::WALLS;
+	meshes[geom_index].vertices = wall_line_vertices;
+	meshes[geom_index].vertex_indices = wall_line_indices;
+	bindVBOandIBO(GEOMETRY_BUFFER_ID::WALLS, wall_line_vertices, wall_line_indices);
+
+
 	///////////////////////////////////////////////////////
 	// Initialize screen triangle (yes, triangle, not quad; its more efficient).
 	std::vector<vec3> screen_vertices(3);
