@@ -53,6 +53,29 @@ Entity createWizard(RenderSystem* renderer, vec2 position) {
 	return entity;
 }
 
+Entity createWall(vec2 position, vec2 scale, bool isVertical) {
+	Entity entity = Entity();
+	Wall& wall = registry.walls.emplace(entity);
+	wall.vertical = isVertical;
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+		 EFFECT_ASSET_ID::PEBBLE,
+		 GEOMETRY_BUFFER_ID::WALLS });
+
+	// Create motion
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+	motion.scale = scale;
+
+	return entity;
+}
+
+
+
 Entity createBlock(RenderSystem* renderer, vec2 pos, std::string color) {
 	// Reserve en entity
 	auto entity = Entity();

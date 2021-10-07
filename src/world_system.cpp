@@ -14,6 +14,9 @@ const size_t MAX_FISH = 5;
 const size_t TURTLE_DELAY_MS = 2000 * 3;
 const size_t FISH_DELAY_MS = 5000 * 3;
 const size_t PLAYER_SPEED = 150;
+const int WINDOW_WIDTH_PX = 1200;
+const int WINDOW_HEIGHT_PX = 800;
+const int WALL_THICCNESS = 40;
 
 // Create the fish world
 WorldSystem::WorldSystem()
@@ -196,9 +199,20 @@ void WorldSystem::restart_game() {
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
-	// Create a new salmon
+	// Create walls
+	vec2 leftWallPos = { 0, WINDOW_HEIGHT_PX / 2 };
+	vec2 rightWallPos = { WINDOW_WIDTH_PX, WINDOW_HEIGHT_PX / 2 };
+	vec2 topWallPos = { WINDOW_WIDTH_PX / 2, 0 };
+	vec2 bottomWallPos = { WINDOW_WIDTH_PX / 2, WINDOW_HEIGHT_PX };
+	vec2 verticalWallScale = { WALL_THICCNESS, WINDOW_HEIGHT_PX };
+	vec2 horizontalWallScale = { WINDOW_WIDTH_PX, WALL_THICCNESS };
+	createWall(leftWallPos, verticalWallScale, true);
+	createWall(rightWallPos, verticalWallScale, true);
+	createWall(topWallPos, horizontalWallScale, false);
+	createWall(bottomWallPos, horizontalWallScale, false);
+
+	// Create a new player character
 	player_wizard = createWizard(renderer, { 100, 200 });
-	// registry.colors.insert(player_salmon, {1, 0.8f, 0.8f});
 
 	// Create some blocks
 	createBlock(renderer, { 700, 600 }, "red");

@@ -22,6 +22,7 @@ public:
 	ComponentContainer<DebugComponent> debugComponents;
 	ComponentContainer<Projectile> projectiles;
 	ComponentContainer<Block> blocks;
+	ComponentContainer<Wall> walls;
 	ComponentContainer<vec3> colors;
 
 	// constructor that adds all containers for looping over them
@@ -39,6 +40,7 @@ public:
 		registry_list.push_back(&debugComponents);
 		registry_list.push_back(&projectiles);
 		registry_list.push_back(&blocks);
+		registry_list.push_back(&walls);
 		registry_list.push_back(&colors);
 	}
 
