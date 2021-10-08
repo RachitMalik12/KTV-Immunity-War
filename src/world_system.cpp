@@ -85,9 +85,11 @@ GLFWwindow* WorldSystem::create_window(int width, int height) {
 	// http://www.glfw.org/docs/latest/input_guide.html
 	glfwSetWindowUserPointer(window, this);
 	auto key_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2, int _3) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_key(_0, _1, _2, _3); };
-	auto cursor_pos_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_move({ _0, _1 }); };
 	glfwSetKeyCallback(window, key_redirect);
+	auto cursor_pos_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_move({ _0, _1 }); };
 	glfwSetCursorPosCallback(window, cursor_pos_redirect);
+	auto mouse_button_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_click(_0, _1, _2); };
+	glfwSetMouseButtonCallback(window, mouse_button_redirect);
 
 	//////////////////////////////////////
 	// Loading music and sounds with SDL
@@ -146,6 +148,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Removing out of screen entities
 	auto& motions_registry = registry.motions;
+	auto& destinations_registry = registry.destinations;
 
 	// Remove entities that leave the screen on the left side
 	// Iterate backwards to be able to remove without unterfering with the next object to visit
@@ -156,6 +159,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		    registry.remove_all_components_of(motions_registry.entities[i]);
 		}
 	}
+
+	if (destinations_registry.has(player2_wizard)) {
+		Motion& motion = motions_registry.get(player2_wizard);
+		Destination& destination = destinations_registry.get(player2_wizard);
+
+		if (abs(motion.position.x - destination.position.x) < 1.f && abs(motion.position.y - destination.position.y) < 1.f) {
+			destinations_registry.remove(player2_wizard);
+			motion.velocity = vec2(0,0);
+		}
+	}
+
 
 	// Processing the salmon state
 	assert(registry.screenStates.components.size() <= 1);
@@ -181,7 +195,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// reduce window brightness if any of the present salmons is dying
 	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 
-	// !!! TODO A1: update LightUp timers and remove if time drops below zero, similar to the death counter
 
 	return true;
 }
@@ -217,6 +230,7 @@ void WorldSystem::restart_game() {
 
 	// Create a new player character
 	player_wizard = createWizard(renderer, { 100, 200 });
+	player2_wizard = createWizard(renderer, { 100, 400 });
 
 	// Create some blocks
 	createBlock(renderer, { 700, 600 }, "red");
@@ -384,6 +398,32 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	// xpos and ypos are relative to the top-left of the window, the salmon's
 	// default facing direction is (1, 0)
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	(vec2)mouse_position;
+}
 
-	(vec2)mouse_position; // dummy to avoid compiler warning
+void WorldSystem::on_mouse_click(int button, int action, int mods) {
+	if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_LEFT) {
+		if (registry.destinations.has(player2_wizard))
+			registry.destinations.remove(player2_wizard);
+		Motion& wizard2_motion = registry.motions.get(player2_wizard);
+		double x, y;
+		glfwGetCursorPos(window, &x, &y);
+		double dx = x - wizard2_motion.position.x;
+		double dy = y - wizard2_motion.position.y;
+		float h = sqrt(pow(dx, 2) + pow(dy, 2));
+		float scale = (float)PLAYER_SPEED / h;
+		wizard2_motion.velocity = vec2(dx * scale, dy * scale);
+		registry.destinations.emplace(player2_wizard, vec2(x,y));
+	}
+
+	if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_RIGHT) {
+		Motion& wizard2_motion = registry.motions.get(player2_wizard);
+		double x, y;
+		glfwGetCursorPos(window, &x, &y);
+		double dx = x - wizard2_motion.position.x;
+		double dy = y - wizard2_motion.position.y;
+		float h = sqrt(pow(dx, 2) + pow(dy, 2));
+		float scale = 300.f / h;
+		createFireball(renderer, wizard2_motion.position, { dx * scale, dy * scale });
+	}
 }
