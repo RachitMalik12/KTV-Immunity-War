@@ -197,8 +197,8 @@ void RenderSystem::draw()
 	// Clearing backbuffer
 
 	// TO DO: Currently, camera can move all the way down past the map area. Change it so that it stops.
-	if (registry.motions.get(registry.motions.entities[4]).position.y - (h / 2) > 0) {
-		glViewport(0, registry.motions.get(registry.motions.entities[4]).position.y - (h / 2), w, h);
+	if (registry.motions.get(registry.motions.entities[4]).position.y - (5 * h / 7) > 0) {
+		glViewport(0, registry.motions.get(registry.motions.entities[4]).position.y - (5 * h / 7), w, h);
 	}
 	else {
 		glViewport(0, 0, w, h);

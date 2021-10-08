@@ -181,6 +181,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// Spawning new enemy
+	// TODO: Make so that enemy cannot MOVE outside of first room
 	next_enemy_spawn -= elapsed_ms_since_last_update * current_speed;
 	if (registry.enemies.components.size() <= MAX_FISH && next_enemy_spawn < 0.f) {
 		// !!!  TODO A1: Create new fish with createFish({0,0}), as for the Turtles above
@@ -188,12 +189,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		next_enemy_spawn = (FISH_DELAY_MS / 2) + uniform_dist(rng) * (FISH_DELAY_MS / 2);
 		// Create fish
 		Entity entity = createEnemy(renderer, { 0,0 }, { 0,0 });
-		// Setting random initial position (to the right of screen) and constant velocity
+		// Setting random initial position and constant velocity
 		Motion& motion = registry.motions.get(entity);
 		motion.position =
-			vec2(screen_width - 200.f,
-				50.f + uniform_dist(rng) * (screen_height - 100.f));
-		motion.velocity = vec2(-200.f, 0.f);
+			vec2(uniform_dist(rng) * (screen_width - 100.f),
+				50.f);
+		motion.velocity = vec2(0.f, 200.f);
 	}
 
 	if (destinations_registry.has(player2_wizard)) {
@@ -237,6 +238,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 // Reset the world state to its initial state
 void WorldSystem::restart_game() {
 	// Debugging for memory/component leaks
+
 	registry.list_all_components();
 	printf("Restarting\n");
 
@@ -267,9 +269,12 @@ void WorldSystem::restart_game() {
 	player_wizard = createWizard(renderer, { 100, 200 });
 	player2_wizard = createWizard(renderer, { 100, 400 });
 
+	callbackFns.clear();
+	stamina = 10;
 	attach([&](Entity entity) {
 		staminaListener(entity);
 	});
+
 
 	// Create some blocks
 	createBlock(renderer, { 700, 600 }, "red");
@@ -360,7 +365,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
 		int w, h;
 		glfwGetWindowSize(window, &w, &h);
-
         restart_game();
 	}
 
