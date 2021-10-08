@@ -195,10 +195,16 @@ void RenderSystem::draw()
 	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
 	gl_has_errors();
 	// Clearing backbuffer
-	glViewport(0, 0, w, h);
-	glDepthRange(0.00001, 10);
-	glClearColor(0, 0, 1, 1.0);
-	glClearDepth(1.f);
+
+	// TO DO: Currently, camera can move all the way down past the map area. Change it so that it stops.
+	if (registry.motions.get(registry.motions.entities[4]).position.y - (h / 2) > 0) {
+		glViewport(0, registry.motions.get(registry.motions.entities[4]).position.y - (h / 2), w, h);
+	}
+	else {
+		glViewport(0, 0, w, h);
+	}
+
+	glClearColor(1, 0, 1, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
