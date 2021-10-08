@@ -55,6 +55,7 @@ private:
 	// Game state
 	RenderSystem* renderer;
 	float current_speed;
+	float next_enemy_spawn;
 	Entity player_salmon;
 	Entity player_wizard;
 	Entity player2_wizard;

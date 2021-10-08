@@ -160,6 +160,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// Spawning new enemy
+	next_enemy_spawn -= elapsed_ms_since_last_update * current_speed;
+	if (registry.enemies.components.size() <= MAX_FISH && next_enemy_spawn < 0.f) {
+		// !!!  TODO A1: Create new fish with createFish({0,0}), as for the Turtles above
+		// Reset timer
+		next_enemy_spawn = (FISH_DELAY_MS / 2) + uniform_dist(rng) * (FISH_DELAY_MS / 2);
+		// Create fish
+		Entity entity = createEnemy(renderer, { 0,0 }, { 0,0 });
+		// Setting random initial position (to the right of screen) and constant velocity
+		Motion& motion = registry.motions.get(entity);
+		motion.position =
+			vec2(screen_width - 200.f,
+				50.f + uniform_dist(rng) * (screen_height - 100.f));
+		motion.velocity = vec2(-200.f, 0.f);
+	}
+
 	if (destinations_registry.has(player2_wizard)) {
 		Motion& motion = motions_registry.get(player2_wizard);
 		Destination& destination = destinations_registry.get(player2_wizard);
@@ -169,7 +185,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			motion.velocity = vec2(0,0);
 		}
 	}
-
 
 	// Processing the salmon state
 	assert(registry.screenStates.components.size() <= 1);
@@ -260,6 +275,16 @@ void WorldSystem::handle_collisions() {
 		// The entity and its collider
 		Entity entity = collisionsRegistry.entities[i];
 		Entity entity_other = collisionsRegistry.components[i].other;
+
+		// Checking collision of projectiles with other entities
+		if (registry.projectiles.has(entity)) {
+			if (registry.enemies.has(entity_other)) {
+				// remove enemy, fireball, count points
+				registry.remove_all_components_of(entity_other);
+				registry.remove_all_components_of(entity);
+				++points;
+			}
+		}
 
 		// For now, we are only interested in collisions that involve the salmon
 		if (registry.players.has(entity)) {
