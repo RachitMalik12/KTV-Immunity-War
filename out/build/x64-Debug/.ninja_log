@@ -1,0 +1,25 @@
+# ninja log v5
+194	2074	6554299221571618	CMakeFiles/salmon.dir/src/tiny_ecs.cpp.obj	fff29245aa05afb2
+214	3184	6554299232701849	CMakeFiles/salmon.dir/src/world_init.cpp.obj	7f1bc4a50b52bfd9
+19	3325	6554299234267655	CMakeFiles/salmon.dir/src/ai_system.cpp.obj	c8d149f479a6dc35
+1	4254	6554299243463053	CMakeFiles/salmon.dir/src/common.cpp.obj	1a651bc38247f888
+106	4462	6554299245467697	CMakeFiles/salmon.dir/src/main.cpp.obj	134e8ba47134d580
+82	4779	6554299248778832	CMakeFiles/salmon.dir/src/components.cpp.obj	b9a7303e905198ee
+34	4810	6554299248938409	CMakeFiles/salmon.dir/src/physics_system.cpp.obj	6eda8b0e55063c53
+238	5083	6554299251760861	CMakeFiles/salmon.dir/src/tiny_ecs_registry.cpp.obj	8315225c008b37
+174	5165	6554299252628538	CMakeFiles/salmon.dir/src/render_system_init.cpp.obj	af1ac31809f30fbe
+149	5627	6554299257146478	CMakeFiles/salmon.dir/src/render_system.cpp.obj	236dca1c59f405d2
+2076	6080	6554299261804001	CMakeFiles/salmon.dir/src/world_system.cpp.obj	b705c3a64ab5a2c2
+6081	7191	6554299270041961	salmon.exe	d48cd06f15214496
+59	3078	6554302799147234	CMakeFiles/salmon.dir/src/components.cpp.obj	b9a7303e905198ee
+116	3113	6554302799516249	CMakeFiles/salmon.dir/src/tiny_ecs_registry.cpp.obj	8315225c008b37
+133	3239	6554302800762920	CMakeFiles/salmon.dir/src/world_system.cpp.obj	b705c3a64ab5a2c2
+18	3254	6554302801092042	CMakeFiles/salmon.dir/src/physics_system.cpp.obj	6eda8b0e55063c53
+3	3324	6554302801480999	CMakeFiles/salmon.dir/src/ai_system.cpp.obj	c8d149f479a6dc35
+38	3371	6554302802109320	CMakeFiles/salmon.dir/src/main.cpp.obj	134e8ba47134d580
+77	3445	6554302803056768	CMakeFiles/salmon.dir/src/render_system_init.cpp.obj	af1ac31809f30fbe
+153	3605	6554302804622692	CMakeFiles/salmon.dir/src/world_init.cpp.obj	7f1bc4a50b52bfd9
+95	3972	6554302808312711	CMakeFiles/salmon.dir/src/render_system.cpp.obj	236dca1c59f405d2
+3973	4682	6554302812292060	salmon.exe	d48cd06f15214496
+3	1509	6554303321449007	CMakeFiles/salmon.dir/src/world_system.cpp.obj	b705c3a64ab5a2c2
+1510	2081	6554303324500828	salmon.exe	d48cd06f15214496

@@ -430,16 +430,35 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		salmonMotion.velocity = vec2(currentVelocity.x, currentVelocity.y - (float)PLAYER_SPEED);
 	}
 
+	// JA
 	if (action == GLFW_PRESS && key == GLFW_KEY_A) {
+		if (!registry.flips.has(player2_wizard))
+		{
+			registry.flips.emplace(player2_wizard);
+			Flip& flipped = registry.flips.get(player2_wizard);
+			flipped.left = true;
+			printf("player1 left sprite");
+
+		}
+
 		salmonMotion.velocity = vec2(currentVelocity.x - (float)PLAYER_SPEED, currentVelocity.y);
 	}
 	if (action == GLFW_RELEASE && key == GLFW_KEY_A) {
 		salmonMotion.velocity = vec2(currentVelocity.x + (float)PLAYER_SPEED, currentVelocity.y);
+
 	}
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_D) {
+		if (registry.flips.has(player2_wizard))
+		{
+			Flip& flipped = registry.flips.get(player2_wizard);
+			flipped.left = false;
+			registry.flips.remove(player2_wizard);
+			printf("player1 right sprite");
+		}
 		salmonMotion.velocity = vec2(currentVelocity.x + (float)PLAYER_SPEED, currentVelocity.y);
 	}
+	// JA END
 	if (action == GLFW_RELEASE && key == GLFW_KEY_D) {
 		salmonMotion.velocity = vec2(currentVelocity.x - (float)PLAYER_SPEED, currentVelocity.y);
 	}
@@ -495,6 +514,28 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	// xpos and ypos are relative to the top-left of the window, the salmon's
 	// default facing direction is (1, 0)
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// JA: adding flip left action to wizard 2
+	Motion& motion = registry.motions.get(player2_wizard);
+	//float ang = atan2(mouse_position.y - motion.position.y, mouse_position.x - motion.position.x);
+	float deltaX = mouse_position.x - motion.position.x;
+	/*printf("%.6f", deltaX);*/
+	if (deltaX < 0 && !registry.flips.has(player2_wizard))
+	{
+		registry.flips.emplace(player2_wizard);
+		Flip& flipped = registry.flips.get(player2_wizard);
+		flipped.left = true;
+		printf("player2 left sprite");
+	}
+	else
+	{
+		if (deltaX > 0 && registry.flips.has(player2_wizard))
+		{
+			Flip& flipped = registry.flips.get(player2_wizard);
+			flipped.left = false;
+			registry.flips.remove(player2_wizard);
+			printf("player2 right sprite");
+		}
+	}
 	(vec2)mouse_position;
 }
 
