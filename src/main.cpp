@@ -27,8 +27,6 @@ int main()
 
 	// Initializing window
 	GLFWwindow* window = world.create_window(window_width_px, window_height_px);
-
-	// GLFWwindow* window_help = world.create_help_window(window_width_px, window_height_px);
 	if (!window) {
 		// Time to read the error message
 		printf("Press any key to exit");

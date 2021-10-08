@@ -197,7 +197,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	if (registry.powerups.size() <= 0 && spawnPowerup) {
-		//// Spawn power ups: 
+		// Spawn power ups: 
 		Entity powerUp = createPowerup(renderer, { 200.f ,1200.f });
 		registry.powerups.emplace(powerUp);
 		// Create 3 power ups in the store 100 px apart at 1200 y 
@@ -213,7 +213,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			registry.powerups.emplace(powerUp);
 		}
 		spawnPowerup = false; 
-
 	}
 
 	if (destinations_registry.has(player2_wizard)) {
@@ -343,16 +342,13 @@ void WorldSystem::handle_collisions() {
 		if (registry.powerups.has(entity)) {
 			if (registry.players.has(entity_other)) {
 				//Deduct points if money is available, add stamina 
-				
 				if (money - 1 >= 0) {
 					money -= 1; 
 					stamina += 5; 
 					registry.remove_all_components_of(entity);
 				} 
-
 			}
 		}
-
 		// For now, we are only interested in collisions that involve the salmon
 		if (registry.players.has(entity)) {
 			//Player& player = registry.players.get(entity);
