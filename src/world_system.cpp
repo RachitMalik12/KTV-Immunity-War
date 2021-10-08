@@ -14,13 +14,14 @@ const size_t MAX_FISH = 5;
 const size_t TURTLE_DELAY_MS = 2000 * 3;
 const size_t FISH_DELAY_MS = 5000 * 3;
 const size_t PLAYER_SPEED = 150;
-const int WINDOW_WIDTH_PX = 1200;
-const int WINDOW_HEIGHT_PX = 800;
+const int MAP_WIDTH_PX = 800;
+const int MAP_HEIGHT_PX = 1600;
 const int WALL_THICCNESS = 40;
 
 // Create the fish world
 WorldSystem::WorldSystem()
-	: points(0) {
+	: points(0),
+	stamina(10){
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
 }
@@ -117,6 +118,7 @@ GLFWwindow* WorldSystem::create_window(int width, int height) {
 	return window;
 }
 
+
 void WorldSystem::init(RenderSystem* renderer_arg) {
 	this->renderer = renderer_arg;
 	// Playing background music indefinitely
@@ -126,6 +128,24 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 	// Set all states to default
     restart_game();
 }
+
+// Observer pattern
+void WorldSystem::staminaListener(Entity entity) {
+	if (stamina > 0 && entity.getId()) {
+		stamina--;
+	}
+}
+
+void WorldSystem::staminaCallBack(Entity entity) {
+	for (std::function<void(Entity entity)> fn: callbackFns) {
+		fn(entity);
+	}
+}
+
+// add listener
+void WorldSystem::attach(const std::function<void(Entity)> fn) {
+	callbackFns.push_back(fn);
+};
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
@@ -232,12 +252,12 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 
 	// Create walls
-	vec2 leftWallPos = { 0, WINDOW_HEIGHT_PX / 2 };
-	vec2 rightWallPos = { WINDOW_WIDTH_PX, WINDOW_HEIGHT_PX / 2 };
-	vec2 topWallPos = { WINDOW_WIDTH_PX / 2, 0 };
-	vec2 bottomWallPos = { WINDOW_WIDTH_PX / 2, WINDOW_HEIGHT_PX };
-	vec2 verticalWallScale = { WALL_THICCNESS, WINDOW_HEIGHT_PX };
-	vec2 horizontalWallScale = { WINDOW_WIDTH_PX, WALL_THICCNESS };
+	vec2 leftWallPos = { 0, MAP_HEIGHT_PX / 2 };
+	vec2 rightWallPos = { MAP_WIDTH_PX, MAP_HEIGHT_PX / 2 };
+	vec2 topWallPos = { MAP_WIDTH_PX / 2, 0 };
+	vec2 bottomWallPos = { MAP_WIDTH_PX / 2, MAP_HEIGHT_PX };
+	vec2 verticalWallScale = { WALL_THICCNESS, MAP_HEIGHT_PX };
+	vec2 horizontalWallScale = { MAP_WIDTH_PX, WALL_THICCNESS };
 	createWall(leftWallPos, verticalWallScale, true);
 	createWall(rightWallPos, verticalWallScale, true);
 	createWall(topWallPos, horizontalWallScale, false);
@@ -247,10 +267,16 @@ void WorldSystem::restart_game() {
 	player_wizard = createWizard(renderer, { 100, 200 });
 	player2_wizard = createWizard(renderer, { 100, 400 });
 
+	attach([&](Entity entity) {
+		staminaListener(entity);
+	});
+
 	// Create some blocks
 	createBlock(renderer, { 700, 600 }, "red");
 	createBlock(renderer, { 700, 300 }, "orange");
 	createBlock(renderer, { 700, 100 }, "yellow");
+	createDoorWay(renderer, { 0, MAP_HEIGHT_PX / 2 });
+	createDoorWay(renderer, { MAP_WIDTH_PX, MAP_HEIGHT_PX / 2 });
 
 	// !! TODO A3: Enable static pebbles on the ground
 	// Create pebbles on the floor for reference
@@ -326,6 +352,8 @@ bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
 }
 
+
+
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
 	// Resetting game
@@ -380,20 +408,28 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		salmonMotion.velocity = vec2(currentVelocity.x - (float)PLAYER_SPEED, currentVelocity.y);
 	}
 
-	if (action == GLFW_PRESS && key == GLFW_KEY_T) {
+	if (action == GLFW_PRESS && key == GLFW_KEY_T && stamina > 0) {
 		createFireball(renderer, salmonMotion.position, { 0, -300.f });
+		staminaCallBack(player_wizard);
+		std::cout << stamina;
 	}
 
-	if (action == GLFW_PRESS && key == GLFW_KEY_G) {
+	if (action == GLFW_PRESS && key == GLFW_KEY_G && stamina > 0) {
 		createFireball(renderer, salmonMotion.position, { 0, 300.f });
+		staminaCallBack(player_wizard);
+		std::cout << stamina;
 	}
 
-	if (action == GLFW_PRESS && key == GLFW_KEY_H) {
+	if (action == GLFW_PRESS && key == GLFW_KEY_H && stamina > 0) {
 		createFireball(renderer, salmonMotion.position, { 300.f, 0});
+		staminaCallBack(player_wizard);
+		std::cout << stamina;
 	}
 
-	if (action == GLFW_PRESS && key == GLFW_KEY_F) {
+	if (action == GLFW_PRESS && key == GLFW_KEY_F && stamina > 0) {
 		createFireball(renderer, salmonMotion.position, { -300.f, 0 });
+		staminaCallBack(player_wizard);
+		std::cout << stamina;
 	}
 
 	// Debugging
@@ -441,7 +477,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 		registry.destinations.emplace(player2_wizard, vec2(x,y));
 	}
 
-	if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_RIGHT) {
+	if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_RIGHT && stamina > 0) {
 		Motion& wizard2_motion = registry.motions.get(player2_wizard);
 		double x, y;
 		glfwGetCursorPos(window, &x, &y);
@@ -450,5 +486,6 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 		float h = sqrt(pow(dx, 2) + pow(dy, 2));
 		float scale = 300.f / h;
 		createFireball(renderer, wizard2_motion.position, { dx * scale, dy * scale });
+		staminaCallBack(player2_wizard);
 	}
 }

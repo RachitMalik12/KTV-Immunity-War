@@ -7,7 +7,7 @@
 // Player component
 struct Player
 {
-
+	
 };
 
 // The projectile shot by the wizard character.
@@ -136,7 +136,8 @@ enum class TEXTURE_ASSET_ID {
 	TREE_YELLOW = TREE_ORANGE + 1,
 	FIREBALL = TREE_YELLOW + 1,
 	WIZARD = FIREBALL + 1,
-	ENEMY = WIZARD + 1,
+	BLACK_BAR = WIZARD + 1,
+	ENEMY = BLACK_BAR + 1,
 	TEXTURE_COUNT = ENEMY + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;

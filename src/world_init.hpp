@@ -27,6 +27,10 @@ Entity createWall(vec2 position, vec2 size, bool isVertical);
 // map blocks
 Entity createBlock(RenderSystem* renderer, vec2 pos, std::string color);
 
+// map doorWay
+Entity createDoorWay(RenderSystem* renderer, vec2 pos);
+
+
 // the enemy 
 Entity createEnemy(RenderSystem* render, vec2 pos, vec2 velocity);
 
