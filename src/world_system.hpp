@@ -41,6 +41,7 @@ private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
 	void on_mouse_move(vec2 pos);
+	void on_mouse_click(int button, int action, int mods);
 
 	// restart level
 	void restart_game();
@@ -57,6 +58,7 @@ private:
 	float next_enemy_spawn;
 	Entity player_salmon;
 	Entity player_wizard;
+	Entity player2_wizard;
 
 	// music references
 	Mix_Music* background_music;

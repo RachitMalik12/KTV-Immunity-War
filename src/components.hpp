@@ -76,6 +76,13 @@ struct DeathTimer
 	float counter_ms = 3000;
 };
 
+// An entity in motion that will stop at a certain point
+struct Destination
+{
+	vec2 position = { 0,0 };
+	Destination(const vec2 pos) : position(pos) {};
+};
+
 // Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & salmon.vs.glsl)
 struct ColoredVertex
 {
