@@ -10,9 +10,9 @@
 
 // Game configuration
 const size_t MAX_TURTLES = 15;
-const size_t MAX_FISH = 5;
+const size_t MAX_ENEMIES = 10;
 const size_t TURTLE_DELAY_MS = 2000 * 3;
-const size_t FISH_DELAY_MS = 5000 * 3;
+const size_t ENEMY_DELAY_MS = 1000;
 const size_t PLAYER_SPEED = 150;
 const int MAP_WIDTH_PX = 800;
 const int MAP_HEIGHT_PX = 1600;
@@ -20,8 +20,10 @@ const int WALL_THICCNESS = 40;
 
 // Create the fish world
 WorldSystem::WorldSystem()
-	: points(0),
-	stamina(10){
+	: money(0),
+	stamina(10), 
+	spawnPowerup(true)
+{
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
 }
@@ -49,7 +51,6 @@ namespace {
 		fprintf(stderr, "%d: %s", error, desc);
 	}
 }
-
 // World initialization
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer
 GLFWwindow* WorldSystem::create_window(int width, int height) {
@@ -124,8 +125,6 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 	// Playing background music indefinitely
 	Mix_PlayMusic(background_music, -1);
 	fprintf(stderr, "Loaded music\n");
-
-	// Set all states to default
     restart_game();
 }
 
@@ -153,9 +152,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	int screen_width, screen_height;
 	glfwGetFramebufferSize(window, &screen_width, &screen_height);
 
-	// Updating window title with points
+	// Updating window title with money
 	std::stringstream title_ss;
-	title_ss << "Points: " << points;
+	title_ss << "Money: " << money << " and Stamina: " << stamina;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	// Remove debug info from the last step
@@ -183,11 +182,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Spawning new enemy
 	// TODO: Make so that enemy cannot MOVE outside of first room
 	next_enemy_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (registry.enemies.components.size() <= MAX_FISH && next_enemy_spawn < 0.f) {
+	if (registry.enemies.components.size() <= MAX_ENEMIES && next_enemy_spawn < 0.f) {
 		// !!!  TODO A1: Create new fish with createFish({0,0}), as for the Turtles above
 		// Reset timer
-		next_enemy_spawn = (FISH_DELAY_MS / 2) + uniform_dist(rng) * (FISH_DELAY_MS / 2);
-		// Create fish
+		next_enemy_spawn = (ENEMY_DELAY_MS / 2) + uniform_dist(rng) * (ENEMY_DELAY_MS / 2);
+		// Create enemy
 		Entity entity = createEnemy(renderer, { 0,0 }, { 0,0 });
 		// Setting random initial position and constant velocity
 		Motion& motion = registry.motions.get(entity);
@@ -195,6 +194,26 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			vec2(uniform_dist(rng) * (screen_width - 100.f),
 				50.f);
 		motion.velocity = vec2(0.f, 200.f);
+	}
+
+	if (registry.powerups.size() <= 0 && spawnPowerup) {
+		//// Spawn power ups: 
+		Entity powerUp = createPowerup(renderer, { 200.f ,1200.f });
+		registry.powerups.emplace(powerUp);
+		// Create 3 power ups in the store 100 px apart at 1200 y 
+		for (int i = 100; i <= 300; i += 100) {
+			Entity powerUp = createPowerup(renderer, { 200.f + i ,1200.f });
+			registry.powerups.emplace(powerUp);
+		}
+		// Now more below
+		Entity powerUp2 = createPowerup(renderer, { 200.f ,1400.f });
+		registry.powerups.emplace(powerUp2);
+		for (int i = 100; i <= 400; i += 100) {
+			Entity powerUp = createPowerup(renderer, { 200.f + i ,1400.f });
+			registry.powerups.emplace(powerUp);
+		}
+		spawnPowerup = false; 
+
 	}
 
 	if (destinations_registry.has(player2_wizard)) {
@@ -207,7 +226,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	// Processing the salmon state
+	// Processing the player state
 	assert(registry.screenStates.components.size() <= 1);
     ScreenState &screen = registry.screenStates.components[0];
 
@@ -241,7 +260,11 @@ void WorldSystem::restart_game() {
 
 	registry.list_all_components();
 	printf("Restarting\n");
+	// Reset money 
+	money = 0;   
+	spawnPowerup = true; 
 
+	// Set all states to default
 	// Reset the game speed
 	current_speed = 1.f;
 
@@ -309,11 +332,24 @@ void WorldSystem::handle_collisions() {
 
 		// Checking collision of projectiles with other entities
 		if (registry.projectiles.has(entity)) {
-			if (registry.enemies.has(entity_other)) {
+			if (registry.enemies.has(entity_other) && !registry.powerups.has(entity_other)){
 				// remove enemy, fireball, count points
 				registry.remove_all_components_of(entity_other);
 				registry.remove_all_components_of(entity);
-				++points;
+				++money;
+			}
+		}
+
+		if (registry.powerups.has(entity)) {
+			if (registry.players.has(entity_other)) {
+				//Deduct points if money is available, add stamina 
+				
+				if (money - 1 >= 0) {
+					money -= 1; 
+					stamina += 5; 
+					registry.remove_all_components_of(entity);
+				} 
+
 			}
 		}
 

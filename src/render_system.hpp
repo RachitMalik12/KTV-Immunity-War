@@ -36,7 +36,8 @@ class RenderSystem {
 			textures_path("fireball.png"),
 			textures_path("wizard.png"),
 			textures_path("black_bar.png"),
-			textures_path("enemy.png")
+			textures_path("enemy.png"),
+			textures_path("powerup.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
