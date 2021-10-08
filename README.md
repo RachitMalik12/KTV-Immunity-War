@@ -10,7 +10,7 @@ face the correct direction when moving, which means loading the correct sprite o
 Debugging graphics (BS): A another debug mode that draws a rectangle around the sprites is implemented. We can combine this with the original
 red cross for a better visualization of sprites.
 
-Observer pattern (FC): For one enemy type, once it collides with a player, both the player and the enemy will bounce back a short distance.
+Observer pattern (FC): For one case when fireballs are being thrown, stamina will decrease by one and disallow user to throw anymore fireballs.
 
 Keyboard control for player 1 (RM): WSAD for movement and TFGH for 4 directional projectile firing.
 
