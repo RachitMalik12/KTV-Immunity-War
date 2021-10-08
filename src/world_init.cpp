@@ -190,7 +190,7 @@ Entity createFireball(RenderSystem* renderer, vec2 pos, vec2 velocity) {
 }
 
 Entity createPowerup(RenderSystem* renderer, vec2 position)
-{   // Reserve en entity
+{   // Reserve an entity
 	auto entity = Entity();
 
 	// Initialize the position, scale, and physics components
