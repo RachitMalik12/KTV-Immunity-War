@@ -206,7 +206,9 @@ void RenderSystem::draw()
 							  // and alpha blending, one would have to sort
 							  // sprites back to front
 	gl_has_errors();
-	mat3 projection_2D = createProjectionMatrix();
+
+	mat3 projection_2D = createProjectionMatrix(0.f, 0.f);
+
 	// Draw all textured meshes that have a position and size component
 	for (Entity entity : registry.renderRequests.entities)
 	{
@@ -225,11 +227,9 @@ void RenderSystem::draw()
 	gl_has_errors();
 }
 
-mat3 RenderSystem::createProjectionMatrix()
+mat3 RenderSystem::createProjectionMatrix(float left, float top)
 {
 	// Fake projection matrix, scales with respect to window coordinates
-	float left = 0.f;
-	float top = 0.f;
 
 	int w, h;
 	glfwGetFramebufferSize(window, &w, &h);

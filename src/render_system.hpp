@@ -33,8 +33,11 @@ class RenderSystem {
 			textures_path("tree_red.png"),
 			textures_path("tree_orange.png"),
 			textures_path("tree_yellow.png"),
-	        textures_path("fireball.png"),
-			textures_path("wizard.png")};
+			textures_path("fireball.png"),
+			textures_path("wizard.png"),
+			textures_path("black_bar.png"),
+			textures_path("enemy.png")
+	};
 
 	std::array<GLuint, effect_count> effects;
 	// Make sure these paths remain in sync with the associated enumerators.
@@ -75,7 +78,7 @@ public:
 	// Draw all entities
 	void draw();
 
-	mat3 createProjectionMatrix();
+	mat3 createProjectionMatrix(float left, float top);
 
 private:
 	// Internal drawing functions for each entity type

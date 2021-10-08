@@ -105,6 +105,62 @@ Entity createBlock(RenderSystem* renderer, vec2 pos, std::string color) {
 	return entity;
 }
 
+Entity createEnemy(RenderSystem* renderer, vec2 position, vec2 velocity)
+{
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { -50, 0 };
+	motion.position = position;
+
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ -ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+
+	// Create an (empty) Enemy component to be able to refer to all fish
+	registry.enemies.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ENEMY,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
+
+Entity createDoorWay(RenderSystem* renderer, vec2 pos) {
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = pos;
+	motion.scale = vec2({ 500, 200 });
+	TEXTURE_ASSET_ID blockColor = TEXTURE_ASSET_ID::BLACK_BAR;
+
+	registry.blocks.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ blockColor,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
 Entity createFireball(RenderSystem* renderer, vec2 pos, vec2 velocity) {
 	// Reserve en entity
 	auto entity = Entity();
@@ -152,6 +208,28 @@ Entity createLine(vec2 position, vec2 scale)
 	motion.scale = scale;
 
 	registry.debugComponents.emplace(entity);
+	return entity;
+}
+
+Entity createBox(vec2 position, vec2 scale)
+{
+	Entity entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+		 EFFECT_ASSET_ID::PEBBLE,
+		 GEOMETRY_BUFFER_ID::GRAYBOX });
+
+	// Create motion
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+	motion.scale = scale;
+
+	registry.grayboxComponents.emplace(entity);
 	return entity;
 }
 

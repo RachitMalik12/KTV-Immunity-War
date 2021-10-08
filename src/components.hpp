@@ -7,7 +7,7 @@
 // Player component
 struct Player
 {
-
+	
 };
 
 // The projectile shot by the wizard character.
@@ -21,9 +21,17 @@ struct Block
 
 };
 
+
+// Enemy that will be attacked by wizard using projectile
+struct Enemy
+{
+
+};
+
 struct Wall
 {
 	bool vertical = false;
+
 };
 
 // All data relevant to the shape and motion of entities
@@ -45,6 +53,7 @@ struct Collision
 // Data structure for toggling debug mode
 struct Debug {
 	bool in_debug_mode = 0;
+	bool in_graybox_mode = 0;
 	bool in_freeze_mode = 0;
 };
 extern Debug debugging;
@@ -65,6 +74,13 @@ struct DebugComponent
 struct DeathTimer
 {
 	float counter_ms = 3000;
+};
+
+// An entity in motion that will stop at a certain point
+struct Destination
+{
+	vec2 position = { 0,0 };
+	Destination(const vec2 pos) : position(pos) {};
 };
 
 // Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & salmon.vs.glsl)
@@ -120,7 +136,9 @@ enum class TEXTURE_ASSET_ID {
 	TREE_YELLOW = TREE_ORANGE + 1,
 	FIREBALL = TREE_YELLOW + 1,
 	WIZARD = FIREBALL + 1,
-	TEXTURE_COUNT = WIZARD + 1
+	BLACK_BAR = WIZARD + 1,
+	ENEMY = BLACK_BAR + 1,
+	TEXTURE_COUNT = ENEMY + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -139,7 +157,8 @@ enum class GEOMETRY_BUFFER_ID {
 	SPRITE = SALMON + 1,
 	PEBBLE = SPRITE + 1,
 	DEBUG_LINE = PEBBLE + 1,
-	SCREEN_TRIANGLE = DEBUG_LINE + 1,
+	GRAYBOX = DEBUG_LINE + 1,
+	SCREEN_TRIANGLE = GRAYBOX + 1,
 	WALLS = SCREEN_TRIANGLE + 1,
 	GEOMETRY_COUNT = WALLS + 1
 };

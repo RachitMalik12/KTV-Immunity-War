@@ -7,7 +7,7 @@
 #include <functional>
 #include <typeindex>
 #include <assert.h>
-
+#include <iostream>
 // Unique identifyer for all entities
 class Entity
 {
@@ -20,8 +20,10 @@ public:
 		// Note, indices of already deleted entities arent re-used in this simple implementation.
 	}
 	operator unsigned int() { return id; } // this enables automatic casting to int
+	int getId() {
+		return id;
+	}
 };
-
 // Common interface to refer to all containers in the ECS registry
 struct ContainerInterface
 {
