@@ -60,8 +60,9 @@ private:
 	GLFWwindow* window;
 
 	// Number of fish eaten by the salmon, displayed in the window title
-	unsigned int points;
+	int money;
 	unsigned int stamina;
+	bool spawnPowerup; 
 	// Game state
 	RenderSystem* renderer;
 	float current_speed;

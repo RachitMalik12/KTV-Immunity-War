@@ -28,6 +28,11 @@ struct Enemy
 
 };
 
+struct Powerup 
+{
+
+};
+
 struct Wall
 {
 	bool vertical = false;
@@ -138,7 +143,8 @@ enum class TEXTURE_ASSET_ID {
 	WIZARD = FIREBALL + 1,
 	BLACK_BAR = WIZARD + 1,
 	ENEMY = BLACK_BAR + 1,
-	TEXTURE_COUNT = ENEMY + 1
+	POWERUP = ENEMY + 1, 
+	TEXTURE_COUNT = POWERUP + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

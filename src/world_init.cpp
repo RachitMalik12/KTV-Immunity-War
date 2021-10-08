@@ -189,6 +189,29 @@ Entity createFireball(RenderSystem* renderer, vec2 pos, vec2 velocity) {
 	return entity;
 }
 
+Entity createPowerup(RenderSystem* renderer, vec2 position)
+{   // Reserve an entity
+	auto entity = Entity();
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = position;
+
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ -POWERUP_BB_WIDTH, POWERUP_BB_HEIGHT });
+
+	registry.enemies.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{  TEXTURE_ASSET_ID::POWERUP,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
 Entity createLine(vec2 position, vec2 scale)
 {
 	Entity entity = Entity();

@@ -13,6 +13,8 @@ const float FIREBALL_BB_WIDTH = 0.3f * 512.f;
 const float FIREBALL_BB_HEIGHT = 0.3f * 328.f;
 const float ENEMY_BB_HEIGHT = 0.3f * 250.f;
 const float ENEMY_BB_WIDTH = 0.3f * 250.f;
+const float POWERUP_BB_HEIGHT = 0.3f * 250.f;
+const float POWERUP_BB_WIDTH = 0.3f * 250.f;
 
 // the player
 Entity createSalmon(RenderSystem* renderer, vec2 pos);
@@ -33,6 +35,9 @@ Entity createDoorWay(RenderSystem* renderer, vec2 pos);
 
 // the enemy 
 Entity createEnemy(RenderSystem* render, vec2 pos, vec2 velocity);
+
+// The powerup 
+Entity createPowerup(RenderSystem* render, vec2 pos); 
 
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);
