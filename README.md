@@ -1,4 +1,5 @@
 Milestone 1 Team 6 KTV
+Grace Days Used: 1
 
 Milestone Feature Descriptions:
 Random/coded action (LT): Enemies will move at a set pattern. For one enemy type, once the player character move closer to this enemy, it 
