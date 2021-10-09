@@ -565,6 +565,9 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 		Motion& wizard2_motion = registry.motions.get(player2_wizard);
 		double x, y;
 		glfwGetCursorPos(window, &x, &y);
+		if (registry.inShops.has(player2_wizard)) {
+			y += 800;
+		}
 		double dx = x - wizard2_motion.position.x;
 		double dy = y - wizard2_motion.position.y;
 		float h = sqrt(pow(dx, 2) + pow(dy, 2));
@@ -576,7 +579,10 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 	if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_RIGHT && stamina > 0) {
 		Motion& wizard2_motion = registry.motions.get(player2_wizard);
 		double x, y;
-		glfwGetCursorPos(window, &x, &y);
+		glfwGetCursorPos(window, &x, &y);		
+		if (registry.inShops.has(player2_wizard)) {
+			y += 800;
+		}
 		double dx = x - wizard2_motion.position.x;
 		double dy = y - wizard2_motion.position.y;
 		float h = sqrt(pow(dx, 2) + pow(dy, 2));

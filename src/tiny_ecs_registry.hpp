@@ -30,6 +30,7 @@ public:
 	ComponentContainer<EnemyRun> enemiesrun;
 	ComponentContainer<Powerup> powerups; 
 	ComponentContainer<Flip> flips;
+	ComponentContainer<InShop> inShops;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -54,6 +55,7 @@ public:
 		registry_list.push_back(&enemiesrun);
 		registry_list.push_back(&powerups);
 		registry_list.push_back(&flips);
+		registry_list.push_back(&inShops);
 	}
 
 	void clear_all_components() {

@@ -87,6 +87,12 @@ struct DeathTimer
 	float counter_ms = 3000;
 };
 
+// An entity that is currently in the item shop. For mouse-controlled characters.
+struct InShop 
+{
+
+};
+
 // An entity in motion that will stop at a certain point
 struct Destination
 {

@@ -247,11 +247,29 @@ mat3 RenderSystem::createProjectionMatrix(float left, float top)
 	vec2 player1Pos = registry.motions.get(registry.players.entities[0]).position;
 	if (playerCount == 2) {
 		vec2 player2Pos = registry.motions.get(registry.players.entities[1]).position;
-		if (player1Pos.y - h >= 0 || player2Pos.y - h >= -50) {
+		if (player1Pos.y - h >= 0) {
 			projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty + 2, 1.f} };
 		}
-	}
-	else {
+		
+		if (registry.inShops.has(registry.players.entities[1])) { // player 2 is in the shop
+			if (player2Pos.y - h < 50) { // player 2 leaves the shop
+				registry.motions.get(registry.players.entities[1]).position.y -= 150;
+				registry.inShops.remove(registry.players.entities[1]);
+				registry.motions.get(registry.players.entities[1]).velocity = vec2(0, 0);
+				registry.destinations.get(registry.players.entities[1]).position = player2Pos;
+			} else {
+				projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty + 2, 1.f} };
+			}
+		} else { // player 2 is not in the shop
+			if (player2Pos.y - h > -50) { // player 2 enters the shop
+				projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty + 2, 1.f} };
+				registry.motions.get(registry.players.entities[1]).position.y += 150;
+				registry.inShops.emplace(registry.players.entities[1]);
+				registry.motions.get(registry.players.entities[1]).velocity = vec2(0, 0);
+				registry.destinations.get(registry.players.entities[1]).position = player2Pos;
+			}
+		}
+	} else {
 		if (player1Pos.y - h >= 0) {
 			projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty + 2, 1.f} };
 		}
