@@ -111,6 +111,10 @@ struct Mesh
 	std::vector<uint16_t> vertex_indices;
 };
 
+struct Flip {
+	bool left = false;
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -141,7 +145,8 @@ enum class TEXTURE_ASSET_ID {
 	TREE_YELLOW = TREE_ORANGE + 1,
 	FIREBALL = TREE_YELLOW + 1,
 	WIZARD = FIREBALL + 1,
-	BLACK_BAR = WIZARD + 1,
+	WIZARD_LEFT = WIZARD+1,
+	BLACK_BAR = WIZARD_LEFT + 1,
 	ENEMY = BLACK_BAR + 1,
 	POWERUP = ENEMY + 1, 
 	TEXTURE_COUNT = POWERUP + 1

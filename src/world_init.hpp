@@ -5,12 +5,12 @@
 #include "render_system.hpp"
 
 // These are hard coded to the dimensions of the entity texture
-const float WIZARD_BB_WIDTH = 0.08f * 2048.f;
-const float WIZARD_BB_HEIGHT = 0.08f * 2048.f;
-const float BLOCK_BB_WIDTH = 0.08f * 2048.f;
-const float BLOCK_BB_HEIGHT = 0.08f * 2048.f;
-const float FIREBALL_BB_WIDTH = 0.3f * 512.f;
-const float FIREBALL_BB_HEIGHT = 0.3f * 328.f;
+const float WIZARD_BB_WIDTH = 0.1f * 1231.f;
+const float WIZARD_BB_HEIGHT = 0.1f * 1767.f;
+const float BLOCK_BB_WIDTH = 0.1f * 871.f;
+const float BLOCK_BB_HEIGHT = 0.1f * 1549.f;
+const float FIREBALL_BB_WIDTH = 0.04f * 1954.f;
+const float FIREBALL_BB_HEIGHT = 0.04f * 1602.f;
 const float ENEMY_BB_HEIGHT = 0.3f * 250.f;
 const float ENEMY_BB_WIDTH = 0.3f * 250.f;
 const float POWERUP_BB_HEIGHT = 0.3f * 250.f;
@@ -19,6 +19,7 @@ const float POWERUP_BB_WIDTH = 0.3f * 250.f;
 // the player
 Entity createSalmon(RenderSystem* renderer, vec2 pos);
 Entity createWizard(RenderSystem* renderer, vec2 pos);
+
 
 // the fireball 
 Entity createFireball(RenderSystem* render, vec2 pos, vec2 velocity); 

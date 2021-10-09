@@ -53,6 +53,31 @@ Entity createWizard(RenderSystem* renderer, vec2 position) {
 	return entity;
 }
 
+//Entity createWizardLeft(RenderSystem* renderer, vec2 position) {
+//	// Reserve en entity
+//	auto entity = Entity();
+//
+//	// Store a reference to the potentially re-used mesh object
+//	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+//	registry.meshPtrs.emplace(entity, &mesh);
+//
+//	// Initialize the position, scale, and physics components
+//	auto& motion = registry.motions.emplace(entity);
+//	motion.angle = 0.f;
+//	motion.velocity = { 0, 0 };
+//	motion.position = position;
+//	motion.scale = vec2({ WIZARD_BB_WIDTH, WIZARD_BB_HEIGHT });
+//
+//	registry.players.emplace(entity);
+//	registry.renderRequests.insert(
+//		entity,
+//		{ TEXTURE_ASSET_ID::WIZARD_LEFT,
+//			EFFECT_ASSET_ID::TEXTURED,
+//			GEOMETRY_BUFFER_ID::SPRITE });
+//
+//	return entity;
+//}
+
 Entity createWall(vec2 position, vec2 scale, bool isVertical) {
 	Entity entity = Entity();
 	Wall& wall = registry.walls.emplace(entity);
