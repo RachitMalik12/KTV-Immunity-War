@@ -35,6 +35,7 @@ class RenderSystem {
 			textures_path("tree_yellow.png"),
 			textures_path("fireball.png"),
 			textures_path("wizard.png"),
+			textures_path("wizard_left.png"),
 			textures_path("black_bar.png"),
 			textures_path("enemy.png"),
 			textures_path("powerup.png")
