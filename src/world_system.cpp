@@ -438,7 +438,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			Flip& flipped = registry.flips.get(player_wizard);
 			flipped.left = true;
 			salmonMotion.scale = vec2({ -WIZARD_BB_WIDTH, WIZARD_BB_HEIGHT });
-			printf("player1 left sprite");
 
 		}
 
@@ -456,7 +455,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			flipped.left = false;
 			registry.flips.remove(player_wizard);
 			salmonMotion.scale = vec2({ WIZARD_BB_WIDTH, WIZARD_BB_HEIGHT });
-			printf("player1 right sprite");
 		}
 		salmonMotion.velocity = vec2(currentVelocity.x + (float)PLAYER_SPEED, currentVelocity.y);
 	}
@@ -527,7 +525,6 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 		Flip& flipped = registry.flips.get(player2_wizard);
 		flipped.left = true;
 		motion.scale = vec2({ -WIZARD_BB_WIDTH, WIZARD_BB_HEIGHT });
-		printf("player2 left sprite");
 	}
 	else
 	{
@@ -537,7 +534,6 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 			flipped.left = false;
 			registry.flips.remove(player2_wizard);
 			motion.scale = vec2({ WIZARD_BB_WIDTH, WIZARD_BB_HEIGHT });
-			printf("player2 right sprite");
 		}
 	}
 	(vec2)mouse_position;
