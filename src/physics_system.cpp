@@ -2,6 +2,9 @@
 #include "physics_system.hpp"
 #include "world_init.hpp"
 
+const int MAX_DIST_WZ_EN = 50*50;
+const int ENEMY_AVOID_DIST = 100;
+
 // Returns the local bounding coordinates scaled by the current size of the entity
 vec2 get_bounding_box(const Motion& motion)
 {
@@ -26,18 +29,168 @@ bool collides(const Motion& motion1, const Motion& motion2)
 	return false;
 }
 
+bool blockCollides(vec2 nextPosition, const Motion& block) {
+	vec2 dp = nextPosition - block.position;
+	float dist_squared = dot(dp, dp);
+	const vec2 wall_bonding_box = get_bounding_box(block) / 2.f;
+	const float r_squared = dot(wall_bonding_box, wall_bonding_box);
+	if (dist_squared < r_squared)
+		return true;
+	return false;
+
+}
+
+bool wallCollides(vec2 nextPosition, Entity wall) {
+	bool hitAWall = false;
+	Motion& motion = registry.motions.get(wall);
+	bool isVertical = registry.walls.get(wall).vertical;
+	vec2 wallPos = motion.position;
+	vec2 wallScale = motion.scale;
+	if (isVertical) {
+		float left = wallPos.x - (wallScale.x / 2);
+		float right = wallPos.x + (wallScale.x / 2);
+		if (nextPosition.x >= left && nextPosition.x <= right) {
+			hitAWall = true;
+		}
+	}
+	else {
+		float top = wallPos.y - (wallScale.y / 2);
+		float bottom = wallPos.y + (wallScale.y / 2);
+		if (nextPosition.y >= top && nextPosition.y <= bottom) {
+			hitAWall = true;
+		}
+	}
+	return hitAWall;
+}
+
 void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_height_px)
 {
 	// Move fish based on how much time has passed, this is to (partially) avoid
 	// having entities move at different speed based on the machine.
 	auto& motion_registry = registry.motions;
+	auto& blocks_registry = registry.blocks;
+	auto& walls_registry = registry.walls;
 	for(uint i = 0; i< motion_registry.size(); i++)
 	{
-		// !!! TODO A1: update motion.position based on step_seconds and motion.velocity
-		//Motion& motion = motion_registry.components[i];
-		//Entity entity = motion_registry.entities[i];
-		//float step_seconds = 1.0f * (elapsed_ms / 1000.f);
-		(void)elapsed_ms; // placeholder to silence unused warning until implemented
+		Motion& motion = motion_registry.components[i];
+		Entity entity = motion_registry.entities[i];
+		float step_seconds = 1.0f * (elapsed_ms / 1000.f);
+		vec2 nextPosition = vec2(motion.position.x + motion.velocity.x * step_seconds,
+			motion.position.y + motion.velocity.y * step_seconds);
+		vec2 nextPosRight = vec2(nextPosition.x + ENEMY_AVOID_DIST, nextPosition.y);
+		vec2 nextPosLeft = vec2(nextPosition.x - ENEMY_AVOID_DIST, nextPosition.y);
+		bool hitABlock = false;
+		bool hitABlockRight = false;
+		bool hitABlockLeft = false;
+		for (uint j = 0; j < blocks_registry.size(); j++) {
+			Entity blockEntity = blocks_registry.entities[j];
+			if (blockCollides(nextPosition, motion_registry.get(blockEntity))) {
+				hitABlock = true;
+			}
+			if (blockCollides(nextPosRight, motion_registry.get(blockEntity))) {
+				hitABlock = true;
+			}
+			if (blockCollides(nextPosLeft, motion_registry.get(blockEntity))) {
+				hitABlock = true;
+			}
+		}
+		bool hitAWall = false;
+		bool hitAWallRight = false;
+		bool hitAWallLeft = false;
+		for (uint j = 0; j < walls_registry.size(); j++) {
+			Entity wallEntity = walls_registry.entities[j];
+			if (wallCollides(nextPosition, wallEntity)) {
+				hitABlock = true;
+			}
+			if (wallCollides(nextPosRight, wallEntity)) {
+				hitAWallRight = true;
+			}
+			if (wallCollides(nextPosLeft, wallEntity)) {
+				hitAWallLeft = true;
+			}
+
+		}
+		if (!hitABlock && !hitAWall) {
+			motion.position = nextPosition;
+		}
+
+		// check if fireball/projectile hit a wall/block, if so remove it
+		// if enemy hit a wall/block, revert moving direction
+		if (hitABlock || hitAWall) {
+			if (registry.projectiles.has(entity)) {
+				registry.remove_all_components_of(entity);
+			}
+			else if (registry.enemies.has(entity)) {
+				Motion& motion = motion_registry.get(entity);
+				motion.velocity.y *= -1;
+			}
+			else if (registry.enemiesrun.has(entity)) {
+				Motion& motion = motion_registry.get(entity);
+				if (motion.velocity.x > 0) {
+					if (motion.velocity.y > 0) {
+						motion.velocity.x = -200.f;
+						motion.velocity.y = 200.f;
+					}
+					else {
+						motion.velocity.x = 200.f;
+						motion.velocity.y = 200.f;
+					}
+				}
+				else {
+					if (motion.velocity.y > 0) {
+						motion.velocity.x = -200.f;
+						motion.velocity.y = -200.f;
+					}
+					else {
+						motion.velocity.x = 200.f;
+						motion.velocity.y = -200.f;
+					}
+				}
+			}
+		}
+
+		// if enemyrun within MAX_DIST_WZ_EN of either wizard
+		// change enemyrun direction 
+		if (registry.enemiesrun.has(entity)) {
+			Motion& motion_en = motion_registry.get(entity);
+			for (uint k = 0; k < registry.players.size(); k++) {
+				Motion& motion_wz = motion_registry.get(registry.players.entities[k]);
+				vec2 dp = motion_en.position - motion_wz.position;
+				float dist_squared = dot(dp, dp);
+				if (dist_squared < MAX_DIST_WZ_EN) {
+					/*if (!hitABlockRight && !hitAWallRight) {
+						//motion.position = nextPosRight;
+						motion.velocity.x += 10;
+					}
+					else if (!hitABlockLeft && !hitAWallLeft) {
+						//motion.position = nextPosLeft;
+						motion.velocity.x -= 10;
+					}*/
+					if (motion_en.velocity.x > 0) {
+						if (motion_en.velocity.y > 0) {
+							motion_en.velocity.x = -200.f;
+							motion_en.velocity.y = 200.f;
+						}
+						else {
+							motion.velocity.x = 200.f;
+							motion.velocity.y = 200.f;
+						}
+					}
+					else {
+						if (motion_en.velocity.y > 0) {
+							motion_en.velocity.x = -200.f;
+							motion_en.velocity.y = -200.f;
+						}
+						else {
+							motion_en.velocity.x = 200.f;
+							motion_en.velocity.y = -200.f;
+						}
+					}
+				}
+			}
+			
+			
+		}
 	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -92,14 +245,50 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 			Entity entity_i = motion_container.entities[i];
 
 			// visualize the radius with two axis-aligned lines
-			const vec2 bonding_box = get_bounding_box(motion_i);
-			float radius = sqrt(dot(bonding_box/2.f, bonding_box/2.f));
-			vec2 line_scale1 = { motion_i.scale.x / 10, 2*radius };
-			Entity line1 = createLine(motion_i.position, line_scale1);
-			vec2 line_scale2 = { 2*radius, motion_i.scale.x / 10};
-			Entity line2 = createLine(motion_i.position, line_scale2);
+			// TODO: retire cross graphic once collisions are updated
+			if (!registry.walls.has(entity_i)) {
+				// visualize the radius with two axis-aligned lines
+				const vec2 bonding_box = get_bounding_box(motion_i);
+				float radius = sqrt(dot(bonding_box / 2.f, bonding_box / 2.f));
+				vec2 line_scale1 = { motion_i.scale.x / 10, 2 * radius };
+				Entity line1 = createLine(motion_i.position, line_scale1);
+				vec2 line_scale2 = { 2 * radius, motion_i.scale.x / 10 };
+				Entity line2 = createLine(motion_i.position, line_scale2);
 
-			// !!! TODO A2: implement debugging of bounding boxes and mesh
+				// !!! TODO A2: implement debugging of bounding boxes and mesh
+			}
+		}
+	}
+
+	// I suspect that the above debug mode will be changed once new collisions are implemented, so I'm putting both the bounding boxes and grayboxes in the same mode for now.
+	if (debugging.in_graybox_mode)
+	{
+		uint size_before_adding_new = (uint)motion_container.components.size();
+		for (uint i = 0; i < size_before_adding_new; i++)
+		{
+			Motion& motion_i = motion_container.components[i];
+			Entity entity_i = motion_container.entities[i];
+		
+			// visualize the bounding box with a hollow red box.
+			// TODO: Move to debug mode and use createLine
+			const vec2 bounding_box = get_bounding_box(motion_i);
+			vec2 horizontal_scale = { bounding_box.x,2 };
+			vec2 vertical_scale = { 2,bounding_box.y };
+			vec2 left_position = motion_i.position;
+			left_position.x -= bounding_box.x / 2;
+			vec2 right_position = motion_i.position;
+			right_position.x += bounding_box.x / 2;
+			vec2 up_position = motion_i.position;
+			up_position.y -= bounding_box.y / 2;
+			vec2 down_position = motion_i.position;
+			down_position.y += bounding_box.y / 2;
+			Entity left_line = createBox(left_position, vertical_scale);
+			Entity right_line = createBox(right_position, vertical_scale);
+			Entity up_line = createBox(up_position, horizontal_scale);
+			Entity down_line = createBox(down_position, horizontal_scale);
+
+			// visualize all sprites as grayboxes. Code currently unneeded.
+			// Entity graybox = createBox(motion_i.position, bounding_box);
 		}
 	}
 

@@ -7,18 +7,41 @@
 // Player component
 struct Player
 {
-
+	
 };
 
-// Turtles and pebbles have a hard shell
-struct HardShell
+// The projectile shot by the wizard character.
+struct Projectile
 {
 
 };
 
-// Fish and Salmon have a soft shell
-struct SoftShell
+struct Block
 {
+
+};
+
+
+// Enemy that will be attacked by wizard using projectile
+struct Enemy
+{
+
+};
+
+// Enemy that will be attacked by wizard using projectile and tries to run away from wizard
+struct EnemyRun
+{
+
+};
+
+struct Powerup 
+{
+
+};
+
+struct Wall
+{
+	bool vertical = false;
 
 };
 
@@ -41,6 +64,7 @@ struct Collision
 // Data structure for toggling debug mode
 struct Debug {
 	bool in_debug_mode = 0;
+	bool in_graybox_mode = 0;
 	bool in_freeze_mode = 0;
 };
 extern Debug debugging;
@@ -61,6 +85,13 @@ struct DebugComponent
 struct DeathTimer
 {
 	float counter_ms = 3000;
+};
+
+// An entity in motion that will stop at a certain point
+struct Destination
+{
+	vec2 position = { 0,0 };
+	Destination(const vec2 pos) : position(pos) {};
 };
 
 // Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & salmon.vs.glsl)
@@ -84,6 +115,10 @@ struct Mesh
 	vec2 original_size = {1,1};
 	std::vector<ColoredVertex> vertices;
 	std::vector<uint16_t> vertex_indices;
+};
+
+struct Flip {
+	bool left = false;
 };
 
 /**
@@ -111,9 +146,17 @@ struct Mesh
  */
 
 enum class TEXTURE_ASSET_ID {
-	FISH = 0,
-	TURTLE = FISH + 1,
-	TEXTURE_COUNT = TURTLE + 1
+	TREE_RED = 0,
+	TREE_ORANGE = TREE_RED + 1,
+	TREE_YELLOW = TREE_ORANGE + 1,
+	FIREBALL = TREE_YELLOW + 1,
+	WIZARD = FIREBALL + 1,
+	WIZARD_LEFT = WIZARD+1,
+	BLACK_BAR = WIZARD_LEFT + 1,
+	ENEMY = BLACK_BAR + 1,
+	POWERUP = ENEMY + 1, 
+	ENEMYRUN = POWERUP + 1,
+	TEXTURE_COUNT = ENEMYRUN + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -132,8 +175,10 @@ enum class GEOMETRY_BUFFER_ID {
 	SPRITE = SALMON + 1,
 	PEBBLE = SPRITE + 1,
 	DEBUG_LINE = PEBBLE + 1,
-	SCREEN_TRIANGLE = DEBUG_LINE + 1,
-	GEOMETRY_COUNT = SCREEN_TRIANGLE + 1
+	GRAYBOX = DEBUG_LINE + 1,
+	SCREEN_TRIANGLE = GRAYBOX + 1,
+	WALLS = SCREEN_TRIANGLE + 1,
+	GEOMETRY_COUNT = WALLS + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 

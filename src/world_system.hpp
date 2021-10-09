@@ -20,6 +20,14 @@ class WorldSystem
 public:
 	WorldSystem();
 
+	std::vector<std::function<void(Entity entity)>>  callbackFns;
+
+	void attach(std::function<void(Entity entity)>);
+	
+	void staminaListener(Entity entity);
+	// Observer Pattern listener
+	void staminaCallBack(Entity entity);
+
 	// Creates a window
 	GLFWwindow* create_window(int width, int height);
 
@@ -37,10 +45,13 @@ public:
 
 	// Should the game be over ?
 	bool is_over()const;
+
+
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
 	void on_mouse_move(vec2 pos);
+	void on_mouse_click(int button, int action, int mods);
 
 	// restart level
 	void restart_game();
@@ -49,19 +60,24 @@ private:
 	GLFWwindow* window;
 
 	// Number of fish eaten by the salmon, displayed in the window title
-	unsigned int points;
-
+	int money;
+	unsigned int stamina;
+	bool spawnPowerup; 
 	// Game state
 	RenderSystem* renderer;
 	float current_speed;
-	float next_turtle_spawn;
-	float next_fish_spawn;
+	float next_enemy_spawn;
+	float next_enemyrun_spawn;
 	Entity player_salmon;
+	Entity player_wizard;
+	Entity player2_wizard;
 
 	// music references
 	Mix_Music* background_music;
 	Mix_Chunk* salmon_dead_sound;
 	Mix_Chunk* salmon_eat_sound;
+
+
 
 	// C++ random number generator
 	std::default_random_engine rng;

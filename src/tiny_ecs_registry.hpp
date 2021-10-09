@@ -19,10 +19,17 @@ public:
 	ComponentContainer<Mesh*> meshPtrs;
 	ComponentContainer<RenderRequest> renderRequests;
 	ComponentContainer<ScreenState> screenStates;
-	ComponentContainer<SoftShell> softShells;
-	ComponentContainer<HardShell> hardShells;
 	ComponentContainer<DebugComponent> debugComponents;
+	ComponentContainer<DebugComponent> grayboxComponents;
+	ComponentContainer<Destination> destinations;
+	ComponentContainer<Projectile> projectiles;
+	ComponentContainer<Block> blocks;
+	ComponentContainer<Wall> walls;
 	ComponentContainer<vec3> colors;
+	ComponentContainer<Enemy> enemies;
+	ComponentContainer<EnemyRun> enemiesrun;
+	ComponentContainer<Powerup> powerups; 
+	ComponentContainer<Flip> flips;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -36,10 +43,17 @@ public:
 		registry_list.push_back(&meshPtrs);
 		registry_list.push_back(&renderRequests);
 		registry_list.push_back(&screenStates);
-		registry_list.push_back(&softShells);
-		registry_list.push_back(&hardShells);
 		registry_list.push_back(&debugComponents);
+		registry_list.push_back(&grayboxComponents);
+		registry_list.push_back(&destinations);
+		registry_list.push_back(&projectiles);
+		registry_list.push_back(&blocks);
+		registry_list.push_back(&walls);
 		registry_list.push_back(&colors);
+		registry_list.push_back(&enemies);
+		registry_list.push_back(&enemiesrun);
+		registry_list.push_back(&powerups);
+		registry_list.push_back(&flips);
 	}
 
 	void clear_all_components() {

@@ -195,10 +195,16 @@ void RenderSystem::draw()
 	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
 	gl_has_errors();
 	// Clearing backbuffer
-	glViewport(0, 0, w, h);
-	glDepthRange(0.00001, 10);
-	glClearColor(0, 0, 1, 1.0);
-	glClearDepth(1.f);
+
+	// TO DO: Currently, camera can move all the way down past the map area. Change it so that it stops.
+	if (registry.motions.get(registry.motions.entities[4]).position.y - (5 * h / 7) > 0) {
+		glViewport(0, registry.motions.get(registry.motions.entities[4]).position.y - (5 * h / 7), w, h);
+	}
+	else {
+		glViewport(0, 0, w, h);
+	}
+
+	glClearColor(1, 0, 1, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -206,7 +212,9 @@ void RenderSystem::draw()
 							  // and alpha blending, one would have to sort
 							  // sprites back to front
 	gl_has_errors();
-	mat3 projection_2D = createProjectionMatrix();
+
+	mat3 projection_2D = createProjectionMatrix(0.f, 0.f);
+
 	// Draw all textured meshes that have a position and size component
 	for (Entity entity : registry.renderRequests.entities)
 	{
@@ -225,11 +233,9 @@ void RenderSystem::draw()
 	gl_has_errors();
 }
 
-mat3 RenderSystem::createProjectionMatrix()
+mat3 RenderSystem::createProjectionMatrix(float left, float top)
 {
 	// Fake projection matrix, scales with respect to window coordinates
-	float left = 0.f;
-	float top = 0.f;
 
 	int w, h;
 	glfwGetFramebufferSize(window, &w, &h);
