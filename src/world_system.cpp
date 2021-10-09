@@ -15,7 +15,7 @@ const size_t MAX_ENEMIESRUN = 2;
 const size_t TURTLE_DELAY_MS = 2000 * 3;
 const size_t ENEMY_DELAY_MS = 1000;
 const size_t PLAYER_SPEED = 150;
-const int MAP_WIDTH_PX = 800;
+const int MAP_WIDTH_PX = 1200;
 const int MAP_HEIGHT_PX = 1600;
 const int WALL_THICCNESS = 40;
 
@@ -168,7 +168,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Removing out of screen entities
 	auto& motions_registry = registry.motions;
-	auto& destinations_registry = registry.destinations;
+	auto& destinations_registry = registry.mouseDestinations;
 
 	// Remove entities that leave the screen on the left side
 	// Iterate backwards to be able to remove without unterfering with the next object to visit
@@ -236,9 +236,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	if (destinations_registry.has(player2_wizard)) {
 		Motion& motion = motions_registry.get(player2_wizard);
-		Destination& destination = destinations_registry.get(player2_wizard);
+		MouseDestination& mouseDestination = destinations_registry.get(player2_wizard);
 
-		if (abs(motion.position.x - destination.position.x) < 1.f && abs(motion.position.y - destination.position.y) < 1.f) {
+		if (abs(motion.position.x - mouseDestination.position.x) < 1.f && abs(motion.position.y - mouseDestination.position.y) < 1.f) {
 			destinations_registry.remove(player2_wizard);
 			motion.velocity = vec2(0,0);
 		}
@@ -560,8 +560,8 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 
 void WorldSystem::on_mouse_click(int button, int action, int mods) {
 	if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_LEFT) {
-		if (registry.destinations.has(player2_wizard))
-			registry.destinations.remove(player2_wizard);
+		if (registry.mouseDestinations.has(player2_wizard))
+			registry.mouseDestinations.remove(player2_wizard);
 		Motion& wizard2_motion = registry.motions.get(player2_wizard);
 		double x, y;
 		glfwGetCursorPos(window, &x, &y);
@@ -573,7 +573,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 		float h = sqrt(pow(dx, 2) + pow(dy, 2));
 		float scale = (float)PLAYER_SPEED / h;
 		wizard2_motion.velocity = vec2(dx * scale, dy * scale);
-		registry.destinations.emplace(player2_wizard, vec2(x,y));
+		registry.mouseDestinations.emplace(player2_wizard, vec2(x,y));
 	}
 
 	if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_RIGHT && stamina > 0) {
