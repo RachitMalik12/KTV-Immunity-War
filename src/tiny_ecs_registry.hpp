@@ -27,6 +27,7 @@ public:
 	ComponentContainer<Wall> walls;
 	ComponentContainer<vec3> colors;
 	ComponentContainer<Enemy> enemies;
+	ComponentContainer<EnemyRun> enemiesrun;
 	ComponentContainer<Powerup> powerups; 
 	ComponentContainer<Flip> flips;
 
@@ -50,6 +51,7 @@ public:
 		registry_list.push_back(&walls);
 		registry_list.push_back(&colors);
 		registry_list.push_back(&enemies);
+		registry_list.push_back(&enemiesrun);
 		registry_list.push_back(&powerups);
 		registry_list.push_back(&flips);
 	}

@@ -28,6 +28,12 @@ struct Enemy
 
 };
 
+// Enemy that will be attacked by wizard using projectile and tries to run away from wizard
+struct EnemyRun
+{
+
+};
+
 struct Powerup 
 {
 
@@ -149,7 +155,8 @@ enum class TEXTURE_ASSET_ID {
 	BLACK_BAR = WIZARD_LEFT + 1,
 	ENEMY = BLACK_BAR + 1,
 	POWERUP = ENEMY + 1, 
-	TEXTURE_COUNT = POWERUP + 1
+	ENEMYRUN = POWERUP + 1,
+	TEXTURE_COUNT = ENEMYRUN + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

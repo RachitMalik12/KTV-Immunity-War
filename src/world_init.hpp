@@ -15,6 +15,8 @@ const float ENEMY_BB_HEIGHT = 0.3f * 250.f;
 const float ENEMY_BB_WIDTH = 0.3f * 250.f;
 const float POWERUP_BB_HEIGHT = 0.3f * 250.f;
 const float POWERUP_BB_WIDTH = 0.3f * 250.f;
+const float ENEMYRUN_BB_HEIGHT = 0.3f * 240.f;
+const float ENEMYRUN_BB_WIDTH = 0.3f * 240.f;
 
 // the player
 Entity createSalmon(RenderSystem* renderer, vec2 pos);
@@ -36,6 +38,9 @@ Entity createDoorWay(RenderSystem* renderer, vec2 pos);
 
 // the enemy 
 Entity createEnemy(RenderSystem* render, vec2 pos, vec2 velocity);
+
+// the enemy that tries to avoid wizards 
+Entity createEnemyRun(RenderSystem* render, vec2 pos, vec2 velocity);
 
 // The powerup 
 Entity createPowerup(RenderSystem* render, vec2 pos); 

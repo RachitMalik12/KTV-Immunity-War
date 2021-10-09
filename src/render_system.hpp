@@ -29,6 +29,8 @@ class RenderSystem {
 	};
 
 	// Make sure these paths remain in sync with the associated enumerators.
+	// SOURCE for enemyrun.png: https://store.line.me/stickershop/product/1014536/en
+	// SOURCE for enemy.png: https://www.klipartz.com/ru/search?q=%D0%B2%D0%B8%D1%80%D1%83%D1%81
 	const std::array<std::string, texture_count> texture_paths = {
 			textures_path("tree_red.png"),
 			textures_path("tree_orange.png"),
@@ -38,7 +40,9 @@ class RenderSystem {
 			textures_path("wizard_left.png"),
 			textures_path("black_bar.png"),
 			textures_path("enemy.png"),
-			textures_path("powerup.png")
+			textures_path("powerup.png"),
+			textures_path("enemyrun.png")
+
 	};
 
 	std::array<GLuint, effect_count> effects;
