@@ -217,18 +217,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	if (registry.powerups.size() <= 0 && spawnPowerup) {
 		// Spawn power ups: 
-		Entity powerUp = createPowerup(renderer, { 200.f ,950.f });
+		Entity powerUp = createPowerup(renderer, { 200.f ,1200.f });
 		registry.powerups.emplace(powerUp);
 		// Create 3 power ups in the store 100 px apart at 1200 y 
 		for (int i = 100; i <= 300; i += 100) {
-			Entity powerUp = createPowerup(renderer, { 200.f + i ,950.f });
+			Entity powerUp = createPowerup(renderer, { 200.f + i ,1200.f });
 			registry.powerups.emplace(powerUp);
 		}
 		// Now more below
-		Entity powerUp2 = createPowerup(renderer, { 200.f ,1050.f });
+		Entity powerUp2 = createPowerup(renderer, { 200.f ,1400.f });
 		registry.powerups.emplace(powerUp2);
 		for (int i = 100; i <= 400; i += 100) {
-			Entity powerUp = createPowerup(renderer, { 200.f + i ,1050.f });
+			Entity powerUp = createPowerup(renderer, { 200.f + i ,1400.f });
 			registry.powerups.emplace(powerUp);
 		}
 		spawnPowerup = false; 
