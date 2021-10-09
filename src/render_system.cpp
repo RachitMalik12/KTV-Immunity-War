@@ -196,13 +196,7 @@ void RenderSystem::draw()
 	gl_has_errors();
 	// Clearing backbuffer
 
-	// TO DO: Currently, camera can move all the way down past the map area. Change it so that it stops.
-	if (registry.motions.get(registry.motions.entities[4]).position.y - (5 * h / 7) > 0) {
-		glViewport(0, registry.motions.get(registry.motions.entities[4]).position.y - (5 * h / 7), w, h);
-	}
-	else {
-		glViewport(0, 0, w, h);
-	}
+	glViewport(0, 0, w, h);
 
 	glClearColor(1, 0, 1, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -247,5 +241,21 @@ mat3 RenderSystem::createProjectionMatrix(float left, float top)
 	float sy = 2.f / (top - bottom);
 	float tx = -(right + left) / (right - left);
 	float ty = -(top + bottom) / (top - bottom);
-	return {{sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f}};
+	mat3 projMat = {{sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f}};
+
+	int playerCount = registry.players.entities.size();
+	vec2 player1Pos = registry.motions.get(registry.players.entities[0]).position;
+	if (playerCount == 2) {
+		vec2 player2Pos = registry.motions.get(registry.players.entities[1]).position;
+		if (player1Pos.y - h >= 0 || player2Pos.y - h >= -50) {
+			projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty + 2, 1.f} };
+		}
+	}
+	else {
+		if (player1Pos.y - h >= 0) {
+			projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty + 2, 1.f} };
+		}
+	}
+
+	return projMat;
 }
