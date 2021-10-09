@@ -437,15 +437,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			registry.flips.emplace(player_wizard);
 			Flip& flipped = registry.flips.get(player_wizard);
 			flipped.left = true;
-			if (registry.renderRequests.has(player_wizard)) {
-				registry.renderRequests.remove(player_wizard);
-				registry.renderRequests.insert(
-					player_wizard,
-					{ TEXTURE_ASSET_ID::WIZARD_LEFT,
-						EFFECT_ASSET_ID::TEXTURED,
-						GEOMETRY_BUFFER_ID::SPRITE });
-			}
-			
+			salmonMotion.scale = vec2({ -WIZARD_BB_WIDTH, WIZARD_BB_HEIGHT });
 			printf("player1 left sprite");
 
 		}
@@ -463,15 +455,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			Flip& flipped = registry.flips.get(player_wizard);
 			flipped.left = false;
 			registry.flips.remove(player_wizard);
-			if (registry.renderRequests.has(player_wizard)) {
-				registry.renderRequests.remove(player_wizard);
-				registry.renderRequests.insert(
-					player_wizard,
-					{ TEXTURE_ASSET_ID::WIZARD,
-						EFFECT_ASSET_ID::TEXTURED,
-						GEOMETRY_BUFFER_ID::SPRITE });
-			}
-			
+			salmonMotion.scale = vec2({ WIZARD_BB_WIDTH, WIZARD_BB_HEIGHT });
 			printf("player1 right sprite");
 		}
 		salmonMotion.velocity = vec2(currentVelocity.x + (float)PLAYER_SPEED, currentVelocity.y);
@@ -542,14 +526,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 		registry.flips.emplace(player2_wizard);
 		Flip& flipped = registry.flips.get(player2_wizard);
 		flipped.left = true;
-		if (registry.renderRequests.has(player2_wizard)) {
-			registry.renderRequests.remove(player2_wizard);
-			registry.renderRequests.insert(
-				player2_wizard,
-				{ TEXTURE_ASSET_ID::WIZARD_LEFT,
-					EFFECT_ASSET_ID::TEXTURED,
-					GEOMETRY_BUFFER_ID::SPRITE });
-		}
+		motion.scale = vec2({ -WIZARD_BB_WIDTH, WIZARD_BB_HEIGHT });
 		printf("player2 left sprite");
 	}
 	else
@@ -559,14 +536,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 			Flip& flipped = registry.flips.get(player2_wizard);
 			flipped.left = false;
 			registry.flips.remove(player2_wizard);
-			if (registry.renderRequests.has(player2_wizard)) {
-				registry.renderRequests.remove(player2_wizard);
-				registry.renderRequests.insert(
-					player2_wizard,
-					{ TEXTURE_ASSET_ID::WIZARD,
-						EFFECT_ASSET_ID::TEXTURED,
-						GEOMETRY_BUFFER_ID::SPRITE });
-			}
+			motion.scale = vec2({ WIZARD_BB_WIDTH, WIZARD_BB_HEIGHT });
 			printf("player2 right sprite");
 		}
 	}
