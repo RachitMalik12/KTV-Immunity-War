@@ -5,6 +5,10 @@
 #include "components.hpp"
 #include "tiny_ecs_registry.hpp"
 
+// stlib
+#include <vector>
+#include <random>
+
 // A simple physics system that moves rigid bodies and checks for collision
 class PhysicsSystem
 {
@@ -13,5 +17,10 @@ public:
 
 	PhysicsSystem()
 	{
+		rng1 = std::default_random_engine(std::random_device()());
 	}
+
+private:
+	std::default_random_engine rng1;
+	std::uniform_real_distribution<float> uniform_dist1;
 };

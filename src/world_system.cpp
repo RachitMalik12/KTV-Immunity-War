@@ -11,6 +11,7 @@
 // Game configuration
 const size_t MAX_TURTLES = 15;
 const size_t MAX_ENEMIES = 10;
+const size_t MAX_ENEMIESRUN = 2;
 const size_t TURTLE_DELAY_MS = 2000 * 3;
 const size_t ENEMY_DELAY_MS = 1000;
 const size_t PLAYER_SPEED = 150;
@@ -188,28 +189,46 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		next_enemy_spawn = (ENEMY_DELAY_MS / 2) + uniform_dist(rng) * (ENEMY_DELAY_MS / 2);
 		// Create enemy
 		Entity entity = createEnemy(renderer, { 0,0 }, { 0,0 });
-		// Setting random initial position and constant velocity
+		// Setting random initial position (inside room) and constant velocity
 		Motion& motion = registry.motions.get(entity);
 		motion.position =
-			vec2(uniform_dist(rng) * (screen_width - 100.f),
+			vec2(uniform_dist(rng) * (screen_width - 200.f),
 				50.f);
 		motion.velocity = vec2(0.f, 200.f);
 	}
 
+	// Spawning new enemy run
+	// TODO: Make so that enemy cannot MOVE outside of first room
+	next_enemyrun_spawn -= elapsed_ms_since_last_update * current_speed;
+	if (registry.enemiesrun.components.size() <= MAX_ENEMIESRUN && next_enemyrun_spawn < 0.f) {
+		// !!!  TODO A1: Create new fish with createFish({0,0}), as for the Turtles above
+		// Reset timer
+		next_enemyrun_spawn = (ENEMY_DELAY_MS / 2) + uniform_dist(rng) * (ENEMY_DELAY_MS / 2);
+		// Create enemy run
+		Entity entity = createEnemyRun(renderer, { 0,0 }, { 0,0 });
+		// Setting random initial position (inside room) and constant velocity
+		Motion& motion = registry.motions.get(entity);
+		motion.position =
+			vec2(uniform_dist(rng) * (screen_width - 200.f),
+				50.f);
+		//motion.velocity = vec2(0.f, 200.f);
+		motion.velocity = vec2(uniform_dist(rng) * 200.f, uniform_dist(rng) * 200.f);
+	}
+
 	if (registry.powerups.size() <= 0 && spawnPowerup) {
 		// Spawn power ups: 
-		Entity powerUp = createPowerup(renderer, { 200.f ,1200.f });
+		Entity powerUp = createPowerup(renderer, { 200.f ,950.f });
 		registry.powerups.emplace(powerUp);
 		// Create 3 power ups in the store 100 px apart at 1200 y 
 		for (int i = 100; i <= 300; i += 100) {
-			Entity powerUp = createPowerup(renderer, { 200.f + i ,1200.f });
+			Entity powerUp = createPowerup(renderer, { 200.f + i ,950.f });
 			registry.powerups.emplace(powerUp);
 		}
 		// Now more below
-		Entity powerUp2 = createPowerup(renderer, { 200.f ,1400.f });
+		Entity powerUp2 = createPowerup(renderer, { 200.f ,1050.f });
 		registry.powerups.emplace(powerUp2);
 		for (int i = 100; i <= 400; i += 100) {
-			Entity powerUp = createPowerup(renderer, { 200.f + i ,1400.f });
+			Entity powerUp = createPowerup(renderer, { 200.f + i ,1050.f });
 			registry.powerups.emplace(powerUp);
 		}
 		spawnPowerup = false; 
@@ -299,9 +318,9 @@ void WorldSystem::restart_game() {
 
 
 	// Create some blocks
-	createBlock(renderer, { 700, 600 }, "red");
-	createBlock(renderer, { 700, 300 }, "orange");
-	createBlock(renderer, { 700, 100 }, "yellow");
+	//createBlock(renderer, { 700, 600 }, "red");
+	//createBlock(renderer, { 700, 300 }, "orange");
+	//createBlock(renderer, { 700, 100 }, "yellow");
 	createDoorWay(renderer, { 0, MAP_HEIGHT_PX / 2 });
 	createDoorWay(renderer, { MAP_WIDTH_PX, MAP_HEIGHT_PX / 2 });
 
@@ -331,7 +350,7 @@ void WorldSystem::handle_collisions() {
 
 		// Checking collision of projectiles with other entities
 		if (registry.projectiles.has(entity)) {
-			if (registry.enemies.has(entity_other) && !registry.powerups.has(entity_other)){
+			if ((registry.enemies.has(entity_other) || registry.enemiesrun.has(entity_other)) && !registry.powerups.has(entity_other)){
 				// remove enemy, fireball, count points
 				registry.remove_all_components_of(entity_other);
 				registry.remove_all_components_of(entity);

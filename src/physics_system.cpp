@@ -2,6 +2,9 @@
 #include "physics_system.hpp"
 #include "world_init.hpp"
 
+const int MAX_DIST_WZ_EN = 50*50;
+const int ENEMY_AVOID_DIST = 100;
+
 // Returns the local bounding coordinates scaled by the current size of the entity
 vec2 get_bounding_box(const Motion& motion)
 {
@@ -74,22 +77,119 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 		float step_seconds = 1.0f * (elapsed_ms / 1000.f);
 		vec2 nextPosition = vec2(motion.position.x + motion.velocity.x * step_seconds,
 			motion.position.y + motion.velocity.y * step_seconds);
+		vec2 nextPosRight = vec2(nextPosition.x + ENEMY_AVOID_DIST, nextPosition.y);
+		vec2 nextPosLeft = vec2(nextPosition.x - ENEMY_AVOID_DIST, nextPosition.y);
 		bool hitABlock = false;
+		bool hitABlockRight = false;
+		bool hitABlockLeft = false;
 		for (uint j = 0; j < blocks_registry.size(); j++) {
 			Entity blockEntity = blocks_registry.entities[j];
 			if (blockCollides(nextPosition, motion_registry.get(blockEntity))) {
 				hitABlock = true;
 			}
+			if (blockCollides(nextPosRight, motion_registry.get(blockEntity))) {
+				hitABlock = true;
+			}
+			if (blockCollides(nextPosLeft, motion_registry.get(blockEntity))) {
+				hitABlock = true;
+			}
 		}
 		bool hitAWall = false;
+		bool hitAWallRight = false;
+		bool hitAWallLeft = false;
 		for (uint j = 0; j < walls_registry.size(); j++) {
 			Entity wallEntity = walls_registry.entities[j];
 			if (wallCollides(nextPosition, wallEntity)) {
 				hitABlock = true;
 			}
+			if (wallCollides(nextPosRight, wallEntity)) {
+				hitAWallRight = true;
+			}
+			if (wallCollides(nextPosLeft, wallEntity)) {
+				hitAWallLeft = true;
+			}
+
 		}
 		if (!hitABlock && !hitAWall) {
 			motion.position = nextPosition;
+		}
+
+		// check if fireball/projectile hit a wall/block, if so remove it
+		// if enemy hit a wall/block, revert moving direction
+		if (hitABlock || hitAWall) {
+			if (registry.projectiles.has(entity)) {
+				registry.remove_all_components_of(entity);
+			}
+			else if (registry.enemies.has(entity)) {
+				Motion& motion = motion_registry.get(entity);
+				motion.velocity.y *= -1;
+			}
+			else if (registry.enemiesrun.has(entity)) {
+				Motion& motion = motion_registry.get(entity);
+				if (motion.velocity.x > 0) {
+					if (motion.velocity.y > 0) {
+						motion.velocity.x = -200.f;
+						motion.velocity.y = 200.f;
+					}
+					else {
+						motion.velocity.x = 200.f;
+						motion.velocity.y = 200.f;
+					}
+				}
+				else {
+					if (motion.velocity.y > 0) {
+						motion.velocity.x = -200.f;
+						motion.velocity.y = -200.f;
+					}
+					else {
+						motion.velocity.x = 200.f;
+						motion.velocity.y = -200.f;
+					}
+				}
+			}
+		}
+
+		// if enemyrun within MAX_DIST_WZ_EN of either wizard
+		// change enemyrun direction 
+		if (registry.enemiesrun.has(entity)) {
+			Motion& motion_en = motion_registry.get(entity);
+			for (uint k = 0; k < registry.players.size(); k++) {
+				Motion& motion_wz = motion_registry.get(registry.players.entities[k]);
+				vec2 dp = motion_en.position - motion_wz.position;
+				float dist_squared = dot(dp, dp);
+				if (dist_squared < MAX_DIST_WZ_EN) {
+					/*if (!hitABlockRight && !hitAWallRight) {
+						//motion.position = nextPosRight;
+						motion.velocity.x += 10;
+					}
+					else if (!hitABlockLeft && !hitAWallLeft) {
+						//motion.position = nextPosLeft;
+						motion.velocity.x -= 10;
+					}*/
+					if (motion_en.velocity.x > 0) {
+						if (motion_en.velocity.y > 0) {
+							motion_en.velocity.x = -200.f;
+							motion_en.velocity.y = 200.f;
+						}
+						else {
+							motion.velocity.x = 200.f;
+							motion.velocity.y = 200.f;
+						}
+					}
+					else {
+						if (motion_en.velocity.y > 0) {
+							motion_en.velocity.x = -200.f;
+							motion_en.velocity.y = -200.f;
+						}
+						else {
+							motion_en.velocity.x = 200.f;
+							motion_en.velocity.y = -200.f;
+						}
+					}
+				}
+			}
+			
+			
 		}
 	}
 
