@@ -7,7 +7,7 @@
 // Player component
 struct Player
 {
-	
+	int hp = 100; 
 };
 
 // The projectile shot by the wizard character.
