@@ -202,7 +202,7 @@ void RenderSystem::draw()
 
 	glViewport(0, 0, w, h);
 
-	glClearColor(1, 0, 1, 0.0);
+	glClearColor(0, 0.5, 0.9, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

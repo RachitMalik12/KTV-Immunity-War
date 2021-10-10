@@ -43,22 +43,14 @@ bool blockCollides(vec2 nextPosition, const Motion& block) {
 bool wallCollides(vec2 nextPosition, Entity wall) {
 	bool hitAWall = false;
 	Motion& motion = registry.motions.get(wall);
-	bool isVertical = registry.walls.get(wall).vertical;
 	vec2 wallPos = motion.position;
 	vec2 wallScale = motion.scale;
-	if (isVertical) {
-		float left = wallPos.x - (wallScale.x / 2);
-		float right = wallPos.x + (wallScale.x / 2);
-		if (nextPosition.x >= left && nextPosition.x <= right) {
-			hitAWall = true;
-		}
-	}
-	else {
-		float top = wallPos.y - (wallScale.y / 2);
-		float bottom = wallPos.y + (wallScale.y / 2);
-		if (nextPosition.y >= top && nextPosition.y <= bottom) {
-			hitAWall = true;
-		}
+	float left = wallPos.x - (wallScale.x / 2);
+	float right = wallPos.x + (wallScale.x / 2);
+	float top = wallPos.y - (wallScale.y / 2);
+	float bottom = wallPos.y + (wallScale.y / 2);
+	if (nextPosition.y >= top && nextPosition.y <= bottom && nextPosition.x >= left && nextPosition.x <= right) {
+		hitAWall = true;
 	}
 	return hitAWall;
 }

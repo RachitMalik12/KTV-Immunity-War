@@ -78,16 +78,22 @@ Entity createWizard(RenderSystem* renderer, vec2 position) {
 //	return entity;
 //}
 
-Entity createWall(vec2 position, vec2 scale, bool isVertical) {
+Entity createWall(vec2 position, vec2 scale, bool isDoor) {
 	Entity entity = Entity();
 	Wall& wall = registry.walls.emplace(entity);
-	wall.vertical = isVertical;
-	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
-		 EFFECT_ASSET_ID::PEBBLE,
-		 GEOMETRY_BUFFER_ID::WALLS });
+	if (isDoor) {
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			 EFFECT_ASSET_ID::PEBBLE,
+			 GEOMETRY_BUFFER_ID::DOOR});
+	} else {
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			 EFFECT_ASSET_ID::PEBBLE,
+			 GEOMETRY_BUFFER_ID::WALLS });
+	}
 
 	// Create motion
 	Motion& motion = registry.motions.emplace(entity);

@@ -41,7 +41,6 @@ struct Powerup
 
 struct Wall
 {
-	bool vertical = false;
 
 };
 
@@ -184,7 +183,8 @@ enum class GEOMETRY_BUFFER_ID {
 	GRAYBOX = DEBUG_LINE + 1,
 	SCREEN_TRIANGLE = GRAYBOX + 1,
 	WALLS = SCREEN_TRIANGLE + 1,
-	GEOMETRY_COUNT = WALLS + 1
+	DOOR = WALLS + 1,
+	GEOMETRY_COUNT = DOOR + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
