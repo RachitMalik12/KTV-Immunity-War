@@ -16,8 +16,11 @@ const size_t TURTLE_DELAY_MS = 2000 * 3;
 const size_t ENEMY_DELAY_MS = 1000;
 const size_t PLAYER_SPEED = 150;
 const int MAP_WIDTH_PX = 1200;
-const int MAP_HEIGHT_PX = 1600;
+const int MAP_HEIGHT_PX = 800;
+const int GAME_HEIGHT = MAP_HEIGHT_PX * 2;
 const int WALL_THICCNESS = 40;
+const int SHOP_WALL_THICCNESS = 100;
+const int DOOR_WIDTH = 200;
 
 // Create the fish world
 WorldSystem::WorldSystem()
@@ -77,7 +80,7 @@ GLFWwindow* WorldSystem::create_window(int width, int height) {
 	glfwWindowHint(GLFW_RESIZABLE, 0);
 
 	// Create the main window (for rendering, keyboard, and mouse input)
-	window = glfwCreateWindow(width, height, "Salmon Game Assignment", nullptr, nullptr);
+	window = glfwCreateWindow(width, height, "Project KTV", nullptr, nullptr);
 	if (window == nullptr) {
 		fprintf(stderr, "Failed to glfwCreateWindow");
 		return nullptr;
@@ -294,17 +297,27 @@ void WorldSystem::restart_game() {
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
-	// Create walls
-	vec2 leftWallPos = { 0, MAP_HEIGHT_PX / 2 };
-	vec2 rightWallPos = { MAP_WIDTH_PX, MAP_HEIGHT_PX / 2 };
+	// Create perimeter walls
+	vec2 leftWallPos = { 0, GAME_HEIGHT / 2 };
+	vec2 rightWallPos = { MAP_WIDTH_PX, GAME_HEIGHT / 2 };
 	vec2 topWallPos = { MAP_WIDTH_PX / 2, 0 };
-	vec2 bottomWallPos = { MAP_WIDTH_PX / 2, MAP_HEIGHT_PX };
-	vec2 verticalWallScale = { WALL_THICCNESS, MAP_HEIGHT_PX };
+	vec2 bottomWallPos = { MAP_WIDTH_PX / 2, GAME_HEIGHT };
+	vec2 verticalWallScale = { WALL_THICCNESS, GAME_HEIGHT };
 	vec2 horizontalWallScale = { MAP_WIDTH_PX, WALL_THICCNESS };
-	createWall(leftWallPos, verticalWallScale, true);
-	createWall(rightWallPos, verticalWallScale, true);
+	createWall(leftWallPos, verticalWallScale, false);
+	createWall(rightWallPos, verticalWallScale, false);
 	createWall(topWallPos, horizontalWallScale, false);
 	createWall(bottomWallPos, horizontalWallScale, false);
+
+	// Create middle shop walls
+	vec2 middleWallLeftPos = { 0, MAP_HEIGHT_PX };
+	vec2 middleWallRightPos = { MAP_WIDTH_PX, MAP_HEIGHT_PX };
+	vec2 shopWallScale = { MAP_WIDTH_PX - DOOR_WIDTH, SHOP_WALL_THICCNESS };
+	createWall(middleWallLeftPos, shopWallScale, false);
+	createWall(middleWallRightPos, shopWallScale, false);
+
+	// Create door, please let this be the last and 7th wall created. See keyboard control O for reference.
+	createDoor();
 
 	// Create a new player character
 	player_wizard = createWizard(renderer, { 100, 200 });
@@ -321,8 +334,6 @@ void WorldSystem::restart_game() {
 	//createBlock(renderer, { 700, 600 }, "red");
 	//createBlock(renderer, { 700, 300 }, "orange");
 	//createBlock(renderer, { 700, 100 }, "yellow");
-	createDoorWay(renderer, { 0, MAP_HEIGHT_PX / 2 });
-	createDoorWay(renderer, { MAP_WIDTH_PX, MAP_HEIGHT_PX / 2 });
 
 	// !! TODO A3: Enable static pebbles on the ground
 	// Create pebbles on the floor for reference
@@ -337,6 +348,12 @@ void WorldSystem::restart_game() {
 		registry.colors.insert(pebble, { brightness, brightness, brightness});
 	}
 	*/
+}
+
+void WorldSystem::createDoor() {
+	vec2 doorPosition = { MAP_WIDTH_PX / 2 , MAP_HEIGHT_PX };
+	vec2 doorScale = { DOOR_WIDTH, SHOP_WALL_THICCNESS };
+	createWall(doorPosition, doorScale, true);
 }
 
 // Compute collisions between entities
@@ -504,6 +521,16 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		createFireball(renderer, salmonMotion.position, { -300.f, 0 });
 		staminaCallBack(player_wizard);
 		std::cout << stamina;
+	}
+
+	// Open/close door
+	if (action == GLFW_PRESS && key == GLFW_KEY_O) {
+		if (registry.walls.entities.size() < 7) {
+			createDoor();
+		} else {
+			Entity door = registry.walls.entities.back();
+			registry.remove_all_components_of(door);
+		}
 	}
 
 	// Debugging

@@ -15,7 +15,7 @@ Observer pattern (FC): For one case when fireballs are being thrown, stamina wil
 
 Keyboard control for player 1 (RM): WSAD for movement and TFGH for 4 directional projectile firing.
 
-Camera control (FC): Camera follows the player when the player moves from battle arena to shop.
+Camera control (FC)(BZ)(BS): Camera transitions to the shop when the player moves from battle arena to shop and vice versa.
 
 Basic collision detection (BZ): Implemented walls and blocks on map that will detect objects in motion moving into them thus stopping the objects'
 movement. Collision detection is using the same as A1 template for now for blocks and wall, although they work slightly differently.
