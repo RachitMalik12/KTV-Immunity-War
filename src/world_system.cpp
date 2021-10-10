@@ -18,15 +18,14 @@ const size_t PLAYER_SPEED = 150;
 const int MAP_WIDTH_PX = 1200;
 const int MAP_HEIGHT_PX = 800;
 const int GAME_HEIGHT = MAP_HEIGHT_PX * 2;
-const int WALL_THICCNESS = 40;
-const int SHOP_WALL_THICCNESS = 100;
+const int WALL_THICKNESS = 40;
+const int SHOP_WALL_THICKNESS = 100;
 const int DOOR_WIDTH = 200;
 const size_t ENEMY_DAMAGE = 1; 
 
 // Create the fish world
 WorldSystem::WorldSystem()
 	: money(0),
-	hp(100), 
 	spawnPowerup(true)
 {
 	// Seeding rng with random device
@@ -314,8 +313,8 @@ void WorldSystem::restart_game() {
 	vec2 rightWallPos = { MAP_WIDTH_PX, GAME_HEIGHT / 2 };
 	vec2 topWallPos = { MAP_WIDTH_PX / 2, 0 };
 	vec2 bottomWallPos = { MAP_WIDTH_PX / 2, GAME_HEIGHT };
-	vec2 verticalWallScale = { WALL_THICCNESS, GAME_HEIGHT };
-	vec2 horizontalWallScale = { MAP_WIDTH_PX, WALL_THICCNESS };
+	vec2 verticalWallScale = { WALL_THICKNESS, GAME_HEIGHT };
+	vec2 horizontalWallScale = { MAP_WIDTH_PX, WALL_THICKNESS };
 	createWall(leftWallPos, verticalWallScale, false);
 	createWall(rightWallPos, verticalWallScale, false);
 	createWall(topWallPos, horizontalWallScale, false);
@@ -324,7 +323,7 @@ void WorldSystem::restart_game() {
 	// Create middle shop walls
 	vec2 middleWallLeftPos = { 0, MAP_HEIGHT_PX };
 	vec2 middleWallRightPos = { MAP_WIDTH_PX, MAP_HEIGHT_PX };
-	vec2 shopWallScale = { MAP_WIDTH_PX - DOOR_WIDTH, SHOP_WALL_THICCNESS };
+	vec2 shopWallScale = { MAP_WIDTH_PX - DOOR_WIDTH, SHOP_WALL_THICKNESS };
 	createWall(middleWallLeftPos, shopWallScale, false);
 	createWall(middleWallRightPos, shopWallScale, false);
 
@@ -364,7 +363,7 @@ void WorldSystem::restart_game() {
 
 void WorldSystem::createDoor() {
 	vec2 doorPosition = { MAP_WIDTH_PX / 2 , MAP_HEIGHT_PX };
-	vec2 doorScale = { DOOR_WIDTH, SHOP_WALL_THICCNESS };
+	vec2 doorScale = { DOOR_WIDTH, SHOP_WALL_THICKNESS };
 	createWall(doorPosition, doorScale, true);
 }
 

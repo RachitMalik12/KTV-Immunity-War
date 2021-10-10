@@ -61,7 +61,6 @@ private:
 
 	// Number of fish eaten by the salmon, displayed in the window title
 	int money;
-	unsigned int hp;
 	bool spawnPowerup;
 	// Game state
 	RenderSystem* renderer;
