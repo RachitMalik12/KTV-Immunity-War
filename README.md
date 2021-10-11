@@ -11,11 +11,15 @@ face the correct direction when moving, which means loading the correct sprite o
 Debugging graphics (BS): A another debug mode that draws a rectangle around the sprites is implemented. We can combine this with the original
 red cross for a better visualization of sprites.
 
-Observer pattern (FC): For one case when fireballs are being thrown, stamina will decrease by one and disallow user to throw anymore fireballs.
+Observer pattern (FC) (RM): We used the observer pattern to update the health points of a player. The event we are listening for is the collision of the player 
+with one specific type of enemy. Once they collide, the listener (hpListener) will perform the hp update. We used the functional approach using C++ function pointers to implement 
+Observer pattern. The methods developed can be seen in WorldSystem class and are WorldSystem::hpListener, WorldSystem::hpCallback and WorldSystem::attach
 
-Keyboard control for player 1 (RM): WSAD for movement and TFGH for 4 directional projectile firing.
+Keyboard control for player 1 (RM): WSAD for movement and TFGH for 4 directional projectile firing. Can move and fire at the same time.        
 
-Camera control (FC)(BZ)(BS): Camera transitions to the shop when the player moves from battle arena to shop and vice versa.
+Camera control (FC)(BZ)(BS): Camera transitions to the shop when the player moves from battle arena to shop and vice versa. There is a door at the bottom 
+of the battle arena which on press of the key 'O' allows the player to move to the shop. If 1 of the 2 players open the door and move out of the battle arena, 
+both players will move to the shop. 
 
 Basic collision detection (BZ): Implemented walls and blocks on map that will detect objects in motion moving into them thus stopping the objects'
 movement. Collision detection is using the same as A1 template for now for blocks and wall, although they work slightly differently.
@@ -31,8 +35,11 @@ Crash free (ALL): We encountered a few build problem with one local project_path
 paired debugging by BZ and RM. We made sure other members don't have the same problems during our zoom meetings. We also make sure a build works
 before we merge a pull request into dev branch.
 
-Simple currency System (RM): Killing enemies grants the player money which then can be spent to buy power ups in the shop. The shop will be expanded
-in future milestones.
+Simple currency System (RM): Killing enemies grants the player money which then can be spent to buy power ups in the shop. The powerups 
+increase health points by 10 when the given player walks over a powerup for the cost of 1$. The shop was completed in the camera movement feature which allows 
+the player to transition from the battle arena to the shop through a door on press of 'O'. The powerup is for this milestone, 1 sprite image but we plan to add 
+more types of powerups going forward. Adding of the powerups to the shop, handling collisions with player and updating state of money and hp were all a part of this 
+custom feature. 
 
 Co-op second player (BS): The second player is controlled with mouse to not conflict with GLFW keyboard control. One mouse click to move the character
 and the other mouse click to fire projectiles at the direction the mouse is at.
@@ -54,7 +61,7 @@ with the keyboard and the other player with the mouse.
 -To account for the extra 10 points from organization we are dropping parallax scrolling background from our game entirely.
 
 Feature changes:
-We discovered that precise collision is too difficult and beyond our knowledge currently. We are moving precise collision from M1 to M2. We are instead
+We discovered that precise collision is tricky and we might need some more time in order to approach it to the best of our abilities. We are moving precise collision from M1 to M2. We are instead
 doing co-op second player in M1, moved from M3. We are moving save and reload from M2 to M3.
 
 For revised milestones, please see MilestoneSubmissionFormM1.pdf.
