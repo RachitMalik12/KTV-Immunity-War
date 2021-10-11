@@ -221,7 +221,7 @@ Entity createDoorWay(RenderSystem* renderer, vec2 pos) {
 	return entity;
 }
 
-Entity createFireball(RenderSystem* renderer, vec2 pos, vec2 velocity) {
+Entity createProjectile(RenderSystem* renderer, vec2 pos, vec2 velocity) {
 	// Reserve en entity
 	auto entity = Entity();
 
