@@ -69,20 +69,10 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 		float step_seconds = 1.0f * (elapsed_ms / 1000.f);
 		vec2 nextPosition = vec2(motion.position.x + motion.velocity.x * step_seconds,
 			motion.position.y + motion.velocity.y * step_seconds);
-		vec2 nextPosRight = vec2(nextPosition.x + ENEMY_AVOID_DIST, nextPosition.y);
-		vec2 nextPosLeft = vec2(nextPosition.x - ENEMY_AVOID_DIST, nextPosition.y);
 		bool hitABlock = false;
-		bool hitABlockRight = false;
-		bool hitABlockLeft = false;
 		for (uint j = 0; j < blocks_registry.size(); j++) {
 			Entity blockEntity = blocks_registry.entities[j];
 			if (blockCollides(nextPosition, motion_registry.get(blockEntity))) {
-				hitABlock = true;
-			}
-			if (blockCollides(nextPosRight, motion_registry.get(blockEntity))) {
-				hitABlock = true;
-			}
-			if (blockCollides(nextPosLeft, motion_registry.get(blockEntity))) {
 				hitABlock = true;
 			}
 		}
@@ -94,13 +84,6 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 			if (wallCollides(nextPosition, wallEntity)) {
 				hitABlock = true;
 			}
-			if (wallCollides(nextPosRight, wallEntity)) {
-				hitAWallRight = true;
-			}
-			if (wallCollides(nextPosLeft, wallEntity)) {
-				hitAWallLeft = true;
-			}
-
 		}
 		if (!hitABlock && !hitAWall) {
 			motion.position = nextPosition;
