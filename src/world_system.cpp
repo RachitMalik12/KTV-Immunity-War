@@ -284,7 +284,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	//screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 
 	return true;
-}
+
 
 	// update Stuck timers and remove if time drops below zero, similar to the death counter
 	float min_counter_ms_powerup = 3000.f;
@@ -371,8 +371,8 @@ void WorldSystem::restart_game() {
 
 	// Create some blocks
 	createBlock(renderer, { 700, 600 }, "red");
-	createBlock(renderer, { 700, 300 }, "orange");
-	createBlock(renderer, { 700, 100 }, "yellow");
+	createBlock(renderer, { 500, 300 }, "orange");
+	createBlock(renderer, { 900, 300 }, "yellow");
 
 	// !! TODO A3: Enable static pebbles on the ground
 	// Create pebbles on the floor for reference
