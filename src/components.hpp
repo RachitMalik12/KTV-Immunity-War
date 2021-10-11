@@ -7,7 +7,7 @@
 // Player component
 struct Player
 {
-	
+	int hp = 100; 
 };
 
 // The projectile shot by the wizard character.
@@ -41,7 +41,6 @@ struct Powerup
 
 struct Wall
 {
-	bool vertical = false;
 
 };
 
@@ -85,6 +84,13 @@ struct DebugComponent
 struct DeathTimer
 {
 	float counter_ms = 3000;
+};
+
+// A timer that will be associated to enemies/enemies run being stuck
+struct StuckTimer
+{
+	float counter_ms = 3000;
+	vec2 stuck_pos = { 0, 0 };
 };
 
 // An entity that is currently in the item shop. For mouse-controlled characters.
@@ -184,7 +190,8 @@ enum class GEOMETRY_BUFFER_ID {
 	GRAYBOX = DEBUG_LINE + 1,
 	SCREEN_TRIANGLE = GRAYBOX + 1,
 	WALLS = SCREEN_TRIANGLE + 1,
-	GEOMETRY_COUNT = WALLS + 1
+	DOOR = WALLS + 1,
+	GEOMETRY_COUNT = DOOR + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 

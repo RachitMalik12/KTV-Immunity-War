@@ -10,19 +10,22 @@
 
 // Game configuration
 const size_t MAX_TURTLES = 15;
-const size_t MAX_ENEMIES = 10;
+const size_t MAX_ENEMIES = 5;
 const size_t MAX_ENEMIESRUN = 2;
 const size_t TURTLE_DELAY_MS = 2000 * 3;
 const size_t ENEMY_DELAY_MS = 1000;
 const size_t PLAYER_SPEED = 150;
 const int MAP_WIDTH_PX = 1200;
-const int MAP_HEIGHT_PX = 1600;
-const int WALL_THICCNESS = 40;
+const int MAP_HEIGHT_PX = 800;
+const int GAME_HEIGHT = MAP_HEIGHT_PX * 2;
+const int WALL_THICKNESS = 40;
+const int SHOP_WALL_THICKNESS = 100;
+const int DOOR_WIDTH = 200;
+const size_t ENEMY_DAMAGE = 1; 
 
 // Create the fish world
 WorldSystem::WorldSystem()
 	: money(0),
-	stamina(10), 
 	spawnPowerup(true)
 {
 	// Seeding rng with random device
@@ -77,7 +80,7 @@ GLFWwindow* WorldSystem::create_window(int width, int height) {
 	glfwWindowHint(GLFW_RESIZABLE, 0);
 
 	// Create the main window (for rendering, keyboard, and mouse input)
-	window = glfwCreateWindow(width, height, "Salmon Game Assignment", nullptr, nullptr);
+	window = glfwCreateWindow(width, height, "Project KTV", nullptr, nullptr);
 	if (window == nullptr) {
 		fprintf(stderr, "Failed to glfwCreateWindow");
 		return nullptr;
@@ -130,13 +133,14 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 }
 
 // Observer pattern
-void WorldSystem::staminaListener(Entity entity) {
-	if (stamina > 0 && entity.getId()) {
-		stamina--;
+void WorldSystem::hpListener(Entity entity) {
+	if (registry.players.has(entity)) {
+		Player& player = registry.players.get(entity);
+		player.hp -= ENEMY_DAMAGE; 
 	}
 }
 
-void WorldSystem::staminaCallBack(Entity entity) {
+void WorldSystem::hpCallBack(Entity entity) {
 	for (std::function<void(Entity entity)> fn: callbackFns) {
 		fn(entity);
 	}
@@ -152,10 +156,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Get the screen dimensions
 	int screen_width, screen_height;
 	glfwGetFramebufferSize(window, &screen_width, &screen_height);
-
 	// Updating window title with money
 	std::stringstream title_ss;
-	title_ss << "Money: " << money << " and Stamina: " << stamina;
+	// Get hp of player 1 and player 2 
+	int hp_p1 = 0; 
+	int hp_p2 = 0; 
+	if (!registry.deathTimers.has(player_wizard) ) {
+		hp_p1 = registry.players.get(player_wizard).hp; 
+	}
+	if (!registry.deathTimers.has(player2_wizard)) {
+		hp_p2 = registry.players.get(player2_wizard).hp; 
+	}
+	title_ss << "Money: " << money << " & Health P1 " << hp_p1 << " & Health P2 " << hp_p2; 
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	// Remove debug info from the last step
@@ -248,25 +260,55 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	assert(registry.screenStates.components.size() <= 1);
     ScreenState &screen = registry.screenStates.components[0];
 
-    float min_counter_ms = 3000.f;
-	for (Entity entity : registry.deathTimers.entities) {
-		// progress timer
-		DeathTimer& counter = registry.deathTimers.get(entity);
-		counter.counter_ms -= elapsed_ms_since_last_update;
-		if(counter.counter_ms < min_counter_ms){
-		    min_counter_ms = counter.counter_ms;
-		}
+ //   float min_counter_ms = 3000.f;
+	//for (Entity entity : registry.deathTimers.entities) {
+	//	// progress timer
+	//	DeathTimer& counter = registry.deathTimers.get(entity);
+	//	counter.counter_ms -= elapsed_ms_since_last_update;
+	//	if(counter.counter_ms < min_counter_ms){
+	//	    min_counter_ms = counter.counter_ms;
+	//	}
+	//	// restart the game once the death timer expired
+	//	if (counter.counter_ms < 0)
+	//	{
+	//		registry.deathTimers.remove(entity);
+	//		registry.remove_all_components_of(entity); 
+	//		//screen.darken_screen_factor = 0;
+	//		if (!registry.deathTimers.has(player_wizard) && !registry.deathTimers.has(player2_wizard)) {
+	//			restart_game(); 
+	//		}
+	//		return true;
+	//	}
+	//}
+	//// reduce window brightness if any of the present salmons is dying
+	//screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 
-		// restart the game once the death timer expired
-		if (counter.counter_ms < 0) {
-			registry.deathTimers.remove(entity);
-			screen.darken_screen_factor = 0;
-            restart_game();
-			return true;
+	return true;
+
+
+	// update Stuck timers and remove if time drops below zero, similar to the death counter
+	float min_counter_ms_powerup = 3000.f;
+	for (Entity entity : registry.stuckTimers.entities) {
+		StuckTimer& counter = registry.stuckTimers.get(entity);
+		// remove timer if current position is the different from "stuck" position
+		if (registry.motions.get(entity).position != counter.stuck_pos) {
+			registry.stuckTimers.remove(entity);
+		}
+		// else if entity is "stuck" in same position, progress timer
+		else {
+			// progress timer
+			counter.counter_ms -= elapsed_ms_since_last_update;
+			if (counter.counter_ms < min_counter_ms_powerup) {
+				min_counter_ms_powerup = counter.counter_ms;
+			}
+
+			// remove entity (enemies/enemies run) when timer expires
+			if (counter.counter_ms < 0) {
+				registry.remove_all_components_of(entity);
+				return true;
+			}
 		}
 	}
-	// reduce window brightness if any of the present salmons is dying
-	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 
 
 	return true;
@@ -294,35 +336,43 @@ void WorldSystem::restart_game() {
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
-	// Create walls
-	vec2 leftWallPos = { 0, MAP_HEIGHT_PX / 2 };
-	vec2 rightWallPos = { MAP_WIDTH_PX, MAP_HEIGHT_PX / 2 };
+	// Create perimeter walls
+	vec2 leftWallPos = { 0, GAME_HEIGHT / 2 };
+	vec2 rightWallPos = { MAP_WIDTH_PX, GAME_HEIGHT / 2 };
 	vec2 topWallPos = { MAP_WIDTH_PX / 2, 0 };
-	vec2 bottomWallPos = { MAP_WIDTH_PX / 2, MAP_HEIGHT_PX };
-	vec2 verticalWallScale = { WALL_THICCNESS, MAP_HEIGHT_PX };
-	vec2 horizontalWallScale = { MAP_WIDTH_PX, WALL_THICCNESS };
-	createWall(leftWallPos, verticalWallScale, true);
-	createWall(rightWallPos, verticalWallScale, true);
+	vec2 bottomWallPos = { MAP_WIDTH_PX / 2, GAME_HEIGHT };
+	vec2 verticalWallScale = { WALL_THICKNESS, GAME_HEIGHT };
+	vec2 horizontalWallScale = { MAP_WIDTH_PX, WALL_THICKNESS };
+	createWall(leftWallPos, verticalWallScale, false);
+	createWall(rightWallPos, verticalWallScale, false);
 	createWall(topWallPos, horizontalWallScale, false);
 	createWall(bottomWallPos, horizontalWallScale, false);
+
+	// Create middle shop walls
+	vec2 middleWallLeftPos = { 0, MAP_HEIGHT_PX };
+	vec2 middleWallRightPos = { MAP_WIDTH_PX, MAP_HEIGHT_PX };
+	vec2 shopWallScale = { MAP_WIDTH_PX - DOOR_WIDTH, SHOP_WALL_THICKNESS };
+	createWall(middleWallLeftPos, shopWallScale, false);
+	createWall(middleWallRightPos, shopWallScale, false);
+
+	// Create door, please let this be the last and 7th wall created. See keyboard control O for reference.
+	createDoor();
 
 	// Create a new player character
 	player_wizard = createWizard(renderer, { 100, 200 });
 	player2_wizard = createWizard(renderer, { 100, 400 });
 
 	callbackFns.clear();
-	stamina = 10;
+	//hp = 100; 
 	attach([&](Entity entity) {
-		staminaListener(entity);
+		hpListener(entity);
 	});
 
 
 	// Create some blocks
-	//createBlock(renderer, { 700, 600 }, "red");
-	//createBlock(renderer, { 700, 300 }, "orange");
-	//createBlock(renderer, { 700, 100 }, "yellow");
-	createDoorWay(renderer, { 0, MAP_HEIGHT_PX / 2 });
-	createDoorWay(renderer, { MAP_WIDTH_PX, MAP_HEIGHT_PX / 2 });
+	createBlock(renderer, { 700, 600 }, "red");
+	createBlock(renderer, { 500, 300 }, "orange");
+	createBlock(renderer, { 900, 300 }, "yellow");
 
 	// !! TODO A3: Enable static pebbles on the ground
 	// Create pebbles on the floor for reference
@@ -339,16 +389,22 @@ void WorldSystem::restart_game() {
 	*/
 }
 
+void WorldSystem::createDoor() {
+	vec2 doorPosition = { MAP_WIDTH_PX / 2 , MAP_HEIGHT_PX };
+	vec2 doorScale = { DOOR_WIDTH, SHOP_WALL_THICKNESS };
+	createWall(doorPosition, doorScale, true);
+}
+
 // Compute collisions between entities
 void WorldSystem::handle_collisions() {
 	// Loop over all collisions detected by the physics system
-	auto& collisionsRegistry = registry.collisions; // TODO: @Tim, is the reference here needed?
+	auto& collisionsRegistry = registry.collisions; 
 	for (uint i = 0; i < collisionsRegistry.components.size(); i++) {
 		// The entity and its collider
 		Entity entity = collisionsRegistry.entities[i];
 		Entity entity_other = collisionsRegistry.components[i].other;
 
-		// Checking collision of projectiles with other entities
+		// Checking collision of projectiles with other entities (enemies or enemies run)
 		if (registry.projectiles.has(entity)) {
 			if ((registry.enemies.has(entity_other) || registry.enemiesrun.has(entity_other)) && !registry.powerups.has(entity_other)){
 				// remove enemy, fireball, count points
@@ -358,19 +414,42 @@ void WorldSystem::handle_collisions() {
 			}
 		}
 
+		// Checking collision of enemies or enemies run with walls or blocks
+		if (registry.enemies.has(entity) || registry.enemiesrun.has(entity)) {
+			if (registry.blocks.has(entity_other) || registry.walls.has(entity_other)) {
+				// start a timer and pass the enemies/enemies run's current position
+				if (!registry.stuckTimers.has(entity)) {
+					registry.stuckTimers.emplace(entity);
+					registry.stuckTimers.get(entity).stuck_pos = vec2(registry.motions.get(entity).position.x, registry.motions.get(entity).position.y);
+				}
+			}
+		}
+
 		if (registry.powerups.has(entity)) {
 			if (registry.players.has(entity_other)) {
 				//Deduct points if money is available, add stamina 
 				if (money - 1 >= 0) {
 					money -= 1; 
-					stamina += 5; 
+					registry.players.get(entity_other).hp += 10; 
 					registry.remove_all_components_of(entity);
 				} 
 			}
 		}
 		// For now, we are only interested in collisions that involve the salmon
 		if (registry.players.has(entity)) {
-			//Player& player = registry.players.get(entity);
+			Player& player = registry.players.get(entity);
+			// Check Player - Enemy collisions 
+			if (registry.enemies.has(entity_other) && ! registry.powerups.has(entity_other)) {
+				// if hp - 1 is <= 0 then initiate death unless already dying 
+				if (player.hp - 1 <= 0) {
+					// TODO: handle death here when HP is 0. 
+					// Temp change hp to 0 
+					player.hp = 0; 	
+				}
+				else {
+					hpCallBack(entity); 
+				}
+			}
 
 			//// Checking Player - HardShell collisions
 			//if (registry.hardShells.has(entity_other)) {
@@ -432,78 +511,81 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			debugging.in_graybox_mode = !debugging.in_graybox_mode;
 		}
 	}
-
-	Motion& salmonMotion = registry.motions.get(player_wizard);
-	vec2 currentVelocity = vec2(salmonMotion.velocity.x, salmonMotion.velocity.y);
+	
+	Motion& player1motion = registry.motions.get(player_wizard);
+	vec2 currentVelocity = vec2(player1motion.velocity.x, player1motion.velocity.y);
 	if (action == GLFW_PRESS && key == GLFW_KEY_W) {
-		salmonMotion.velocity = vec2(currentVelocity.x, currentVelocity.y - (float)PLAYER_SPEED);
+		player1motion.velocity = vec2(currentVelocity.x, currentVelocity.y - (float)PLAYER_SPEED);
 	}
 	if (action == GLFW_RELEASE && key == GLFW_KEY_W) {
-		salmonMotion.velocity = vec2(currentVelocity.x, currentVelocity.y + (float)PLAYER_SPEED);
+		player1motion.velocity = vec2(currentVelocity.x, currentVelocity.y + (float)PLAYER_SPEED);
 	}
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_S) {
-		salmonMotion.velocity = vec2(currentVelocity.x, currentVelocity.y + (float)PLAYER_SPEED);
+		player1motion.velocity = vec2(currentVelocity.x, currentVelocity.y + (float)PLAYER_SPEED);
 	}
 	if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
-		salmonMotion.velocity = vec2(currentVelocity.x, currentVelocity.y - (float)PLAYER_SPEED);
+		player1motion.velocity = vec2(currentVelocity.x, currentVelocity.y - (float)PLAYER_SPEED);
 	}
 
-	// JA
 	if (action == GLFW_PRESS && key == GLFW_KEY_A) {
 		if (!registry.flips.has(player_wizard))
-		{
-			registry.flips.emplace(player_wizard);
-			Flip& flipped = registry.flips.get(player_wizard);
-			flipped.left = true;
-			salmonMotion.scale = vec2({ -WIZARD_BB_WIDTH, WIZARD_BB_HEIGHT });
+			{
+				registry.flips.emplace(player_wizard);
+				Flip& flipped = registry.flips.get(player_wizard);
+				flipped.left = true;
+				player1motion.scale = vec2({ -WIZARD_BB_WIDTH, WIZARD_BB_HEIGHT });
+
+			}
+
+			player1motion.velocity = vec2(currentVelocity.x - (float)PLAYER_SPEED, currentVelocity.y);
+		}
+		if (action == GLFW_RELEASE && key == GLFW_KEY_A) {
+			player1motion.velocity = vec2(currentVelocity.x + (float)PLAYER_SPEED, currentVelocity.y);
 
 		}
 
-		salmonMotion.velocity = vec2(currentVelocity.x - (float)PLAYER_SPEED, currentVelocity.y);
-	}
-	if (action == GLFW_RELEASE && key == GLFW_KEY_A) {
-		salmonMotion.velocity = vec2(currentVelocity.x + (float)PLAYER_SPEED, currentVelocity.y);
-
-	}
-
-	if (action == GLFW_PRESS && key == GLFW_KEY_D) {
-		if (registry.flips.has(player_wizard))
-		{
-			Flip& flipped = registry.flips.get(player_wizard);
-			flipped.left = false;
-			registry.flips.remove(player_wizard);
-			salmonMotion.scale = vec2({ WIZARD_BB_WIDTH, WIZARD_BB_HEIGHT });
+		if (action == GLFW_PRESS && key == GLFW_KEY_D) {
+			if (registry.flips.has(player_wizard))
+			{
+				Flip& flipped = registry.flips.get(player_wizard);
+				flipped.left = false;
+				registry.flips.remove(player_wizard);
+				player1motion.scale = vec2({ WIZARD_BB_WIDTH, WIZARD_BB_HEIGHT });
+			}
+			player1motion.velocity = vec2(currentVelocity.x + (float)PLAYER_SPEED, currentVelocity.y);
 		}
-		salmonMotion.velocity = vec2(currentVelocity.x + (float)PLAYER_SPEED, currentVelocity.y);
-	}
-	// JA END
-	if (action == GLFW_RELEASE && key == GLFW_KEY_D) {
-		salmonMotion.velocity = vec2(currentVelocity.x - (float)PLAYER_SPEED, currentVelocity.y);
-	}
 
-	if (action == GLFW_PRESS && key == GLFW_KEY_T && stamina > 0) {
-		createFireball(renderer, salmonMotion.position, { 0, -300.f });
-		staminaCallBack(player_wizard);
-		std::cout << stamina;
-	}
+		if (action == GLFW_RELEASE && key == GLFW_KEY_D) {
+			player1motion.velocity = vec2(currentVelocity.x - (float)PLAYER_SPEED, currentVelocity.y);
+		}
 
-	if (action == GLFW_PRESS && key == GLFW_KEY_G && stamina > 0) {
-		createFireball(renderer, salmonMotion.position, { 0, 300.f });
-		staminaCallBack(player_wizard);
-		std::cout << stamina;
-	}
+		if (action == GLFW_PRESS && key == GLFW_KEY_T) {
+			createProjectile(renderer, player1motion.position, { 0, -300.f });
+		}
 
-	if (action == GLFW_PRESS && key == GLFW_KEY_H && stamina > 0) {
-		createFireball(renderer, salmonMotion.position, { 300.f, 0});
-		staminaCallBack(player_wizard);
-		std::cout << stamina;
-	}
+		if (action == GLFW_PRESS && key == GLFW_KEY_G) {
+			createProjectile(renderer, player1motion.position, { 0, 300.f });
+		}
 
-	if (action == GLFW_PRESS && key == GLFW_KEY_F && stamina > 0) {
-		createFireball(renderer, salmonMotion.position, { -300.f, 0 });
-		staminaCallBack(player_wizard);
-		std::cout << stamina;
+		if (action == GLFW_PRESS && key == GLFW_KEY_H) {
+			createProjectile(renderer, player1motion.position, { 300.f, 0 });
+
+		}
+
+		if (action == GLFW_PRESS && key == GLFW_KEY_F) {
+			createProjectile(renderer, player1motion.position, { -300.f, 0 });
+		}
+	
+
+	// Open/close door
+	if (action == GLFW_PRESS && key == GLFW_KEY_O) {
+		if (registry.walls.entities.size() < 7) {
+			createDoor();
+		} else {
+			Entity door = registry.walls.entities.back();
+			registry.remove_all_components_of(door);
+		}
 	}
 
 	// Debugging
@@ -529,15 +611,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A1: HANDLE SALMON ROTATION HERE
-	// xpos and ypos are relative to the top-left of the window, the salmon's
-	// default facing direction is (1, 0)
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// JA: adding flip left action to wizard 2
 	Motion& motion = registry.motions.get(player2_wizard);
-	//float ang = atan2(mouse_position.y - motion.position.y, mouse_position.x - motion.position.x);
 	float deltaX = mouse_position.x - motion.position.x;
-	/*printf("%.6f", deltaX);*/
 	if (deltaX < 0 && !registry.flips.has(player2_wizard))
 	{
 		registry.flips.emplace(player2_wizard);
@@ -559,35 +635,34 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 }
 
 void WorldSystem::on_mouse_click(int button, int action, int mods) {
-	if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_LEFT) {
-		if (registry.mouseDestinations.has(player2_wizard))
-			registry.mouseDestinations.remove(player2_wizard);
-		Motion& wizard2_motion = registry.motions.get(player2_wizard);
-		double x, y;
-		glfwGetCursorPos(window, &x, &y);
-		if (registry.inShops.has(player2_wizard)) {
-			y += 800;
+		if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_LEFT) {
+			if (registry.mouseDestinations.has(player2_wizard))
+				registry.mouseDestinations.remove(player2_wizard);
+			Motion& wizard2_motion = registry.motions.get(player2_wizard);
+			double x, y;
+			glfwGetCursorPos(window, &x, &y);
+			if (registry.inShops.has(player2_wizard)) {
+				y += 800;
+			}
+			double dx = x - wizard2_motion.position.x;
+			double dy = y - wizard2_motion.position.y;
+			float h = sqrt(pow(dx, 2) + pow(dy, 2));
+			float scale = (float)PLAYER_SPEED / h;
+			wizard2_motion.velocity = vec2(dx * scale, dy * scale);
+			registry.mouseDestinations.emplace(player2_wizard, vec2(x, y));
 		}
-		double dx = x - wizard2_motion.position.x;
-		double dy = y - wizard2_motion.position.y;
-		float h = sqrt(pow(dx, 2) + pow(dy, 2));
-		float scale = (float)PLAYER_SPEED / h;
-		wizard2_motion.velocity = vec2(dx * scale, dy * scale);
-		registry.mouseDestinations.emplace(player2_wizard, vec2(x,y));
-	}
 
-	if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_RIGHT && stamina > 0) {
-		Motion& wizard2_motion = registry.motions.get(player2_wizard);
-		double x, y;
-		glfwGetCursorPos(window, &x, &y);		
-		if (registry.inShops.has(player2_wizard)) {
-			y += 800;
+		if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_RIGHT) {
+			Motion& wizard2_motion = registry.motions.get(player2_wizard);
+			double x, y;
+			glfwGetCursorPos(window, &x, &y);
+			if (registry.inShops.has(player2_wizard)) {
+				y += 800;
+			}
+			double dx = x - wizard2_motion.position.x;
+			double dy = y - wizard2_motion.position.y;
+			float h = sqrt(pow(dx, 2) + pow(dy, 2));
+			float scale = 300.f / h;
+			createProjectile(renderer, wizard2_motion.position, { dx * scale, dy * scale });
 		}
-		double dx = x - wizard2_motion.position.x;
-		double dy = y - wizard2_motion.position.y;
-		float h = sqrt(pow(dx, 2) + pow(dy, 2));
-		float scale = 300.f / h;
-		createFireball(renderer, wizard2_motion.position, { dx * scale, dy * scale });
-		staminaCallBack(player2_wizard);
-	}
 }

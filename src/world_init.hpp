@@ -23,11 +23,11 @@ Entity createSalmon(RenderSystem* renderer, vec2 pos);
 Entity createWizard(RenderSystem* renderer, vec2 pos);
 
 
-// the fireball 
-Entity createFireball(RenderSystem* render, vec2 pos, vec2 velocity); 
+// the projectile  
+Entity createProjectile(RenderSystem* render, vec2 pos, vec2 velocity); 
 
 // create wall
-Entity createWall(vec2 position, vec2 size, bool isVertical);
+Entity createWall(vec2 position, vec2 size, bool isDoor);
 
 // map blocks
 Entity createBlock(RenderSystem* renderer, vec2 pos, std::string color);

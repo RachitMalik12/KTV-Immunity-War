@@ -23,10 +23,10 @@ public:
 	std::vector<std::function<void(Entity entity)>>  callbackFns;
 
 	void attach(std::function<void(Entity entity)>);
-	
-	void staminaListener(Entity entity);
+
+	void hpListener(Entity entity);
 	// Observer Pattern listener
-	void staminaCallBack(Entity entity);
+	void hpCallBack(Entity entity);
 
 	// Creates a window
 	GLFWwindow* create_window(int width, int height);
@@ -61,8 +61,7 @@ private:
 
 	// Number of fish eaten by the salmon, displayed in the window title
 	int money;
-	unsigned int stamina;
-	bool spawnPowerup; 
+	bool spawnPowerup;
 	// Game state
 	RenderSystem* renderer;
 	float current_speed;
@@ -77,9 +76,10 @@ private:
 	Mix_Chunk* salmon_dead_sound;
 	Mix_Chunk* salmon_eat_sound;
 
-
+	// create door
+	void createDoor();
 
 	// C++ random number generator
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
-};
+}; 
