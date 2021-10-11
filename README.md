@@ -15,7 +15,7 @@ Observer pattern (FC) (RM): We used the observer pattern to update the health po
 with one specific type of enemy. Once they collide, the listener (hpListener) will perform the hp update. We used the functional approach using C++ function pointers to implement 
 Observer pattern. The methods developed can be seen in WorldSystem class and are WorldSystem::hpListener, WorldSystem::hpCallback and WorldSystem::attach
 
-Keyboard control for player 1 (RM): WSAD for movement and TFGH for 4 directional projectile firing. Can move and fire at the same time. 
+Keyboard control for player 1 (RM): WSAD for movement and TFGH for 4 directional projectile firing. Can move and fire at the same time.        
 
 Camera control (FC)(BZ)(BS): Camera transitions to the shop when the player moves from battle arena to shop and vice versa. There is a door at the bottom 
 of the battle arena which on press of the key 'O' allows the player to move to the shop. If 1 of the 2 players open the door and move out of the battle arena, 
