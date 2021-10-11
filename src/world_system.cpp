@@ -10,7 +10,7 @@
 
 // Game configuration
 const size_t MAX_TURTLES = 15;
-const size_t MAX_ENEMIES = 10;
+const size_t MAX_ENEMIES = 5;
 const size_t MAX_ENEMIESRUN = 2;
 const size_t TURTLE_DELAY_MS = 2000 * 3;
 const size_t ENEMY_DELAY_MS = 1000;
@@ -271,6 +271,30 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// reduce window brightness if any of the present salmons is dying
 	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 
+	// update Stuck timers and remove if time drops below zero, similar to the death counter
+	float min_counter_ms_powerup = 3000.f;
+	for (Entity entity : registry.stuckTimers.entities) {
+		StuckTimer& counter = registry.stuckTimers.get(entity);
+		// remove timer if current position is the different from "stuck" position
+		if (registry.motions.get(entity).position != counter.stuck_pos) {
+			registry.stuckTimers.remove(entity);
+		}
+		// else if entity is "stuck" in same position, progress timer
+		else {
+			// progress timer
+			counter.counter_ms -= elapsed_ms_since_last_update;
+			if (counter.counter_ms < min_counter_ms_powerup) {
+				min_counter_ms_powerup = counter.counter_ms;
+			}
+
+			// remove entity (enemies/enemies run) when timer expires
+			if (counter.counter_ms < 0) {
+				registry.remove_all_components_of(entity);
+				return true;
+			}
+		}
+	}
+
 
 	return true;
 }
@@ -331,9 +355,9 @@ void WorldSystem::restart_game() {
 
 
 	// Create some blocks
-	//createBlock(renderer, { 700, 600 }, "red");
-	//createBlock(renderer, { 700, 300 }, "orange");
-	//createBlock(renderer, { 700, 100 }, "yellow");
+	createBlock(renderer, { 700, 600 }, "red");
+	createBlock(renderer, { 700, 300 }, "orange");
+	createBlock(renderer, { 700, 100 }, "yellow");
 
 	// !! TODO A3: Enable static pebbles on the ground
 	// Create pebbles on the floor for reference
@@ -365,13 +389,24 @@ void WorldSystem::handle_collisions() {
 		Entity entity = collisionsRegistry.entities[i];
 		Entity entity_other = collisionsRegistry.components[i].other;
 
-		// Checking collision of projectiles with other entities
+		// Checking collision of projectiles with other entities (enemies or enemies run)
 		if (registry.projectiles.has(entity)) {
 			if ((registry.enemies.has(entity_other) || registry.enemiesrun.has(entity_other)) && !registry.powerups.has(entity_other)){
 				// remove enemy, fireball, count points
 				registry.remove_all_components_of(entity_other);
 				registry.remove_all_components_of(entity);
 				++money;
+			}
+		}
+
+		// Checking collision of enemies or enemies run with walls or blocks
+		if (registry.enemies.has(entity) || registry.enemiesrun.has(entity)) {
+			if (registry.blocks.has(entity_other) || registry.walls.has(entity_other)) {
+				// start a timer and pass the enemies/enemies run's current position
+				if (!registry.stuckTimers.has(entity)) {
+					registry.stuckTimers.emplace(entity);
+					registry.stuckTimers.get(entity).stuck_pos = vec2(registry.motions.get(entity).position.x, registry.motions.get(entity).position.y);
+				}
 			}
 		}
 
