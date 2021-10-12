@@ -19,22 +19,18 @@ const float ENEMYRUN_BB_HEIGHT = 0.3f * 240.f;
 const float ENEMYRUN_BB_WIDTH = 0.3f * 240.f;
 
 // the player
-Entity createSalmon(RenderSystem* renderer, vec2 pos);
 Entity createWizard(RenderSystem* renderer, vec2 pos);
-
 
 // the projectile  
 Entity createProjectile(RenderSystem* render, vec2 pos, vec2 velocity); 
 
 // create wall
-Entity createWall(vec2 position, vec2 size, bool isDoor);
+Entity createWall(vec2 position, vec2 scale);
 
 // map blocks
 Entity createBlock(RenderSystem* renderer, vec2 pos, std::string color);
 
-// map doorWay
-Entity createDoorWay(RenderSystem* renderer, vec2 pos);
-
+Entity createDoor(vec2 position, vec2 scale);
 
 // the enemy 
 Entity createEnemy(RenderSystem* render, vec2 pos, vec2 velocity);
@@ -49,7 +45,4 @@ Entity createPowerup(RenderSystem* render, vec2 pos);
 Entity createLine(vec2 position, vec2 size);
 // a graybox for debugging purposes
 Entity createBox(vec2 position, vec2 size);
-// a pebble
-Entity createPebble(vec2 pos, vec2 size);
-
 

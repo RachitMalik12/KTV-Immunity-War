@@ -9,7 +9,6 @@
 #include "physics_system.hpp"
 
 // Game configuration
-const size_t MAX_TURTLES = 15;
 const size_t MAX_ENEMIES = 5;
 const size_t MAX_ENEMIESRUN = 2;
 const size_t TURTLE_DELAY_MS = 2000 * 3;
@@ -196,7 +195,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// TODO: Make so that enemy cannot MOVE outside of first room
 	next_enemy_spawn -= elapsed_ms_since_last_update * current_speed;
 	if (registry.enemies.components.size() <= MAX_ENEMIES && next_enemy_spawn < 0.f) {
-		// !!!  TODO A1: Create new fish with createFish({0,0}), as for the Turtles above
 		// Reset timer
 		next_enemy_spawn = (ENEMY_DELAY_MS / 2) + uniform_dist(rng) * (ENEMY_DELAY_MS / 2);
 		// Create enemy
@@ -213,7 +211,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// TODO: Make so that enemy cannot MOVE outside of first room
 	next_enemyrun_spawn -= elapsed_ms_since_last_update * current_speed;
 	if (registry.enemiesrun.components.size() <= MAX_ENEMIESRUN && next_enemyrun_spawn < 0.f) {
-		// !!!  TODO A1: Create new fish with createFish({0,0}), as for the Turtles above
 		// Reset timer
 		next_enemyrun_spawn = (ENEMY_DELAY_MS / 2) + uniform_dist(rng) * (ENEMY_DELAY_MS / 2);
 		// Create enemy run
@@ -228,20 +225,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	if (registry.powerups.size() <= 0 && spawnPowerup) {
-		// Spawn power ups: 
-		Entity powerUp = createPowerup(renderer, { 200.f ,1200.f });
-		registry.powerups.emplace(powerUp);
-		// Create 3 power ups in the store 100 px apart at 1200 y 
-		for (int i = 100; i <= 300; i += 100) {
-			Entity powerUp = createPowerup(renderer, { 200.f + i ,1200.f });
-			registry.powerups.emplace(powerUp);
+		for (int i = 0; i <= 400; i += 100) {
+			createPowerup(renderer, { 400.f + i,1200.f });
 		}
 		// Now more below
-		Entity powerUp2 = createPowerup(renderer, { 200.f ,1400.f });
-		registry.powerups.emplace(powerUp2);
-		for (int i = 100; i <= 400; i += 100) {
-			Entity powerUp = createPowerup(renderer, { 200.f + i ,1400.f });
-			registry.powerups.emplace(powerUp);
+		for (int i = 0; i <= 400; i += 100) {
+			createPowerup(renderer, { 400.f + i ,1400.f });
 		}
 		spawnPowerup = false; 
 	}
@@ -258,33 +247,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Processing the player state
 	assert(registry.screenStates.components.size() <= 1);
-    ScreenState &screen = registry.screenStates.components[0];
-
- //   float min_counter_ms = 3000.f;
-	//for (Entity entity : registry.deathTimers.entities) {
-	//	// progress timer
-	//	DeathTimer& counter = registry.deathTimers.get(entity);
-	//	counter.counter_ms -= elapsed_ms_since_last_update;
-	//	if(counter.counter_ms < min_counter_ms){
-	//	    min_counter_ms = counter.counter_ms;
-	//	}
-	//	// restart the game once the death timer expired
-	//	if (counter.counter_ms < 0)
-	//	{
-	//		registry.deathTimers.remove(entity);
-	//		registry.remove_all_components_of(entity); 
-	//		//screen.darken_screen_factor = 0;
-	//		if (!registry.deathTimers.has(player_wizard) && !registry.deathTimers.has(player2_wizard)) {
-	//			restart_game(); 
-	//		}
-	//		return true;
-	//	}
-	//}
-	//// reduce window brightness if any of the present salmons is dying
-	//screen.darken_screen_factor = 1 - min_counter_ms / 3000;
-
-	return true;
-
 
 	// update Stuck timers and remove if time drops below zero, similar to the death counter
 	float min_counter_ms_powerup = 3000.f;
@@ -305,11 +267,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			// remove entity (enemies/enemies run) when timer expires
 			if (counter.counter_ms < 0) {
 				registry.remove_all_components_of(entity);
-				return true;
 			}
 		}
 	}
-
 
 	return true;
 }
@@ -343,27 +303,27 @@ void WorldSystem::restart_game() {
 	vec2 bottomWallPos = { MAP_WIDTH_PX / 2, GAME_HEIGHT };
 	vec2 verticalWallScale = { WALL_THICKNESS, GAME_HEIGHT };
 	vec2 horizontalWallScale = { MAP_WIDTH_PX, WALL_THICKNESS };
-	createWall(leftWallPos, verticalWallScale, false);
-	createWall(rightWallPos, verticalWallScale, false);
-	createWall(topWallPos, horizontalWallScale, false);
-	createWall(bottomWallPos, horizontalWallScale, false);
+	createWall(leftWallPos, verticalWallScale);
+	createWall(rightWallPos, verticalWallScale);
+	createWall(topWallPos, horizontalWallScale);
+	createWall(bottomWallPos, horizontalWallScale);
 
 	// Create middle shop walls
 	vec2 middleWallLeftPos = { 0, MAP_HEIGHT_PX };
 	vec2 middleWallRightPos = { MAP_WIDTH_PX, MAP_HEIGHT_PX };
 	vec2 shopWallScale = { MAP_WIDTH_PX - DOOR_WIDTH, SHOP_WALL_THICKNESS };
-	createWall(middleWallLeftPos, shopWallScale, false);
-	createWall(middleWallRightPos, shopWallScale, false);
+	createWall(middleWallLeftPos, shopWallScale);
+	createWall(middleWallRightPos, shopWallScale);
 
 	// Create door, please let this be the last and 7th wall created. See keyboard control O for reference.
-	createDoor();
+	createADoor();
 
 	// Create a new player character
 	player_wizard = createWizard(renderer, { 100, 200 });
 	player2_wizard = createWizard(renderer, { 100, 400 });
 
 	callbackFns.clear();
-	//hp = 100; 
+
 	attach([&](Entity entity) {
 		hpListener(entity);
 	});
@@ -373,26 +333,12 @@ void WorldSystem::restart_game() {
 	createBlock(renderer, { 700, 600 }, "red");
 	createBlock(renderer, { 500, 300 }, "orange");
 	createBlock(renderer, { 900, 300 }, "yellow");
-
-	// !! TODO A3: Enable static pebbles on the ground
-	// Create pebbles on the floor for reference
-	/*
-	for (uint i = 0; i < 20; i++) {
-		int w, h;
-		glfwGetWindowSize(window, &w, &h);
-		float radius = 30 * (uniform_dist(rng) + 0.3f); // range 0.3 .. 1.3
-		Entity pebble = createPebble({ uniform_dist(rng) * w, h - uniform_dist(rng) * 20 }, 
-			         { radius, radius });
-		float brightness = uniform_dist(rng) * 0.5 + 0.5;
-		registry.colors.insert(pebble, { brightness, brightness, brightness});
-	}
-	*/
 }
 
-void WorldSystem::createDoor() {
+void WorldSystem::createADoor() {
 	vec2 doorPosition = { MAP_WIDTH_PX / 2 , MAP_HEIGHT_PX };
 	vec2 doorScale = { DOOR_WIDTH, SHOP_WALL_THICKNESS };
-	createWall(doorPosition, doorScale, true);
+	createDoor(doorPosition, doorScale);
 }
 
 // Compute collisions between entities
@@ -450,31 +396,6 @@ void WorldSystem::handle_collisions() {
 					hpCallBack(entity); 
 				}
 			}
-
-			//// Checking Player - HardShell collisions
-			//if (registry.hardShells.has(entity_other)) {
-			//	// initiate death unless already dying
-			//	if (!registry.deathTimers.has(entity)) {
-			//		// Scream, reset timer, and make the salmon sink
-			//		registry.deathTimers.emplace(entity);
-			//		Mix_PlayChannel(-1, salmon_dead_sound, 0);
-			//		registry.motions.get(entity).angle = 3.1415f;
-			//		registry.motions.get(entity).velocity = { 0, 80 };
-
-			//		// !!! TODO A1: change the salmon color on death
-			//	}
-			//}
-			//// Checking Player - SoftShell collisions
-			//else if (registry.softShells.has(entity_other)) {
-			//	if (!registry.deathTimers.has(entity)) {
-			//		// chew, count points, and set the LightUp timer
-			//		registry.remove_all_components_of(entity_other);
-			//		Mix_PlayChannel(-1, salmon_eat_sound, 0);
-			//		++points;
-
-			//		// !!! TODO A1: create a new struct called LightUp in components.hpp and add an instance to the salmon entity by modifying the ECS registry
-			//	}
-			//}
 		}
 	}
 
@@ -580,10 +501,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// Open/close door
 	if (action == GLFW_PRESS && key == GLFW_KEY_O) {
-		if (registry.walls.entities.size() < 7) {
-			createDoor();
+		if (registry.doors.entities.size() == 0) {
+			createADoor();
 		} else {
-			Entity door = registry.walls.entities.back();
+			Entity door = registry.doors.entities.front();
 			registry.remove_all_components_of(door);
 		}
 	}
@@ -644,9 +565,9 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			if (registry.inShops.has(player2_wizard)) {
 				y += 800;
 			}
-			double dx = x - wizard2_motion.position.x;
-			double dy = y - wizard2_motion.position.y;
-			float h = sqrt(pow(dx, 2) + pow(dy, 2));
+			float dx = (float)x - wizard2_motion.position.x;
+			float dy = (float)y - wizard2_motion.position.y;
+			float h = sqrtf(powf(dx, 2) + powf(dy, 2));
 			float scale = (float)PLAYER_SPEED / h;
 			wizard2_motion.velocity = vec2(dx * scale, dy * scale);
 			registry.mouseDestinations.emplace(player2_wizard, vec2(x, y));
@@ -659,10 +580,11 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			if (registry.inShops.has(player2_wizard)) {
 				y += 800;
 			}
-			double dx = x - wizard2_motion.position.x;
-			double dy = y - wizard2_motion.position.y;
-			float h = sqrt(pow(dx, 2) + pow(dy, 2));
+			float dx = (float)x - wizard2_motion.position.x;
+			float dy = (float)y - wizard2_motion.position.y;
+			float h = sqrtf(powf(dx, 2) + powf(dy, 2));
 			float scale = 300.f / h;
 			createProjectile(renderer, wizard2_motion.position, { dx * scale, dy * scale });
 		}
+		(void)mods; // silence warning
 }

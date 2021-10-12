@@ -11,7 +11,6 @@ class ECSRegistry
 
 public:
 	// Manually created list of all components this game has
-	// TODO: A1 add a LightUp component
 	ComponentContainer<DeathTimer> deathTimers;
 	ComponentContainer<StuckTimer> stuckTimers;
 	ComponentContainer<Motion> motions;
@@ -26,6 +25,7 @@ public:
 	ComponentContainer<Projectile> projectiles;
 	ComponentContainer<Block> blocks;
 	ComponentContainer<Wall> walls;
+	ComponentContainer<Door> doors;
 	ComponentContainer<vec3> colors;
 	ComponentContainer<Enemy> enemies;
 	ComponentContainer<EnemyRun> enemiesrun;
@@ -52,6 +52,7 @@ public:
 		registry_list.push_back(&projectiles);
 		registry_list.push_back(&blocks);
 		registry_list.push_back(&walls);
+		registry_list.push_back(&doors);
 		registry_list.push_back(&colors);
 		registry_list.push_back(&enemies);
 		registry_list.push_back(&enemiesrun);
