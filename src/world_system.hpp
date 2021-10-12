@@ -76,8 +76,8 @@ private:
 	Mix_Chunk* salmon_dead_sound;
 	Mix_Chunk* salmon_eat_sound;
 
-	// create door
-	void createDoor();
+	// create door at the middle of the screen
+	void createADoor();
 
 	// C++ random number generator
 	std::default_random_engine rng;
