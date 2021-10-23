@@ -26,6 +26,7 @@ WorldSystem::WorldSystem()
 {
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
+	setupWindowScaling();
 }
 
 WorldSystem::~WorldSystem() {
@@ -591,6 +592,6 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 }
 
 void WorldSystem::setupWindowScaling() {
-	gameHeight = 1600 / WINDOW_HEIGHT_PX;
-	doorWidth = 200 / WINDOW_WIDTH_PX;
+	gameHeight = 1600.0 / WINDOW_HEIGHT_PX;
+	doorWidth = 200.0 / WINDOW_WIDTH_PX;
 }

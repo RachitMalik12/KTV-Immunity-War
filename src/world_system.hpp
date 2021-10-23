@@ -87,6 +87,6 @@ private:
 	void setupWindowScaling();
 
 	// window scaling variables
-	int gameHeight;
-	int doorWidth;
+	float gameHeight;
+	float doorWidth;
 }; 
