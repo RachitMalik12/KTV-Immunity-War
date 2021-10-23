@@ -11,15 +11,12 @@
 // Game configuration
 const size_t MAX_ENEMIES = 5;
 const size_t MAX_ENEMIESRUN = 2;
-const size_t TURTLE_DELAY_MS = 2000 * 3;
 const size_t ENEMY_DELAY_MS = 1000;
 const size_t PLAYER_SPEED = 150;
-const int MAP_WIDTH_PX = 1200;
-const int MAP_HEIGHT_PX = 800;
-const int GAME_HEIGHT = MAP_HEIGHT_PX * 2;
+const int WINDOW_WIDTH_PX = 1200;
+const int WINDOW_HEIGHT_PX = 800;
 const int WALL_THICKNESS = 40;
 const int SHOP_WALL_THICKNESS = 100;
-const int DOOR_WIDTH = 200;
 const size_t ENEMY_DAMAGE = 1; 
 
 // Create the fish world
@@ -56,7 +53,7 @@ namespace {
 }
 // World initialization
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer
-GLFWwindow* WorldSystem::create_window(int width, int height) {
+GLFWwindow* WorldSystem::create_window() {
 	///////////////////////////////////////
 	// Initialize GLFW
 	glfwSetErrorCallback(glfw_err_cb);
@@ -79,7 +76,7 @@ GLFWwindow* WorldSystem::create_window(int width, int height) {
 	glfwWindowHint(GLFW_RESIZABLE, 0);
 
 	// Create the main window (for rendering, keyboard, and mouse input)
-	window = glfwCreateWindow(width, height, "Project KTV", nullptr, nullptr);
+	window = glfwCreateWindow(WINDOW_WIDTH_PX, WINDOW_HEIGHT_PX, "Project KTV", nullptr, nullptr);
 	if (window == nullptr) {
 		fprintf(stderr, "Failed to glfwCreateWindow");
 		return nullptr;
@@ -276,6 +273,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 // Reset the world state to its initial state
 void WorldSystem::restart_game() {
+	int w, h;
+	glfwGetFramebufferSize(window, &w, &h);
 	// Debugging for memory/component leaks
 
 	registry.list_all_components();
@@ -297,21 +296,21 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 
 	// Create perimeter walls
-	vec2 leftWallPos = { 0, GAME_HEIGHT / 2 };
-	vec2 rightWallPos = { MAP_WIDTH_PX, GAME_HEIGHT / 2 };
-	vec2 topWallPos = { MAP_WIDTH_PX / 2, 0 };
-	vec2 bottomWallPos = { MAP_WIDTH_PX / 2, GAME_HEIGHT };
-	vec2 verticalWallScale = { WALL_THICKNESS, GAME_HEIGHT };
-	vec2 horizontalWallScale = { MAP_WIDTH_PX, WALL_THICKNESS };
+	vec2 leftWallPos = { 0, h * gameHeight / 2 };
+	vec2 rightWallPos = { w, h * gameHeight / 2 };
+	vec2 topWallPos = { w / 2, 0 };
+	vec2 bottomWallPos = { w / 2, h * gameHeight };
+	vec2 verticalWallScale = { WALL_THICKNESS, h * gameHeight };
+	vec2 horizontalWallScale = { w, WALL_THICKNESS };
 	createWall(leftWallPos, verticalWallScale);
 	createWall(rightWallPos, verticalWallScale);
 	createWall(topWallPos, horizontalWallScale);
 	createWall(bottomWallPos, horizontalWallScale);
 
 	// Create middle shop walls
-	vec2 middleWallLeftPos = { 0, MAP_HEIGHT_PX };
-	vec2 middleWallRightPos = { MAP_WIDTH_PX, MAP_HEIGHT_PX };
-	vec2 shopWallScale = { MAP_WIDTH_PX - DOOR_WIDTH, SHOP_WALL_THICKNESS };
+	vec2 middleWallLeftPos = { 0, h };
+	vec2 middleWallRightPos = { w, h };
+	vec2 shopWallScale = { w - (w * doorWidth), SHOP_WALL_THICKNESS };
 	createWall(middleWallLeftPos, shopWallScale);
 	createWall(middleWallRightPos, shopWallScale);
 
@@ -336,8 +335,10 @@ void WorldSystem::restart_game() {
 }
 
 void WorldSystem::createADoor() {
-	vec2 doorPosition = { MAP_WIDTH_PX / 2 , MAP_HEIGHT_PX };
-	vec2 doorScale = { DOOR_WIDTH, SHOP_WALL_THICKNESS };
+	int w, h;
+	glfwGetFramebufferSize(window, &w, &h);
+	vec2 doorPosition = { w / 2 , h };
+	vec2 doorScale = { w * doorWidth, SHOP_WALL_THICKNESS };
 	createDoor(doorPosition, doorScale);
 }
 
@@ -587,4 +588,9 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			createProjectile(renderer, wizard2_motion.position, { dx * scale, dy * scale });
 		}
 		(void)mods; // silence warning
+}
+
+void WorldSystem::setupWindowScaling() {
+	gameHeight = 1600 / WINDOW_HEIGHT_PX;
+	doorWidth = 200 / WINDOW_WIDTH_PX;
 }

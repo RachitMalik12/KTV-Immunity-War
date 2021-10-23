@@ -13,8 +13,6 @@
 
 using Clock = std::chrono::high_resolution_clock;
 
-const int window_width_px = 1200;
-const int window_height_px = 800;
 
 // Entry point
 int main()
@@ -26,7 +24,7 @@ int main()
 	AISystem ai;
 
 	// Initializing window
-	GLFWwindow* window = world.create_window(window_width_px, window_height_px);
+	GLFWwindow* window = world.create_window();
 	if (!window) {
 		// Time to read the error message
 		printf("Press any key to exit");
@@ -35,12 +33,17 @@ int main()
 	}
 
 	// initialize the main systems
-	renderer.init(window_width_px, window_height_px, window);
+	int w, h;
+	glfwGetWindowSize(window, &w, &h);
+	renderer.init(w, h, window);
 	world.init(&renderer);
 
 	// variable timestep loop
 	auto t = Clock::now();
 	while (!world.is_over()) {
+		// Get new screen dimensions
+		int width, height;
+		glfwGetWindowSize(window, &width, &height);
 		// Processes system messages, if this wasn't present the window would become
 		// unresponsive
 		glfwPollEvents();
@@ -53,7 +56,7 @@ int main()
 
 		world.step(elapsed_ms);
 		ai.step(elapsed_ms);
-		physics.step(elapsed_ms, window_width_px, window_height_px);
+		physics.step(elapsed_ms, (float)width, (float)height);
 		world.handle_collisions();
 
 		renderer.draw();

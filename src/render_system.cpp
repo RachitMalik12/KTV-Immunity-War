@@ -5,8 +5,6 @@
 #include "tiny_ecs_registry.hpp"
 
 const int SHOP_BUFFER_ZONE = 50;
-const int WINDOW_WIDTH = 1200;
-const int WINDOW_HEIGHT = 800;
 
 void RenderSystem::drawTexturedMesh(Entity entity,
 									const mat3 &projection)
@@ -228,6 +226,8 @@ void RenderSystem::draw()
 }
 
 void RenderSystem::playerOneTransition(bool leaveShop) {
+	int w, h;
+	glfwGetFramebufferSize(window, &w, &h);
 	vec2 player2Pos = registry.motions.get(registry.players.entities[1]).position;
 	Entity player2Entity = registry.players.entities[1];
 	if (leaveShop) {
@@ -239,13 +239,15 @@ void RenderSystem::playerOneTransition(bool leaveShop) {
 	if (registry.mouseDestinations.has(player2Entity))
 		registry.mouseDestinations.get(player2Entity).position = player2Pos;
 	if (leaveShop) {
-		registry.motions.get(player2Entity).position = vec2(WINDOW_WIDTH + SHOP_BUFFER_ZONE, WINDOW_HEIGHT - SHOP_BUFFER_ZONE * 3);
+		registry.motions.get(player2Entity).position = vec2(w + SHOP_BUFFER_ZONE, h - SHOP_BUFFER_ZONE * 3);
 	} else {
-		registry.motions.get(player2Entity).position = vec2(WINDOW_WIDTH + SHOP_BUFFER_ZONE, WINDOW_HEIGHT + SHOP_BUFFER_ZONE * 3);
+		registry.motions.get(player2Entity).position = vec2(w + SHOP_BUFFER_ZONE, h + SHOP_BUFFER_ZONE * 3);
 	}
 }
 
 void RenderSystem::playerTwoTransition(bool leaveShop, vec2 player2Pos) {
+	int w, h;
+	glfwGetFramebufferSize(window, &w, &h);
 	Entity player1Entity = registry.players.entities[0];
 	Entity player2Entity = registry.players.entities[1];
 	if (leaveShop) {
@@ -260,11 +262,11 @@ void RenderSystem::playerTwoTransition(bool leaveShop, vec2 player2Pos) {
 		registry.mouseDestinations.get(player2Entity).position = player2Pos;
 	}
 	if (leaveShop) {
-		registry.motions.get(player1Entity).position = vec2((WINDOW_WIDTH / 2) - SHOP_BUFFER_ZONE, player2Pos.y - SHOP_BUFFER_ZONE * 3);
+		registry.motions.get(player1Entity).position = vec2((w / 2) - SHOP_BUFFER_ZONE, player2Pos.y - SHOP_BUFFER_ZONE * 3);
 	} else {
-		registry.motions.get(player1Entity).position = vec2((WINDOW_WIDTH / 2) - SHOP_BUFFER_ZONE, player2Pos.y + SHOP_BUFFER_ZONE * 3);
+		registry.motions.get(player1Entity).position = vec2((w / 2) - SHOP_BUFFER_ZONE, player2Pos.y + SHOP_BUFFER_ZONE * 3);
 	}
-	registry.motions.get(player2Entity).position.x = (WINDOW_WIDTH / 2) + SHOP_BUFFER_ZONE;
+	registry.motions.get(player2Entity).position.x = ((float)w / 2) + SHOP_BUFFER_ZONE;
 }
 
 mat3 RenderSystem::createProjectionMatrix(float left, float top)
@@ -283,7 +285,7 @@ mat3 RenderSystem::createProjectionMatrix(float left, float top)
 	float ty = -(top + bottom) / (top - bottom);
 	mat3 projMat;
 
-	int playerCount = registry.players.entities.size();
+	size_t playerCount = registry.players.entities.size();
 	vec2 player1Pos = registry.motions.get(registry.players.entities[0]).position;
 	if (playerCount == 2) {
 		vec2 player2Pos = registry.motions.get(registry.players.entities[1]).position;

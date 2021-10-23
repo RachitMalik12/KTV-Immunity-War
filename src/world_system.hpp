@@ -29,7 +29,7 @@ public:
 	void hpCallBack(Entity entity);
 
 	// Creates a window
-	GLFWwindow* create_window(int width, int height);
+	GLFWwindow* create_window();
 
 	// starts the game
 	void init(RenderSystem* renderer);
@@ -82,4 +82,11 @@ private:
 	// C++ random number generator
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
+
+	// window scaling variables setup
+	void setupWindowScaling();
+
+	// window scaling variables
+	int gameHeight;
+	int doorWidth;
 }; 
