@@ -275,8 +275,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 // Reset the world state to its initial state
 void WorldSystem::restart_game() {
-	int w, h;
-	glfwGetFramebufferSize(window, &w, &h);
+	int screenWidth, screenHeight;
+	glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
 	// Debugging for memory/component leaks
 
 	registry.list_all_components();
@@ -298,21 +298,21 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 
 	// Create perimeter walls
-	vec2 leftWallPos = { 0, h * gameHeight / 2 };
-	vec2 rightWallPos = { w, h * gameHeight / 2 };
-	vec2 topWallPos = { w / 2, 0 };
-	vec2 bottomWallPos = { w / 2, h * gameHeight };
-	vec2 verticalWallScale = { WALL_THICKNESS, h * gameHeight };
-	vec2 horizontalWallScale = { w, WALL_THICKNESS };
+	vec2 leftWallPos = { 0, screenHeight * gameHeight / 2 };
+	vec2 rightWallPos = { screenWidth, screenHeight * gameHeight / 2 };
+	vec2 topWallPos = { screenWidth / 2, 0 };
+	vec2 bottomWallPos = { screenWidth / 2, screenHeight * gameHeight };
+	vec2 verticalWallScale = { WALL_THICKNESS, screenHeight * gameHeight };
+	vec2 horizontalWallScale = { screenWidth, WALL_THICKNESS };
 	createWall(leftWallPos, verticalWallScale);
 	createWall(rightWallPos, verticalWallScale);
 	createWall(topWallPos, horizontalWallScale);
 	createWall(bottomWallPos, horizontalWallScale);
 
 	// Create middle shop walls
-	vec2 middleWallLeftPos = { 0, h };
-	vec2 middleWallRightPos = { w, h };
-	vec2 shopWallScale = { w - (w * doorWidth), SHOP_WALL_THICKNESS };
+	vec2 middleWallLeftPos = { 0, screenHeight };
+	vec2 middleWallRightPos = { screenWidth, screenHeight };
+	vec2 shopWallScale = { screenWidth - (screenWidth * doorWidth), SHOP_WALL_THICKNESS };
 	createWall(middleWallLeftPos, shopWallScale);
 	createWall(middleWallRightPos, shopWallScale);
 

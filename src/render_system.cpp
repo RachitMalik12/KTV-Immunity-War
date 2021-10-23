@@ -226,8 +226,8 @@ void RenderSystem::draw()
 }
 
 void RenderSystem::playerOneTransition(bool leaveShop) {
-	int w, h;
-	glfwGetFramebufferSize(window, &w, &h);
+	int screenWidth, screenHeight;
+	glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
 	vec2 player2Pos = registry.motions.get(registry.players.entities[1]).position;
 	Entity player2Entity = registry.players.entities[1];
 	if (leaveShop) {
@@ -239,9 +239,9 @@ void RenderSystem::playerOneTransition(bool leaveShop) {
 	if (registry.mouseDestinations.has(player2Entity))
 		registry.mouseDestinations.get(player2Entity).position = player2Pos;
 	if (leaveShop) {
-		registry.motions.get(player2Entity).position = vec2(w + SHOP_BUFFER_ZONE, h - SHOP_BUFFER_ZONE * 3);
+		registry.motions.get(player2Entity).position = vec2(screenWidth + SHOP_BUFFER_ZONE, screenHeight - SHOP_BUFFER_ZONE * 3);
 	} else {
-		registry.motions.get(player2Entity).position = vec2(w + SHOP_BUFFER_ZONE, h + SHOP_BUFFER_ZONE * 3);
+		registry.motions.get(player2Entity).position = vec2(screenWidth + SHOP_BUFFER_ZONE, screenHeight + SHOP_BUFFER_ZONE * 3);
 	}
 }
 
