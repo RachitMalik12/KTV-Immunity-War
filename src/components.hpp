@@ -73,6 +73,11 @@ struct Debug {
 };
 extern Debug debugging;
 
+struct TwoPlayer {
+	bool inTwoPlayerMode = false;
+};
+extern TwoPlayer twoPlayer;
+
 // Sets the brightness of the screen
 struct ScreenState
 {
