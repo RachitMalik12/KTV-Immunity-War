@@ -62,12 +62,12 @@ public:
 	}
 
 	void clear_all_components() {
-		printf("Debug info on all registry entries:\n");
 		for (ContainerInterface* reg : registry_list)
 			reg->clear();
 	}
 
 	void list_all_components() {
+		printf("Debug info on all registry entries:\n");
 		for (ContainerInterface* reg : registry_list)
 			if (reg->size() > 0)
 				printf("%4d components of type %s\n", (int)reg->size(), typeid(*reg).name());
