@@ -76,49 +76,47 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 				hitABlock = true;
 			}
 		}
-		bool hitAWall = false;
-		bool hitAWallRight = false;
-		bool hitAWallLeft = false;
+
 		for (uint j = 0; j < walls_registry.size(); j++) {
 			Entity wallEntity = walls_registry.entities[j];
 			if (wallCollides(nextPosition, wallEntity)) {
 				hitABlock = true;
 			}
 		}
-		if (!hitABlock && !hitAWall) {
+		if (!hitABlock) {
 			motion.position = nextPosition;
 		}
 
 		// check if fireball/projectile hit a wall/block, if so remove it
 		// if enemy hit a wall/block, revert moving direction
-		if (hitABlock || hitAWall) {
+		if (hitABlock) {
 			if (registry.projectiles.has(entity)) {
 				registry.remove_all_components_of(entity);
 			}
 			else if (registry.enemies.has(entity)) {
-				Motion& motion = motion_registry.get(entity);
-				motion.velocity.y *= -1;
+				Motion& enemyMotion = motion_registry.get(entity);
+				enemyMotion.velocity.y *= -1;
 			}
 			else if (registry.enemiesrun.has(entity)) {
-				Motion& motion = motion_registry.get(entity);
-				if (motion.velocity.x > 0) {
-					if (motion.velocity.y > 0) {
-						motion.velocity.x = -200.f;
-						motion.velocity.y = 200.f;
+				Motion& enemyRunMotion = motion_registry.get(entity);
+				if (enemyRunMotion.velocity.x > 0) {
+					if (enemyRunMotion.velocity.y > 0) {
+						enemyRunMotion.velocity.x = -200.f;
+						enemyRunMotion.velocity.y = 200.f;
 					}
 					else {
-						motion.velocity.x = 200.f;
-						motion.velocity.y = 200.f;
+						enemyRunMotion.velocity.x = 200.f;
+						enemyRunMotion.velocity.y = 200.f;
 					}
 				}
 				else {
-					if (motion.velocity.y > 0) {
-						motion.velocity.x = -200.f;
-						motion.velocity.y = -200.f;
+					if (enemyRunMotion.velocity.y > 0) {
+						enemyRunMotion.velocity.x = -200.f;
+						enemyRunMotion.velocity.y = -200.f;
 					}
 					else {
-						motion.velocity.x = 200.f;
-						motion.velocity.y = -200.f;
+						enemyRunMotion.velocity.x = 200.f;
+						enemyRunMotion.velocity.y = -200.f;
 					}
 				}
 			}
