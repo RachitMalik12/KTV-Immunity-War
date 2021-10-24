@@ -14,6 +14,7 @@ const size_t MAX_ENEMIESRUN = 2;
 const size_t ENEMY_DELAY_MS = 1000;
 const size_t PLAYER_SPEED = 150;
 const size_t PROJECTILE_SPEED = 300;
+const size_t DEFAULT_HEIGHT = 800;
 const int WALL_THICKNESS = 40;
 const int SHOP_WALL_THICKNESS = 100;
 const size_t ENEMY_DAMAGE = 1; 
@@ -557,7 +558,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			double x, y;
 			glfwGetCursorPos(window, &x, &y);
 			if (registry.inShops.has(player2_wizard)) {
-				y += 800;
+				y += DEFAULT_HEIGHT * defaultResolution.scaling;
 			}
 			float dx = (float)x - wizard2_motion.position.x;
 			float dy = (float)y - wizard2_motion.position.y;
@@ -572,7 +573,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			double x, y;
 			glfwGetCursorPos(window, &x, &y);
 			if (registry.inShops.has(player2_wizard)) {
-				y += 800;
+				y += DEFAULT_HEIGHT * defaultResolution.scaling;
 			}
 			float dx = (float)x - wizard2_motion.position.x;
 			float dy = (float)y - wizard2_motion.position.y;
