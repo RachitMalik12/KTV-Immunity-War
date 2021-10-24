@@ -104,9 +104,6 @@ private:
 	GLuint off_screen_render_buffer_depth;
 
 	Entity screen_state_entity;
-
-	float currentScreenWidth;
-	float currentScreenHeight;
 };
 
 bool loadEffectFromFile(
