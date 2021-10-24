@@ -11,16 +11,12 @@
 // Game configuration
 const size_t MAX_ENEMIES = 5;
 const size_t MAX_ENEMIESRUN = 2;
-const size_t TURTLE_DELAY_MS = 2000 * 3;
 const size_t ENEMY_DELAY_MS = 1000;
 const size_t PLAYER_SPEED = 150;
-const int MAP_WIDTH_PX = 1200;
-const int MAP_HEIGHT_PX = 800;
-const int GAME_HEIGHT = MAP_HEIGHT_PX * 2;
 const int WALL_THICKNESS = 40;
 const int SHOP_WALL_THICKNESS = 100;
-const int DOOR_WIDTH = 200;
 const size_t ENEMY_DAMAGE = 1; 
+TwoPlayer twoPlayer;
 
 // Create the fish world
 WorldSystem::WorldSystem()
@@ -29,6 +25,7 @@ WorldSystem::WorldSystem()
 {
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
+	setupWindowScaling();
 }
 
 WorldSystem::~WorldSystem() {
@@ -96,6 +93,7 @@ GLFWwindow* WorldSystem::create_window(int width, int height) {
 	auto mouse_button_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_click(_0, _1, _2); };
 	glfwSetMouseButtonCallback(window, mouse_button_redirect);
 
+
 	//////////////////////////////////////
 	// Loading music and sounds with SDL
 	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
@@ -155,15 +153,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Get the screen dimensions
 	int screen_width, screen_height;
 	glfwGetFramebufferSize(window, &screen_width, &screen_height);
+
 	// Updating window title with money
 	std::stringstream title_ss;
 	// Get hp of player 1 and player 2 
 	int hp_p1 = 0; 
 	int hp_p2 = 0; 
-	if (!registry.deathTimers.has(player_wizard) ) {
+	if (!registry.deathTimers.has(player_wizard) && registry.players.has(player_wizard)) {
 		hp_p1 = registry.players.get(player_wizard).hp; 
 	}
-	if (!registry.deathTimers.has(player2_wizard)) {
+	if (twoPlayer.inTwoPlayerMode && !registry.deathTimers.has(player2_wizard)) {
 		hp_p2 = registry.players.get(player2_wizard).hp; 
 	}
 	title_ss << "Money: " << money << " & Health P1 " << hp_p1 << " & Health P2 " << hp_p2; 
@@ -235,7 +234,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		spawnPowerup = false; 
 	}
 
-	if (destinations_registry.has(player2_wizard)) {
+	if (twoPlayer.inTwoPlayerMode && destinations_registry.has(player2_wizard)) {
 		Motion& motion = motions_registry.get(player2_wizard);
 		MouseDestination& mouseDestination = destinations_registry.get(player2_wizard);
 
@@ -246,7 +245,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// Processing the player state
-	assert(registry.screenStates.components.size() <= 1);
+	// assert(registry.screenStates.components.size() <= 1);
 
 	// update Stuck timers and remove if time drops below zero, similar to the death counter
 	float min_counter_ms_powerup = 3000.f;
@@ -276,6 +275,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 // Reset the world state to its initial state
 void WorldSystem::restart_game() {
+	int screenWidth, screenHeight;
+	glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
 	// Debugging for memory/component leaks
 
 	registry.list_all_components();
@@ -296,31 +297,15 @@ void WorldSystem::restart_game() {
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
-	// Create perimeter walls
-	vec2 leftWallPos = { 0, GAME_HEIGHT / 2 };
-	vec2 rightWallPos = { MAP_WIDTH_PX, GAME_HEIGHT / 2 };
-	vec2 topWallPos = { MAP_WIDTH_PX / 2, 0 };
-	vec2 bottomWallPos = { MAP_WIDTH_PX / 2, GAME_HEIGHT };
-	vec2 verticalWallScale = { WALL_THICKNESS, GAME_HEIGHT };
-	vec2 horizontalWallScale = { MAP_WIDTH_PX, WALL_THICKNESS };
-	createWall(leftWallPos, verticalWallScale);
-	createWall(rightWallPos, verticalWallScale);
-	createWall(topWallPos, horizontalWallScale);
-	createWall(bottomWallPos, horizontalWallScale);
-
-	// Create middle shop walls
-	vec2 middleWallLeftPos = { 0, MAP_HEIGHT_PX };
-	vec2 middleWallRightPos = { MAP_WIDTH_PX, MAP_HEIGHT_PX };
-	vec2 shopWallScale = { MAP_WIDTH_PX - DOOR_WIDTH, SHOP_WALL_THICKNESS };
-	createWall(middleWallLeftPos, shopWallScale);
-	createWall(middleWallRightPos, shopWallScale);
-
-	// Create door, please let this be the last and 7th wall created. See keyboard control O for reference.
-	createADoor();
+	// Create walls and doors
+	createWalls(screenWidth, screenHeight);
+	createADoor(screenWidth, screenHeight);
 
 	// Create a new player character
 	player_wizard = createWizard(renderer, { 100, 200 });
-	player2_wizard = createWizard(renderer, { 100, 400 });
+	if (twoPlayer.inTwoPlayerMode) {
+		player2_wizard = createWizard(renderer, { 100, 400 });
+	}
 
 	callbackFns.clear();
 
@@ -335,9 +320,9 @@ void WorldSystem::restart_game() {
 	createBlock(renderer, { 900, 300 }, "yellow");
 }
 
-void WorldSystem::createADoor() {
-	vec2 doorPosition = { MAP_WIDTH_PX / 2 , MAP_HEIGHT_PX };
-	vec2 doorScale = { DOOR_WIDTH, SHOP_WALL_THICKNESS };
+void WorldSystem::createADoor(int screenWidth, int screenHeight) {
+	vec2 doorPosition = { screenWidth / 2 , screenHeight };
+	vec2 doorScale = { screenWidth * doorWidthScale, SHOP_WALL_THICKNESS };
 	createDoor(doorPosition, doorScale);
 }
 
@@ -412,10 +397,10 @@ bool WorldSystem::is_over() const {
 
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
+	int w, h;
+	glfwGetWindowSize(window, &w, &h);
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
-		int w, h;
-		glfwGetWindowSize(window, &w, &h);
         restart_game();
 	}
 
@@ -450,59 +435,57 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_A) {
-		if (!registry.flips.has(player_wizard))
-			{
+		if (!registry.flips.has(player_wizard)){
 				registry.flips.emplace(player_wizard);
 				Flip& flipped = registry.flips.get(player_wizard);
 				flipped.left = true;
 				player1motion.scale = vec2({ -WIZARD_BB_WIDTH, WIZARD_BB_HEIGHT });
-
-			}
-
-			player1motion.velocity = vec2(currentVelocity.x - (float)PLAYER_SPEED, currentVelocity.y);
-		}
-		if (action == GLFW_RELEASE && key == GLFW_KEY_A) {
-			player1motion.velocity = vec2(currentVelocity.x + (float)PLAYER_SPEED, currentVelocity.y);
-
 		}
 
-		if (action == GLFW_PRESS && key == GLFW_KEY_D) {
-			if (registry.flips.has(player_wizard))
-			{
-				Flip& flipped = registry.flips.get(player_wizard);
-				flipped.left = false;
-				registry.flips.remove(player_wizard);
-				player1motion.scale = vec2({ WIZARD_BB_WIDTH, WIZARD_BB_HEIGHT });
-			}
-			player1motion.velocity = vec2(currentVelocity.x + (float)PLAYER_SPEED, currentVelocity.y);
-		}
+		player1motion.velocity = vec2(currentVelocity.x - (float)PLAYER_SPEED, currentVelocity.y);
+	}
+	if (action == GLFW_RELEASE && key == GLFW_KEY_A) {
+		player1motion.velocity = vec2(currentVelocity.x + (float)PLAYER_SPEED, currentVelocity.y);
 
-		if (action == GLFW_RELEASE && key == GLFW_KEY_D) {
-			player1motion.velocity = vec2(currentVelocity.x - (float)PLAYER_SPEED, currentVelocity.y);
-		}
+	}
 
-		if (action == GLFW_PRESS && key == GLFW_KEY_T) {
-			createProjectile(renderer, player1motion.position, { 0, -300.f });
+	if (action == GLFW_PRESS && key == GLFW_KEY_D) {
+		if (registry.flips.has(player_wizard))
+		{
+			Flip& flipped = registry.flips.get(player_wizard);
+			flipped.left = false;
+			registry.flips.remove(player_wizard);
+			player1motion.scale = vec2({ WIZARD_BB_WIDTH, WIZARD_BB_HEIGHT });
 		}
+		player1motion.velocity = vec2(currentVelocity.x + (float)PLAYER_SPEED, currentVelocity.y);
+	}
 
-		if (action == GLFW_PRESS && key == GLFW_KEY_G) {
-			createProjectile(renderer, player1motion.position, { 0, 300.f });
-		}
+	if (action == GLFW_RELEASE && key == GLFW_KEY_D) {
+		player1motion.velocity = vec2(currentVelocity.x - (float)PLAYER_SPEED, currentVelocity.y);
+	}
 
-		if (action == GLFW_PRESS && key == GLFW_KEY_H) {
-			createProjectile(renderer, player1motion.position, { 300.f, 0 });
+	if (action == GLFW_PRESS && key == GLFW_KEY_T) {
+		createProjectile(renderer, player1motion.position, { 0, -300.f });
+	}
 
-		}
+	if (action == GLFW_PRESS && key == GLFW_KEY_G) {
+		createProjectile(renderer, player1motion.position, { 0, 300.f });
+	}
 
-		if (action == GLFW_PRESS && key == GLFW_KEY_F) {
-			createProjectile(renderer, player1motion.position, { -300.f, 0 });
-		}
+	if (action == GLFW_PRESS && key == GLFW_KEY_H) {
+		createProjectile(renderer, player1motion.position, { 300.f, 0 });
+
+	}
+
+	if (action == GLFW_PRESS && key == GLFW_KEY_F) {
+		createProjectile(renderer, player1motion.position, { -300.f, 0 });
+	}
 	
 
 	// Open/close door
 	if (action == GLFW_PRESS && key == GLFW_KEY_O) {
 		if (registry.doors.entities.size() == 0) {
-			createADoor();
+			createADoor(w, h);
 		} else {
 			Entity door = registry.doors.entities.front();
 			registry.remove_all_components_of(door);
@@ -515,6 +498,16 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			debugging.in_debug_mode = false;
 		else
 			debugging.in_debug_mode = true;
+	}
+
+	// Switch between one player/two player
+	if (action == GLFW_PRESS && key == GLFW_KEY_2) {
+		if (twoPlayer.inTwoPlayerMode) {
+			twoPlayer.inTwoPlayerMode = false;
+		} else {
+			twoPlayer.inTwoPlayerMode = true;
+		}
+		restart_game();
 	}
 
 
@@ -533,29 +526,31 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// JA: adding flip left action to wizard 2
-	Motion& motion = registry.motions.get(player2_wizard);
-	float deltaX = mouse_position.x - motion.position.x;
-	if (deltaX < 0 && !registry.flips.has(player2_wizard))
-	{
-		registry.flips.emplace(player2_wizard);
-		Flip& flipped = registry.flips.get(player2_wizard);
-		flipped.left = true;
-		motion.scale = vec2({ -WIZARD_BB_WIDTH, WIZARD_BB_HEIGHT });
-	}
-	else
-	{
-		if (deltaX > 0 && registry.flips.has(player2_wizard))
+	if (twoPlayer.inTwoPlayerMode) {
+		Motion& motion = registry.motions.get(player2_wizard);
+		float deltaX = mouse_position.x - motion.position.x;
+		if (deltaX < 0 && !registry.flips.has(player2_wizard))
 		{
+			registry.flips.emplace(player2_wizard);
 			Flip& flipped = registry.flips.get(player2_wizard);
-			flipped.left = false;
-			registry.flips.remove(player2_wizard);
-			motion.scale = vec2({ WIZARD_BB_WIDTH, WIZARD_BB_HEIGHT });
+			flipped.left = true;
+			motion.scale = vec2({ -WIZARD_BB_WIDTH, WIZARD_BB_HEIGHT });
+		}
+		else
+		{
+			if (deltaX > 0 && registry.flips.has(player2_wizard))
+			{
+				Flip& flipped = registry.flips.get(player2_wizard);
+				flipped.left = false;
+				registry.flips.remove(player2_wizard);
+				motion.scale = vec2({ WIZARD_BB_WIDTH, WIZARD_BB_HEIGHT });
+			}
 		}
 	}
-	(vec2)mouse_position;
 }
 
 void WorldSystem::on_mouse_click(int button, int action, int mods) {
+	if (twoPlayer.inTwoPlayerMode) {
 		if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_LEFT) {
 			if (registry.mouseDestinations.has(player2_wizard))
 				registry.mouseDestinations.remove(player2_wizard);
@@ -586,5 +581,33 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			float scale = 300.f / h;
 			createProjectile(renderer, wizard2_motion.position, { dx * scale, dy * scale });
 		}
-		(void)mods; // silence warning
+	}	
 }
+
+void WorldSystem::setupWindowScaling() {
+	gameHeightScale = 1600.f / (float)defaultResolution.height;
+	doorWidthScale = 200.f / (float)defaultResolution.width;
+}
+
+void WorldSystem::createWalls(int screenWidth, int screenHeight) {
+	// Create perimeter walls
+	vec2 leftWallPos = { 0, screenHeight * gameHeightScale / 2 };
+	vec2 rightWallPos = { screenWidth, screenHeight * gameHeightScale / 2 };
+	vec2 topWallPos = { screenWidth / 2, 0 };
+	vec2 bottomWallPos = { screenWidth / 2, screenHeight * gameHeightScale };
+	vec2 verticalWallScale = { WALL_THICKNESS, screenHeight * gameHeightScale };
+	vec2 horizontalWallScale = { screenWidth, WALL_THICKNESS };
+	createWall(leftWallPos, verticalWallScale);
+	createWall(rightWallPos, verticalWallScale);
+	createWall(topWallPos, horizontalWallScale);
+	createWall(bottomWallPos, horizontalWallScale);
+
+	// Create middle shop walls
+	vec2 middleWallLeftPos = { 0, screenHeight };
+	vec2 middleWallRightPos = { screenWidth, screenHeight };
+	vec2 shopWallScale = { screenWidth - (screenWidth * doorWidthScale), SHOP_WALL_THICKNESS };
+	createWall(middleWallLeftPos, shopWallScale);
+	createWall(middleWallRightPos, shopWallScale);
+}
+
+

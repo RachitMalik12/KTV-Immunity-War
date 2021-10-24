@@ -252,6 +252,7 @@ void RenderSystem::initializeGlGeometryBuffers()
 	meshes[geom_index].vertex_indices = wall_line_indices;
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::WALLS, wall_line_vertices, wall_line_indices);
 
+	//////////////////////////////////
 	// Initialize door
 	std::vector<ColoredVertex> door_line_vertices;
 	std::vector<uint16_t> door_line_indices;
@@ -440,4 +441,5 @@ bool loadEffectFromFile(
 
 	return true;
 }
+
 
