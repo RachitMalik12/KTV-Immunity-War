@@ -29,7 +29,7 @@ public:
 	void hpCallBack(Entity entity);
 
 	// Creates a window
-	GLFWwindow* create_window();
+	GLFWwindow* create_window(int width, int height);
 
 	// starts the game
 	void init(RenderSystem* renderer);
@@ -46,12 +46,12 @@ public:
 	// Should the game be over ?
 	bool is_over()const;
 
-
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
 	void on_mouse_move(vec2 pos);
 	void on_mouse_click(int button, int action, int mods);
+	void windowSizeCallback(int width, int height);
 
 	// restart level
 	void restart_game();
@@ -76,9 +76,6 @@ private:
 	Mix_Chunk* salmon_dead_sound;
 	Mix_Chunk* salmon_eat_sound;
 
-	// create door at the middle of the screen
-	void createADoor();
-
 	// C++ random number generator
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
@@ -87,6 +84,10 @@ private:
 	void setupWindowScaling();
 
 	// window scaling variables
-	float gameHeight;
-	float doorWidth;
+	float gameHeightScale;
+	float doorWidthScale;
+
+	// create and remove walls and doors
+	void createWalls(int screenWidth, int screenHeight);
+	void createADoor(int screenWidth, int screenHeight);
 }; 
