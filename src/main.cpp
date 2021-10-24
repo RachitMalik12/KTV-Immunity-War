@@ -19,6 +19,9 @@ int main()
 {
 	// Global systems
 	WorldSystem world;
+	world.setPlayerMode();
+	world.setResolution();
+
 	RenderSystem renderer;
 	PhysicsSystem physics;
 	AISystem ai;
@@ -27,7 +30,6 @@ int main()
 	GLFWwindow* window = world.create_window(defaultResolution.width, defaultResolution.height);
 	if (!window) {
 		// Time to read the error message
-		printf("Press any key to exit");
 		getchar();
 		return EXIT_FAILURE;
 	}
@@ -64,3 +66,4 @@ int main()
 
 	return EXIT_SUCCESS;
 }
+
