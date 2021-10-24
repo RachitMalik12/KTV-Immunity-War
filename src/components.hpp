@@ -81,6 +81,7 @@ extern TwoPlayer twoPlayer;
 struct DefaultResolution {
 	int width = 1200;
 	int height = 800;
+	float scaling = 0;
 };
 extern DefaultResolution defaultResolution;
 

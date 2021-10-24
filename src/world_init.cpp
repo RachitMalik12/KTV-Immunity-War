@@ -15,7 +15,7 @@ Entity createWizard(RenderSystem* renderer, vec2 position) {
 	motion.angle = 0.f;
 	motion.velocity = { 0, 0 };
 	motion.position = position;
-	motion.scale = vec2({ WIZARD_BB_WIDTH, WIZARD_BB_HEIGHT });
+	motion.scale = vec2({ WIZARD_BB_WIDTH * defaultResolution.scaling, WIZARD_BB_HEIGHT * defaultResolution.scaling });
 
 	registry.players.emplace(entity);
 	registry.renderRequests.insert(
@@ -83,7 +83,7 @@ Entity createBlock(RenderSystem* renderer, vec2 pos, std::string color) {
 	motion.angle = 0.f;
 	motion.velocity = { 0, 0 };
 	motion.position = pos;
-	motion.scale = vec2({ BLOCK_BB_WIDTH, BLOCK_BB_HEIGHT });
+	motion.scale = vec2({ BLOCK_BB_WIDTH * defaultResolution.scaling, BLOCK_BB_HEIGHT * defaultResolution.scaling });
 	TEXTURE_ASSET_ID blockColor = TEXTURE_ASSET_ID::TREE_RED;
 	if (color == "red") blockColor = TEXTURE_ASSET_ID::TREE_RED;
 	else if (color == "orange") blockColor = TEXTURE_ASSET_ID::TREE_ORANGE;
@@ -115,7 +115,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, vec2 velocity)
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ -ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+	motion.scale = vec2({ -ENEMY_BB_WIDTH * defaultResolution.scaling, ENEMY_BB_HEIGHT * defaultResolution.scaling });
 
 	// Create an (empty) Enemy component to be able to refer to all fish
 	registry.enemies.emplace(entity);
@@ -144,7 +144,7 @@ Entity createEnemyRun(RenderSystem* renderer, vec2 position, vec2 velocity)
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ -ENEMYRUN_BB_WIDTH, ENEMYRUN_BB_HEIGHT });
+	motion.scale = vec2({ -ENEMYRUN_BB_WIDTH * defaultResolution.scaling, ENEMYRUN_BB_HEIGHT * defaultResolution.scaling });
 
 	// Create an (empty) Enemy component to be able to refer to all fish
 	registry.enemiesrun.emplace(entity);
@@ -172,7 +172,7 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, vec2 velocity) {
 	motion.position = pos;
 
 	// Setting initial values
-	motion.scale = vec2({ FIREBALL_BB_WIDTH, FIREBALL_BB_HEIGHT });
+	motion.scale = vec2({ FIREBALL_BB_WIDTH * defaultResolution.scaling, FIREBALL_BB_HEIGHT * defaultResolution.scaling });
 
 	// fireball stuff
 	registry.projectiles.emplace(entity);
@@ -195,7 +195,7 @@ Entity createPowerup(RenderSystem* renderer, vec2 position)
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
 
-	motion.scale = vec2({ POWERUP_BB_WIDTH, POWERUP_BB_HEIGHT });
+	motion.scale = vec2({ POWERUP_BB_WIDTH * defaultResolution.scaling, POWERUP_BB_HEIGHT * defaultResolution.scaling });
 
 	registry.powerups.emplace(entity);
 	registry.renderRequests.insert(
