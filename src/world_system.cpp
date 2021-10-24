@@ -75,7 +75,7 @@ GLFWwindow* WorldSystem::create_window(int width, int height) {
 #if __APPLE__
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
-	glfwWindowHint(GLFW_RESIZABLE, 0);
+	glfwWindowHint(GLFW_RESIZABLE, 1);
 
 	// Create the main window (for rendering, keyboard, and mouse input)
 	window = glfwCreateWindow(width, height, "Project KTV", nullptr, nullptr);
@@ -83,7 +83,7 @@ GLFWwindow* WorldSystem::create_window(int width, int height) {
 		fprintf(stderr, "Failed to glfwCreateWindow");
 		return nullptr;
 	}
-
+	glfwSetWindowAspectRatio(window, 1200, 800);
 	// Setting callbacks to member functions (that's why the redirect is needed)
 	// Input is handled using GLFW, for more info see
 	// http://www.glfw.org/docs/latest/input_guide.html

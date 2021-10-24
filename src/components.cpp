@@ -21,6 +21,7 @@ bool Mesh::loadFromOBJFile(std::string obj_path, std::vector<ColoredVertex>& out
 	#pragma warning(disable:4996)
 #endif
 
+	printf("Loading OBJ file %s...\n", obj_path.c_str());
 	// Note, normal and UV indices are currently not used
 	std::vector<uint16_t> out_uv_indices, out_normal_indices;
 	std::vector<glm::vec2> out_uvs;
@@ -28,6 +29,7 @@ bool Mesh::loadFromOBJFile(std::string obj_path, std::vector<ColoredVertex>& out
 
 	FILE* file = fopen(obj_path.c_str(), "r");
 	if (file == NULL) {
+		printf("Impossible to open the file ! Are you in the right path ? See Tutorial 1 for details\n");
 		getchar();
 		return false;
 	}
@@ -62,6 +64,7 @@ bool Mesh::loadFromOBJFile(std::string obj_path, std::vector<ColoredVertex>& out
 			//int matches = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &vertexIndex[0], &uvIndex[0], &normalIndex[0], &vertexIndex[1], &uvIndex[1], &normalIndex[1], &vertexIndex[2], &uvIndex[2], &normalIndex[2]);
 			int matches = fscanf(file, "%d//%d %d//%d %d//%d\n", &vertexIndex[0], &normalIndex[0], &vertexIndex[1], &normalIndex[1], &vertexIndex[2], &normalIndex[2]);
 			if (matches != 6) {
+				printf("File can't be read by our simple parser :-( Try exporting with other options\n");
 				fclose(file);
 				return false;
 			}

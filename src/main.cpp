@@ -30,6 +30,8 @@ int main()
 	GLFWwindow* window = world.create_window(defaultResolution.width, defaultResolution.height);
 	if (!window) {
 		// Time to read the error message
+		printf("Press any key to exit");
+
 		getchar();
 		return EXIT_FAILURE;
 	}
