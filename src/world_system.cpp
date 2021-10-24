@@ -116,7 +116,7 @@ GLFWwindow* WorldSystem::create_window(int width, int height) {
 			audio_path("salmon_eat.wav").c_str());
 		return nullptr;
 	}
-	Mix_PlayMusic(background_music, -1);
+
 	return window;
 }
 
