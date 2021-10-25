@@ -99,7 +99,7 @@ Entity createBlock(RenderSystem* renderer, vec2 pos, std::string color) {
 	return entity;
 }
 
-Entity createEnemy(RenderSystem* renderer, vec2 position, vec2 velocity)
+Entity createEnemyBlob(RenderSystem* renderer, vec2 position, vec2 velocity)
 {
 	// Reserve en entity
 	auto entity = Entity();
@@ -119,6 +119,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, vec2 velocity)
 
 	// Create an (empty) Enemy component to be able to refer to all fish
 	registry.enemies.emplace(entity);
+	registry.enemyBlobs.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ENEMY,
@@ -147,6 +148,7 @@ Entity createEnemyRun(RenderSystem* renderer, vec2 position, vec2 velocity)
 	motion.scale = vec2({ -ENEMYRUN_BB_WIDTH * defaultResolution.scaling, ENEMYRUN_BB_HEIGHT * defaultResolution.scaling });
 
 	// Create an (empty) Enemy component to be able to refer to all fish
+	registry.enemies.emplace(entity);
 	registry.enemiesrun.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
@@ -157,7 +159,7 @@ Entity createEnemyRun(RenderSystem* renderer, vec2 position, vec2 velocity)
 	return entity;
 }
 
-Entity createProjectile(RenderSystem* renderer, vec2 pos, vec2 velocity) {
+Entity createProjectile(RenderSystem* renderer, vec2 pos, vec2 velocity, Entity playerEntity) {
 	// Reserve en entity
 	auto entity = Entity();
 
@@ -176,6 +178,7 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, vec2 velocity) {
 
 	// fireball stuff
 	registry.projectiles.emplace(entity);
+	registry.projectiles.get(entity).belongToPlayer = playerEntity;
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::FIREBALL,

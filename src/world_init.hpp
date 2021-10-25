@@ -22,7 +22,7 @@ const float ENEMYRUN_BB_WIDTH = 0.3f * 240.f;
 Entity createWizard(RenderSystem* renderer, vec2 pos);
 
 // the projectile  
-Entity createProjectile(RenderSystem* render, vec2 pos, vec2 velocity); 
+Entity createProjectile(RenderSystem* render, vec2 pos, vec2 velocity, Entity playerEntity); 
 
 // create wall
 Entity createWall(vec2 position, vec2 scale);
@@ -33,7 +33,7 @@ Entity createBlock(RenderSystem* renderer, vec2 pos, std::string color);
 Entity createDoor(vec2 position, vec2 scale);
 
 // the enemy 
-Entity createEnemy(RenderSystem* render, vec2 pos, vec2 velocity);
+Entity createEnemyBlob(RenderSystem* render, vec2 pos, vec2 velocity);
 
 // the enemy that tries to avoid wizards 
 Entity createEnemyRun(RenderSystem* render, vec2 pos, vec2 velocity);
