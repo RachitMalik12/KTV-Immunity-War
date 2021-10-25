@@ -7,8 +7,12 @@
 // Player component
 struct Player
 {
-	int hp = 100;
+	int hp = 3;
 	int money = 0;
+	int damage = 1;
+	float inviFrame = 2000.f;
+	float inviTimerInMs = 0;
+	bool isInvi = false;
 };
 
 // The projectile shot by the wizard character.
@@ -26,7 +30,9 @@ struct Block
 // Enemy that will be attacked by wizard using projectile
 struct Enemy
 {
-
+	int hp;
+	int damage;
+	int loot;
 };
 
 struct EnemyBlob

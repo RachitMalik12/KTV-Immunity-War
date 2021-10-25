@@ -111,15 +111,19 @@ Entity createEnemyBlob(RenderSystem* renderer, vec2 position, vec2 velocity)
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { -50, 0 };
+	motion.velocity = velocity;
 	motion.position = position;
 
-	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ -ENEMY_BB_WIDTH * defaultResolution.scaling, ENEMY_BB_HEIGHT * defaultResolution.scaling });
+	motion.scale = vec2({ ENEMY_BB_WIDTH * defaultResolution.scaling, ENEMY_BB_HEIGHT * defaultResolution.scaling });
 
-	// Create an (empty) Enemy component to be able to refer to all fish
 	registry.enemies.emplace(entity);
 	registry.enemyBlobs.emplace(entity);
+	// Set enemy attributes
+	auto& enemyCom = registry.enemies.get(entity);
+	enemyCom.damage = 1;
+	enemyCom.hp = 3;
+	enemyCom.loot = 1;
+
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ENEMY,
@@ -141,15 +145,19 @@ Entity createEnemyRun(RenderSystem* renderer, vec2 position, vec2 velocity)
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { -50, 0 };
+	motion.velocity = velocity;
 	motion.position = position;
 
-	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ -ENEMYRUN_BB_WIDTH * defaultResolution.scaling, ENEMYRUN_BB_HEIGHT * defaultResolution.scaling });
+	motion.scale = vec2({ ENEMYRUN_BB_WIDTH * defaultResolution.scaling, ENEMYRUN_BB_HEIGHT * defaultResolution.scaling });
 
-	// Create an (empty) Enemy component to be able to refer to all fish
 	registry.enemies.emplace(entity);
 	registry.enemiesrun.emplace(entity);
+	// Set enemy attributes
+	auto& enemyCom = registry.enemies.get(entity);
+	enemyCom.damage = 1;
+	enemyCom.hp = 2;
+	enemyCom.loot = 1;
+
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ENEMYRUN,

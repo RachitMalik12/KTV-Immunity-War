@@ -173,14 +173,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	if (registry.enemyBlobs.components.size() <= MAX_ENEMIES && next_enemyblob_spawn < 0.f) {
 		// Reset timer
 		next_enemyblob_spawn = (ENEMY_DELAY_MS / 2) + uniform_dist(rng) * (ENEMY_DELAY_MS / 2);
-		// Create enemy
-		Entity entity = createEnemyBlob(renderer, { 0,0 }, { 0,0 });
-		// Setting random initial position (inside room) and constant velocity
-		Motion& motion = registry.motions.get(entity);
-		motion.position =
-			vec2(uniform_dist(rng) * (screen_width - (screen_width / 6.f)),
-				screen_height / 16.f);
-		motion.velocity = vec2(0.f, 200.f * defaultResolution.scaling);
+		// Create enemyBlob
+		vec2 position = vec2(uniform_dist(rng) * (screen_width - (screen_width / 6.f)), screen_height / 16.f);
+		vec2 velocity = vec2(0.f, 200.f * defaultResolution.scaling);
+		createEnemyBlob(renderer, position, velocity);
 	}
 
 	// Spawning new enemy run
@@ -190,13 +186,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// Reset timer
 		next_enemyrun_spawn = (ENEMY_DELAY_MS / 2) + uniform_dist(rng) * (ENEMY_DELAY_MS / 2);
 		// Create enemy run
-		Entity entity = createEnemyRun(renderer, { 0,0 }, { 0,0 });
-		// Setting random initial position (inside room) and constant velocity
-		Motion& motion = registry.motions.get(entity);
-		motion.position =
-			vec2(uniform_dist(rng) * (screen_width - (screen_width / 6.f)),
-				screen_height / 16.f);
-		motion.velocity = vec2(uniform_dist(rng) * 200.f * defaultResolution.scaling, uniform_dist(rng) * 200.f * defaultResolution.scaling);
+		vec2 position = vec2(uniform_dist(rng) * (screen_width - (screen_width / 6.f)), screen_height / 16.f);
+		vec2 velocity = vec2(uniform_dist(rng) * 200.f * defaultResolution.scaling, uniform_dist(rng) * 200.f * defaultResolution.scaling);
+		createEnemyRun(renderer, position, velocity);
 	}
 
 	if (twoPlayer.inTwoPlayerMode && destinations_registry.has(player2_wizard)) {
@@ -210,7 +202,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// update Stuck timers and remove if time drops below zero, similar to the death counter
-	float min_counter_ms_powerup = 3000.f;
 	for (Entity entity : registry.stuckTimers.entities) {
 		StuckTimer& counter = registry.stuckTimers.get(entity);
 		// remove timer if current position is the different from "stuck" position
@@ -221,14 +212,21 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		else {
 			// progress timer
 			counter.counter_ms -= elapsed_ms_since_last_update;
-			if (counter.counter_ms < min_counter_ms_powerup) {
-				min_counter_ms_powerup = counter.counter_ms;
-			}
-
 			// remove entity (enemies/enemies run) when timer expires
 			if (counter.counter_ms < 0) {
 				registry.remove_all_components_of(entity);
 			}
+		}
+	}
+
+	for (Entity playerEntity : registry.players.entities) {
+		Player& player = registry.players.get(playerEntity);
+		if (player.isInvi) {
+			player.inviTimerInMs -= elapsed_ms_since_last_update;
+			if (player.inviTimerInMs < 0) {
+				player.isInvi = false;
+			}
+
 		}
 	}
 
