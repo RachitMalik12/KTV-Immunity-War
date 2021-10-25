@@ -28,6 +28,7 @@ public:
 	ComponentContainer<Door> doors;
 	ComponentContainer<vec3> colors;
 	ComponentContainer<Enemy> enemies;
+	ComponentContainer<EnemyBlob> enemyBlobs;
 	ComponentContainer<EnemyRun> enemiesrun;
 	ComponentContainer<Powerup> powerups; 
 	ComponentContainer<Flip> flips;
@@ -37,7 +38,6 @@ public:
 	// IMPORTANT: Don't forget to add any newly added containers!
 	ECSRegistry()
 	{
-		// TODO: A1 add a LightUp component
 		registry_list.push_back(&deathTimers);
 		registry_list.push_back(&stuckTimers);
 		registry_list.push_back(&motions);
@@ -55,6 +55,7 @@ public:
 		registry_list.push_back(&doors);
 		registry_list.push_back(&colors);
 		registry_list.push_back(&enemies);
+		registry_list.push_back(&enemyBlobs);
 		registry_list.push_back(&enemiesrun);
 		registry_list.push_back(&powerups);
 		registry_list.push_back(&flips);
@@ -67,12 +68,14 @@ public:
 	}
 
 	void list_all_components() {
+		printf("Debug info on all registry entries:\n");
 		for (ContainerInterface* reg : registry_list)
 			if (reg->size() > 0)
 				printf("%4d components of type %s\n", (int)reg->size(), typeid(*reg).name());
 	}
 
 	void list_all_components_of(Entity e) {
+		printf("Debug info on components of entity %u:\n", (unsigned int)e);
 		for (ContainerInterface* reg : registry_list)
 			if (reg->has(e))
 				printf("type %s\n", typeid(*reg).name());

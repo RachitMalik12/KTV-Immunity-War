@@ -4,6 +4,8 @@
 
 const int MAX_DIST_WZ_EN = 50*50;
 const int ENEMY_AVOID_DIST = 100;
+const int ENEMY_DAMAGE = 1;
+
 
 // Returns the local bounding coordinates scaled by the current size of the entity
 vec2 get_bounding_box(const Motion& motion)
@@ -93,7 +95,7 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 			if (registry.projectiles.has(entity)) {
 				registry.remove_all_components_of(entity);
 			}
-			else if (registry.enemies.has(entity)) {
+			else if (registry.enemyBlobs.has(entity)) {
 				Motion& enemyMotion = motion_registry.get(entity);
 				enemyMotion.velocity.y *= -1;
 			}
@@ -131,14 +133,6 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 				vec2 dp = motion_en.position - motion_wz.position;
 				float dist_squared = dot(dp, dp);
 				if (dist_squared < MAX_DIST_WZ_EN) {
-					/*if (!hitABlockRight && !hitAWallRight) {
-						//motion.position = nextPosRight;
-						motion.velocity.x += 10;
-					}
-					else if (!hitABlockLeft && !hitAWallLeft) {
-						//motion.position = nextPosLeft;
-						motion.velocity.x -= 10;
-					}*/
 					if (motion_en.velocity.x > 0) {
 						if (motion_en.velocity.y > 0) {
 							motion_en.velocity.x = -200.f;
@@ -188,9 +182,6 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 			}
 		}
 	}
-
-	// you may need the following quantities to compute wall positions
-	(float)window_width_px; (float)window_height_px;
 
 	// debugging of bounding boxes
 	if (debugging.in_debug_mode)
@@ -248,4 +239,65 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 			// Entity graybox = createBox(motion_i.position, bounding_box);
 		}
 	}
+}
+
+void PhysicsSystem::handle_collision() {
+	// Loop over all collisions detected by the physics system
+	auto& collisionsRegistry = registry.collisions;
+	for (uint i = 0; i < collisionsRegistry.components.size(); i++) {
+		// The entity and its collider
+		Entity entity = collisionsRegistry.entities[i];
+		Entity entity_other = collisionsRegistry.components[i].other;
+
+		// Checking collision of projectiles with other entities (enemies or enemies run)
+		if (registry.projectiles.has(entity)) {
+			if (registry.enemies.has(entity_other)) {
+				// remove enemy, fireball, count points
+				registry.remove_all_components_of(entity_other);
+				registry.players.get(registry.projectiles.get(entity).belongToPlayer).money += 1;
+				registry.remove_all_components_of(entity);
+			}
+		}
+
+		// Checking collision of enemies or enemies run with walls or blocks
+		if (registry.enemies.has(entity)) {
+			if (registry.blocks.has(entity_other) || registry.walls.has(entity_other)) {
+				// start a timer and pass the enemies/enemies run's current position
+				if (!registry.stuckTimers.has(entity)) {
+					registry.stuckTimers.emplace(entity);
+					registry.stuckTimers.get(entity).stuck_pos = vec2(registry.motions.get(entity).position.x, registry.motions.get(entity).position.y);
+				}
+			}
+		}
+
+		if (registry.powerups.has(entity)) {
+			if (registry.players.has(entity_other)) {
+				//Deduct if money is available
+				if (registry.players.get(entity_other).money - 1 >= 0) {
+					registry.players.get(entity_other).money -= 1;
+					registry.players.get(entity_other).hp += 10;
+					registry.remove_all_components_of(entity);
+				}
+			}
+		}
+
+		if (registry.players.has(entity)) {
+			Player& player = registry.players.get(entity);
+			// Check Player - Enemy collisions 
+			if (registry.enemies.has(entity_other) && !registry.powerups.has(entity_other)) {
+				// if hp - 1 is <= 0 then initiate death unless already dying 
+				if (player.hp - 1 <= 0) {
+					// TODO: handle death here when HP is 0. 
+					// Temp change hp to 0 
+					player.hp = 0;
+				}
+				else {
+					player.hp -= ENEMY_DAMAGE;
+				}
+			}
+		}
+	}
+
+	// Remove all collisions from this simulation step
+	registry.collisions.clear();
 }

@@ -7,13 +7,14 @@
 // Player component
 struct Player
 {
-	int hp = 100; 
+	int hp = 100;
+	int money = 0;
 };
 
 // The projectile shot by the wizard character.
 struct Projectile
 {
-
+	Entity belongToPlayer;
 };
 
 struct Block
@@ -24,6 +25,11 @@ struct Block
 
 // Enemy that will be attacked by wizard using projectile
 struct Enemy
+{
+
+};
+
+struct EnemyBlob
 {
 
 };
