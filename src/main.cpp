@@ -31,7 +31,6 @@ int main()
 	if (!window) {
 		// Time to read the error message
 		printf("Press any key to exit");
-
 		getchar();
 		return EXIT_FAILURE;
 	}
@@ -61,7 +60,7 @@ int main()
 		world.step(elapsed_ms);
 		ai.step(elapsed_ms);
 		physics.step(elapsed_ms, (float)width, (float)height);
-		world.handle_collisions();
+		physics.handle_collision();
 
 		renderer.draw();
 	}

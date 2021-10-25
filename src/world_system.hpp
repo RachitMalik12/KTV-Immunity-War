@@ -22,12 +22,6 @@ public:
 
 	std::vector<std::function<void(Entity entity)>>  callbackFns;
 
-	void attach(std::function<void(Entity entity)>);
-
-	void hpListener(Entity entity);
-	// Observer Pattern listener
-	void hpCallBack(Entity entity);
-
 	// Creates a window
 	GLFWwindow* create_window(int width, int height);
 
@@ -40,15 +34,13 @@ public:
 	// Steps the game ahead by ms milliseconds
 	bool step(float elapsed_ms);
 
-	// Check for collisions
-	void handle_collisions();
-
 	// Should the game be over ?
 	bool is_over()const;
 
 	void setPlayerMode();
 
 	void setResolution();
+
 private:
 	float playerSpeed;
 	// Input callback functions
@@ -62,13 +54,11 @@ private:
 	// OpenGL window handle
 	GLFWwindow* window;
 
-	// Number of fish eaten by the salmon, displayed in the window title
-	int money;
 	bool spawnPowerup;
 	// Game state
 	RenderSystem* renderer;
 	float current_speed;
-	float next_enemy_spawn;
+	float next_enemyblob_spawn;
 	float next_enemyrun_spawn;
 	Entity player_salmon;
 	Entity player_wizard;

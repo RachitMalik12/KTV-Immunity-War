@@ -28,6 +28,7 @@ public:
 	ComponentContainer<Door> doors;
 	ComponentContainer<vec3> colors;
 	ComponentContainer<Enemy> enemies;
+	ComponentContainer<EnemyBlob> enemyBlobs;
 	ComponentContainer<EnemyRun> enemiesrun;
 	ComponentContainer<Powerup> powerups; 
 	ComponentContainer<Flip> flips;
@@ -37,7 +38,6 @@ public:
 	// IMPORTANT: Don't forget to add any newly added containers!
 	ECSRegistry()
 	{
-		// TODO: A1 add a LightUp component
 		registry_list.push_back(&deathTimers);
 		registry_list.push_back(&stuckTimers);
 		registry_list.push_back(&motions);
@@ -55,6 +55,7 @@ public:
 		registry_list.push_back(&doors);
 		registry_list.push_back(&colors);
 		registry_list.push_back(&enemies);
+		registry_list.push_back(&enemyBlobs);
 		registry_list.push_back(&enemiesrun);
 		registry_list.push_back(&powerups);
 		registry_list.push_back(&flips);
