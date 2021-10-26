@@ -10,9 +10,9 @@ struct Player
 	int hp = 3;
 	int money = 0;
 	int damage = 1;
-	float inviFrame = 2000.f;
-	float inviTimerInMs = 0;
-	bool isInvi = false;
+	float invinFrame = 2000.f;
+	float invinTimerInMs = 0;
+	bool isInvin = false;
 };
 
 // The projectile shot by the wizard character.
@@ -33,6 +33,7 @@ struct Enemy
 	int hp;
 	int damage;
 	int loot;
+	float speed;
 };
 
 struct EnemyBlob
@@ -44,6 +45,20 @@ struct EnemyBlob
 struct EnemyRun
 {
 
+};
+
+// State machine feature
+struct EnemyHunter
+{
+	int currentState;
+	int searchingMode = 0;
+	int huntingMode = 1;
+	int fleeingMode = 2;
+	float aiUpdateTime = 1000.f;
+	float aiUpdateTimer = 0;
+	bool timeToUpdateAi = true;
+	bool isFleeing = false;
+	float huntingRange = 500.f;
 };
 
 struct Powerup 
@@ -93,7 +108,7 @@ extern TwoPlayer twoPlayer;
 struct DefaultResolution {
 	int width = 1200;
 	int height = 800;
-	float scaling = 0;
+	float scaling;
 };
 extern DefaultResolution defaultResolution;
 
@@ -192,12 +207,13 @@ enum class TEXTURE_ASSET_ID {
 	TREE_YELLOW = TREE_ORANGE + 1,
 	FIREBALL = TREE_YELLOW + 1,
 	WIZARD = FIREBALL + 1,
-	WIZARD_LEFT = WIZARD+1,
+	WIZARD_LEFT = WIZARD + 1,
 	BLACK_BAR = WIZARD_LEFT + 1,
 	ENEMY = BLACK_BAR + 1,
-	POWERUP = ENEMY + 1, 
+	POWERUP = ENEMY + 1,
 	ENEMYRUN = POWERUP + 1,
-	TEXTURE_COUNT = ENEMYRUN + 1
+	ENEMYHUNTER = ENEMYRUN + 1,
+	TEXTURE_COUNT = ENEMYHUNTER + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
