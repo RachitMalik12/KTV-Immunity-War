@@ -101,26 +101,31 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 			}
 			else if (registry.enemiesrun.has(entity)) {
 				Motion& enemyRunMotion = motion_registry.get(entity);
+				Enemy& enemyCom = registry.enemies.get(entity);
 				if (enemyRunMotion.velocity.x > 0) {
 					if (enemyRunMotion.velocity.y > 0) {
-						enemyRunMotion.velocity.x = -200.f;
-						enemyRunMotion.velocity.y = 200.f;
+						enemyRunMotion.velocity.x = -1 * enemyCom.speed;
+						enemyRunMotion.velocity.y = enemyCom.speed;
 					}
 					else {
-						enemyRunMotion.velocity.x = 200.f;
-						enemyRunMotion.velocity.y = 200.f;
+						enemyRunMotion.velocity.x = enemyCom.speed;
+						enemyRunMotion.velocity.y = enemyCom.speed;
 					}
 				}
 				else {
 					if (enemyRunMotion.velocity.y > 0) {
-						enemyRunMotion.velocity.x = -200.f;
-						enemyRunMotion.velocity.y = -200.f;
+						enemyRunMotion.velocity.x = -1 * enemyCom.speed;
+						enemyRunMotion.velocity.y = -1 *enemyCom.speed;
 					}
 					else {
-						enemyRunMotion.velocity.x = 200.f;
-						enemyRunMotion.velocity.y = -200.f;
+						enemyRunMotion.velocity.x = enemyCom.speed;
+						enemyRunMotion.velocity.y = -1 *enemyCom.speed;
 					}
 				}
+			}
+			else if (registry.enemyHunters.has(entity)) {
+				Motion& hunterMotion = motion_registry.get(entity);
+				hunterMotion.velocity = vec2(hunterMotion.velocity.x * -1.f, hunterMotion.velocity.y);
 			}
 		}
 
@@ -128,6 +133,7 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 		// change enemyrun direction 
 		if (registry.enemiesrun.has(entity)) {
 			Motion& motion_en = motion_registry.get(entity);
+			Enemy& enemyCom = registry.enemies.get(entity);
 			for (uint k = 0; k < registry.players.size(); k++) {
 				Motion& motion_wz = motion_registry.get(registry.players.entities[k]);
 				vec2 dp = motion_en.position - motion_wz.position;
@@ -135,22 +141,22 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 				if (dist_squared < MAX_DIST_WZ_EN) {
 					if (motion_en.velocity.x > 0) {
 						if (motion_en.velocity.y > 0) {
-							motion_en.velocity.x = -200.f;
-							motion_en.velocity.y = 200.f;
+							motion_en.velocity.x = -1 * enemyCom.speed;
+							motion_en.velocity.y = enemyCom.speed;
 						}
 						else {
-							motion.velocity.x = 200.f;
-							motion.velocity.y = 200.f;
+							motion.velocity.x = enemyCom.speed;
+							motion.velocity.y = enemyCom.speed;
 						}
 					}
 					else {
 						if (motion_en.velocity.y > 0) {
-							motion_en.velocity.x = -200.f;
-							motion_en.velocity.y = -200.f;
+							motion_en.velocity.x = -1 * enemyCom.speed;
+							motion_en.velocity.y = -1 * enemyCom.speed;
 						}
 						else {
-							motion_en.velocity.x = 200.f;
-							motion_en.velocity.y = -200.f;
+							motion_en.velocity.x = enemyCom.speed;
+							motion_en.velocity.y = -1 * enemyCom.speed;
 						}
 					}
 				}
@@ -295,7 +301,7 @@ void PhysicsSystem::handle_collision() {
 			Player& player = registry.players.get(entity);
 			// Check Player - Enemy collisions 
 			if (registry.enemies.has(entity_other) && !registry.powerups.has(entity_other)) {
-				if (!player.isInvi) {
+				if (!player.isInvin) {
 					player.hp -= registry.enemies.get(entity_other).damage;
 					// if hp - 1 is <= 0 then initiate death unless already dying 
 					if (player.hp <= 0) {
@@ -304,8 +310,8 @@ void PhysicsSystem::handle_collision() {
 						player.hp = 0;
 					}
 					else {
-						player.isInvi = true;
-						player.inviTimerInMs = player.inviFrame;
+						player.isInvin = true;
+						player.invinTimerInMs = player.invinFrame;
 					}
 				}
 			}

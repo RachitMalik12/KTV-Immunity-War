@@ -114,7 +114,7 @@ Entity createEnemyBlob(RenderSystem* renderer, vec2 position, vec2 velocity)
 	motion.velocity = velocity;
 	motion.position = position;
 
-	motion.scale = vec2({ ENEMY_BB_WIDTH * defaultResolution.scaling, ENEMY_BB_HEIGHT * defaultResolution.scaling });
+	motion.scale = vec2({ ENEMYBLOB_BB_WIDTH * defaultResolution.scaling, ENEMYBLOB_BB_HEIGHT * defaultResolution.scaling });
 
 	registry.enemies.emplace(entity);
 	registry.enemyBlobs.emplace(entity);
@@ -123,6 +123,7 @@ Entity createEnemyBlob(RenderSystem* renderer, vec2 position, vec2 velocity)
 	enemyCom.damage = 1;
 	enemyCom.hp = 3;
 	enemyCom.loot = 1;
+	enemyCom.speed = 200 * defaultResolution.scaling;
 
 	registry.renderRequests.insert(
 		entity,
@@ -157,10 +158,44 @@ Entity createEnemyRun(RenderSystem* renderer, vec2 position, vec2 velocity)
 	enemyCom.damage = 1;
 	enemyCom.hp = 2;
 	enemyCom.loot = 1;
+	enemyCom.speed = 200.f * defaultResolution.scaling;
 
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ENEMYRUN,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
+Entity createEnemyHunter(RenderSystem* renderer, vec2 position, vec2 velocity) {
+	auto entity = Entity();
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = velocity;
+	motion.position = position;
+
+	motion.scale = vec2({ ENEMYHUNTER_BB_WIDTH * defaultResolution.scaling, ENEMYHUNTER_BB_HEIGHT * defaultResolution.scaling });
+
+	registry.enemies.emplace(entity);
+	registry.enemyHunters.emplace(entity);
+	// Set enemy attributes
+	auto& enemyCom = registry.enemies.get(entity);
+	enemyCom.damage = 1;
+	enemyCom.hp = 5;
+	enemyCom.loot = 2;
+	enemyCom.speed = 200.f * defaultResolution.scaling;
+	auto& hunterCom = registry.enemyHunters.get(entity);
+	hunterCom.currentState = hunterCom.searchingMode;
+	hunterCom.huntingRange = hunterCom.huntingRange * defaultResolution.scaling;
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ENEMYHUNTER,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
 

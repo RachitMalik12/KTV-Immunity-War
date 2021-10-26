@@ -11,12 +11,14 @@ const float BLOCK_BB_WIDTH = 0.1f * 871.f;
 const float BLOCK_BB_HEIGHT = 0.1f * 1549.f;
 const float FIREBALL_BB_WIDTH = 0.04f * 1954.f;
 const float FIREBALL_BB_HEIGHT = 0.04f * 1602.f;
-const float ENEMY_BB_HEIGHT = 0.3f * 250.f;
-const float ENEMY_BB_WIDTH = 0.3f * 250.f;
+const float ENEMYBLOB_BB_HEIGHT = 0.3f * 250.f;
+const float ENEMYBLOB_BB_WIDTH = 0.3f * 250.f;
 const float POWERUP_BB_HEIGHT = 0.3f * 250.f;
 const float POWERUP_BB_WIDTH = 0.3f * 250.f;
 const float ENEMYRUN_BB_HEIGHT = 0.3f * 240.f;
 const float ENEMYRUN_BB_WIDTH = 0.3f * 240.f;
+const float ENEMYHUNTER_BB_HEIGHT = 0.11f * 691.f;
+const float ENEMYHUNTER_BB_WIDTH = 0.11f * 582.f;
 
 // the player
 Entity createWizard(RenderSystem* renderer, vec2 pos);
@@ -33,10 +35,13 @@ Entity createBlock(RenderSystem* renderer, vec2 pos, std::string color);
 Entity createDoor(vec2 position, vec2 scale);
 
 // the enemy 
-Entity createEnemyBlob(RenderSystem* render, vec2 pos, vec2 velocity);
+Entity createEnemyBlob(RenderSystem* renderer, vec2 position, vec2 velocity);
 
 // the enemy that tries to avoid wizards 
-Entity createEnemyRun(RenderSystem* render, vec2 pos, vec2 velocity);
+Entity createEnemyRun(RenderSystem* renderer, vec2 position, vec2 velocity);
+
+// state machine enemy
+Entity createEnemyHunter(RenderSystem* renderer, vec2 position, vec2 velocity);
 
 // The powerup 
 Entity createPowerup(RenderSystem* render, vec2 pos); 
