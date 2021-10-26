@@ -13,6 +13,7 @@
 
 using Clock = std::chrono::high_resolution_clock;
 DefaultResolution defaultResolution;
+TwoPlayer twoPlayer;
 
 // Entry point
 int main()

@@ -17,7 +17,6 @@ const size_t PROJECTILE_SPEED = 300;
 const size_t DEFAULT_HEIGHT = 800;
 const int WALL_THICKNESS = 40;
 const int SHOP_WALL_THICKNESS = 100;
-TwoPlayer twoPlayer;
 
 // Create the fish world
 WorldSystem::WorldSystem()
@@ -214,17 +213,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			counter.counter_ms -= elapsed_ms_since_last_update;
 			// remove entity (enemies/enemies run) when timer expires
 			if (counter.counter_ms < 0) {
-				registry.remove_all_components_of(entity);
+				registry.motions.get(entity).position = vec2(screen_width / 2.f, screen_height / 2.f);
 			}
 		}
 	}
 
 	for (Entity playerEntity : registry.players.entities) {
 		Player& player = registry.players.get(playerEntity);
-		if (player.isInvi) {
-			player.inviTimerInMs -= elapsed_ms_since_last_update;
-			if (player.inviTimerInMs < 0) {
-				player.isInvi = false;
+		if (player.isInvin) {
+			player.invinTimerInMs -= elapsed_ms_since_last_update;
+			if (player.invinTimerInMs < 0) {
+				player.isInvin = false;
 			}
 
 		}
@@ -264,6 +263,9 @@ void WorldSystem::restart_game() {
 	if (twoPlayer.inTwoPlayerMode) {
 		player2_wizard = createWizard(renderer, { screenWidth / 10, screenHeight * 0.66f });
 	}
+
+	// temp location to test state machine enemy hunter
+	createEnemyHunter(renderer, vec2(screenWidth * 0.66f, screenHeight * 0.5f), vec2(1, 0));
 }
 
 void WorldSystem::createADoor(int screenWidth, int screenHeight) {
