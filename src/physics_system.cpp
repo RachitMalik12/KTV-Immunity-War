@@ -252,10 +252,20 @@ void PhysicsSystem::handle_collision() {
 		// Checking collision of projectiles with other entities (enemies or enemies run)
 		if (registry.projectiles.has(entity)) {
 			if (registry.enemies.has(entity_other)) {
-				// remove enemy, fireball, count points
-				registry.remove_all_components_of(entity_other);
-				registry.players.get(registry.projectiles.get(entity).belongToPlayer).money += 1;
+				Enemy& enemyCom = registry.enemies.get(entity_other);
+				Player& playerCom = registry.players.get(registry.projectiles.get(entity).belongToPlayer);
+				Motion& projectileMotionCom = registry.motions.get(entity);
 				registry.remove_all_components_of(entity);
+				enemyCom.hp -= playerCom.damage;
+				if (enemyCom.hp <= 0) {
+					playerCom.money += enemyCom.loot;
+					registry.remove_all_components_of(entity_other);
+				} else {
+					Motion& enemyMotionCom = registry.motions.get(entity_other);
+					float jumpBackFrames = 0.1f;
+					enemyMotionCom.position = vec2(enemyMotionCom.position.x + projectileMotionCom.velocity.x * jumpBackFrames,
+												   enemyMotionCom.position.y + projectileMotionCom.velocity.y * jumpBackFrames);
+				}
 			}
 		}
 
@@ -285,14 +295,18 @@ void PhysicsSystem::handle_collision() {
 			Player& player = registry.players.get(entity);
 			// Check Player - Enemy collisions 
 			if (registry.enemies.has(entity_other) && !registry.powerups.has(entity_other)) {
-				// if hp - 1 is <= 0 then initiate death unless already dying 
-				if (player.hp - 1 <= 0) {
-					// TODO: handle death here when HP is 0. 
-					// Temp change hp to 0 
-					player.hp = 0;
-				}
-				else {
-					player.hp -= ENEMY_DAMAGE;
+				if (!player.isInvi) {
+					player.hp -= registry.enemies.get(entity_other).damage;
+					// if hp - 1 is <= 0 then initiate death unless already dying 
+					if (player.hp <= 0) {
+						// TODO: handle death here when HP is 0. 
+						// Temp change hp to 0 
+						player.hp = 0;
+					}
+					else {
+						player.isInvi = true;
+						player.inviTimerInMs = player.inviFrame;
+					}
 				}
 			}
 		}
