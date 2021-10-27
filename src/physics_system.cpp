@@ -27,16 +27,16 @@ bool isMeshInBoundingBox(const Entity entity, const Entity other_entity) {
 	Motion& motion = registry.motions.get(entity);
 	for (const ColoredVertex vertex : hitbox->vertices) {
 		vec3 transformed_vertex = transformVertex(motion, vertex);
-		const Motion& motion2 = registry.motions.get(other_entity);
-		const vec2 bounding_box = get_bounding_box(motion2) / 2.f;
-		float left_position = motion2.position.x - bounding_box.x / 2;
-		float right_position = motion2.position.x + bounding_box.x / 2;
-		float up_position = motion2.position.y - bounding_box.y / 2;
-		float down_position = motion2.position.y + bounding_box.y / 2;
-		if (transformed_vertex.x >= left_position &&
-			transformed_vertex.y >= up_position &&
-			transformed_vertex.x <= right_position &&
-			transformed_vertex.y <= down_position)
+		const Motion& other_motion = registry.motions.get(other_entity);
+		const vec2 bounding_box = get_bounding_box(other_motion);
+		float left_position = other_motion.position.x - bounding_box.x / 2;
+		float right_position = other_motion.position.x + bounding_box.x / 2;
+		float up_position = other_motion.position.y - bounding_box.y / 2;
+		float down_position = other_motion.position.y + bounding_box.y / 2;
+		if (transformed_vertex.x + motion.position.x >= left_position &&
+			transformed_vertex.y + motion.position.y >= up_position &&
+			transformed_vertex.x + motion.position.x <= right_position &&
+			transformed_vertex.y + motion.position.y <= down_position)
 			return true;
 	}
 	return false;
@@ -55,6 +55,23 @@ bool doesRadiusCollide(const Motion& motion, const Motion& other_motion) {
 	return false;
 }
 
+vec2 alignNextPositionToBoundingBox(vec2 nextPosition, const Motion& motion) {
+	const vec2 bounding_box = get_bounding_box(motion) / 2.f;
+	if (motion.velocity.x > 0) {
+		nextPosition.x += bounding_box.x;
+	}
+	else if (motion.velocity.x < 0) {
+		nextPosition.x -= bounding_box.x;
+	}
+	if (motion.velocity.y > 0) {
+		nextPosition.y += bounding_box.y;
+	}
+	else if (motion.velocity.y < 0) {
+		nextPosition.y -= bounding_box.y;
+	}
+	return nextPosition;
+}
+
 // This is a SUPER APPROXIMATE check that puts a circle around the bounding boxes and sees
 // if the center point of either object is inside the other's bounding-box-circle. You can
 // surely implement a more accurate detection
@@ -71,7 +88,8 @@ bool collides(const Entity entity, const Entity other_entity)
 	return doesRadiusCollide(motion, other_motion);
 }
 
-bool blockCollides(vec2 nextPosition, const Motion& block) {
+bool blockCollides(vec2 nextPosition, const Motion& block, const Motion& motion) {
+	nextPosition = alignNextPositionToBoundingBox(nextPosition, motion);
 	vec2 dp = nextPosition - block.position;
 	float dist_squared = dot(dp, dp);
 	const vec2 wall_bonding_box = get_bounding_box(block) / 2.f;
@@ -82,19 +100,19 @@ bool blockCollides(vec2 nextPosition, const Motion& block) {
 
 }
 
-bool wallCollides(vec2 nextPosition, Entity wall) {
-	bool hitAWall = false;
-	Motion& motion = registry.motions.get(wall);
-	vec2 wallPos = motion.position;
-	vec2 wallScale = motion.scale;
+bool wallCollides(vec2 nextPosition, Entity wall, const Motion& motion) {
+	nextPosition = alignNextPositionToBoundingBox(nextPosition, motion);
+	Motion& wallMotion = registry.motions.get(wall);
+	vec2 wallPos = wallMotion.position;
+	vec2 wallScale = wallMotion.scale;
 	float left = wallPos.x - (wallScale.x / 2);
 	float right = wallPos.x + (wallScale.x / 2);
 	float top = wallPos.y - (wallScale.y / 2);
 	float bottom = wallPos.y + (wallScale.y / 2);
 	if (nextPosition.y >= top && nextPosition.y <= bottom && nextPosition.x >= left && nextPosition.x <= right) {
-		hitAWall = true;
+		return true;
 	}
-	return hitAWall;
+	return false;
 }
 
 void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_height_px)
@@ -114,14 +132,14 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 		bool hitABlock = false;
 		for (uint j = 0; j < blocks_registry.size(); j++) {
 			Entity blockEntity = blocks_registry.entities[j];
-			if (blockCollides(nextPosition, motion_registry.get(blockEntity))) {
+			if (blockCollides(nextPosition, motion_registry.get(blockEntity), motion)) {
 				hitABlock = true;
 			}
 		}
 
 		for (uint j = 0; j < walls_registry.size(); j++) {
 			Entity wallEntity = walls_registry.entities[j];
-			if (wallCollides(nextPosition, wallEntity)) {
+			if (wallCollides(nextPosition, wallEntity, motion)) {
 				hitABlock = true;
 			}
 		}
@@ -217,6 +235,8 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 			if (i == j)
 				continue;
 			Entity entity_j = motion_container.entities[j];
+			if (registry.walls.has(entity_i) || registry.walls.has(entity_j))
+				continue;
 			Motion& motion_j = motion_container.components[j];
 			if (collides(entity_i, entity_j))
 			{
@@ -246,14 +266,25 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 					vec3 transformed_vertex = transformVertex(motion, vertex);
 					Entity vertex_line = createLine(vec2(transformed_vertex.x, transformed_vertex.y) + motion.position, { 4, 4 });
 				}
-			} else if (!registry.walls.has(entity_i)) {
+			} 
+			if (!registry.walls.has(entity_i)) {
 				// visualize the radius with two axis-aligned lines
-				const vec2 bonding_box = get_bounding_box(motion_i);
-				float radius = sqrt(dot(bonding_box / 2.f, bonding_box / 2.f));
-				vec2 line_scale1 = { motion_i.scale.x / 10, 2 * radius };
-				Entity line1 = createLine(motion_i.position, line_scale1);
-				vec2 line_scale2 = { 2 * radius, motion_i.scale.x / 10 };
-				Entity line2 = createLine(motion_i.position, line_scale2);
+
+				const vec2 bounding_box = get_bounding_box(motion_i);
+				vec2 horizontal_scale = { bounding_box.x,2 };
+				vec2 vertical_scale = { 2,bounding_box.y };
+				vec2 left_position = motion_i.position;
+				left_position.x -= bounding_box.x / 2;
+				vec2 right_position = motion_i.position;
+				right_position.x += bounding_box.x / 2;
+				vec2 up_position = motion_i.position;
+				up_position.y -= bounding_box.y / 2;
+				vec2 down_position = motion_i.position;
+				down_position.y += bounding_box.y / 2;
+				Entity left_line = createLine(left_position, vertical_scale);
+				Entity right_line = createLine(right_position, vertical_scale);
+				Entity up_line = createLine(up_position, horizontal_scale);
+				Entity down_line = createLine(down_position, horizontal_scale);
 			}
 		}
 	}
