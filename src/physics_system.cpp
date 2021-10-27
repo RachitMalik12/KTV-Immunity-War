@@ -17,68 +17,58 @@ vec2 get_bounding_box(const Motion& motion)
 vec3 transformVertex(Motion& motion, ColoredVertex vertex) {
 	Transform transform;
 	transform.translate(motion.position);
+	transform.rotate(motion.angle);
 	transform.scale(vec2(motion.scale.x, motion.scale.y)); 
 	return transform.mat * vertex.position;
+}
+
+bool isMeshInBoundingBox(const Entity entity, const Entity other_entity) {
+	Mesh* hitbox = registry.hitboxes.get(entity);
+	Motion& motion = registry.motions.get(entity);
+	for (const ColoredVertex vertex : hitbox->vertices) {
+		vec3 transformed_vertex = transformVertex(motion, vertex);
+		const Motion& motion2 = registry.motions.get(other_entity);
+		const vec2 bounding_box = get_bounding_box(motion2) / 2.f;
+		float left_position = motion2.position.x - bounding_box.x / 2;
+		float right_position = motion2.position.x + bounding_box.x / 2;
+		float up_position = motion2.position.y - bounding_box.y / 2;
+		float down_position = motion2.position.y + bounding_box.y / 2;
+		if (transformed_vertex.x >= left_position &&
+			transformed_vertex.y >= up_position &&
+			transformed_vertex.x <= right_position &&
+			transformed_vertex.y <= down_position)
+			return true;
+	}
+	return false;
+}
+
+bool doesRadiusCollide(const Motion& motion, const Motion& other_motion) {
+	vec2 dp = motion.position - other_motion.position;
+	float dist_squared = dot(dp, dp);
+	const vec2 other_bonding_box = get_bounding_box(motion) / 2.f;
+	const float other_r_squared = dot(other_bonding_box, other_bonding_box);
+	const vec2 my_bonding_box = get_bounding_box(other_motion) / 2.f;
+	const float my_r_squared = dot(my_bonding_box, my_bonding_box);
+	const float r_squared = max(other_r_squared, my_r_squared);
+	if (dist_squared < r_squared)
+		return true;
+	return false;
 }
 
 // This is a SUPER APPROXIMATE check that puts a circle around the bounding boxes and sees
 // if the center point of either object is inside the other's bounding-box-circle. You can
 // surely implement a more accurate detection
-bool collides(const Entity e1, const Entity e2)
+bool collides(const Entity entity, const Entity other_entity)
 {
-	if (registry.players.has(e1) || registry.enemyHunters.has(e1)) {
-		Mesh* hitbox = registry.hitboxes.get(e1);
-		Motion& motion = registry.motions.get(e1);
-		for (const ColoredVertex vertex : hitbox->vertices) {
-			vec3 transformed_vertex = transformVertex(motion, vertex);
-			const Motion& motion2 = registry.motions.get(e2);
-			const vec2 bounding_box = get_bounding_box(motion2) / 2.f; 
-			float left_position = motion2.position.x - bounding_box.x / 2;
-			float right_position = motion2.position.x + bounding_box.x / 2;
-			float up_position = motion2.position.y - bounding_box.y / 2;
-			float down_position = motion2.position.y + bounding_box.y / 2;
-			if (transformed_vertex.x >= left_position &&
-				transformed_vertex.y >= up_position &&
-				transformed_vertex.x <= right_position &&
-				transformed_vertex.y <= down_position)
-				return true;
-		}
-		return false;
+	if (registry.hitboxes.has(entity)) {
+		return isMeshInBoundingBox(entity, other_entity);
 	}
-	else if (registry.players.has(e2) || registry.enemyHunters.has(e2)) {
-		Mesh* hitbox = registry.hitboxes.get(e2);
-		Motion& motion = registry.motions.get(e2);
-		for (const ColoredVertex vertex : hitbox->vertices) {
-			vec3 transformed_vertex = transformVertex(motion, vertex);
-			const Motion& motion1 = registry.motions.get(e1);
-			const vec2 bounding_box = get_bounding_box(motion1) / 2.f;
-			float left_position = motion1.position.x - bounding_box.x / 2;
-			float right_position = motion1.position.x + bounding_box.x / 2;
-			float up_position = motion1.position.y - bounding_box.y / 2;
-			float down_position = motion1.position.y + bounding_box.y / 2;
-			if (transformed_vertex.x >= left_position &&
-				transformed_vertex.y >= up_position &&
-				transformed_vertex.x <= right_position &&
-				transformed_vertex.y <= down_position)
-				return true;
-		}
-		return false;
+	else if (registry.hitboxes.has(other_entity)) {
+		return isMeshInBoundingBox(other_entity, entity);
 	}
-	else {
-		const Motion& motion1 = registry.motions.get(e1);
-		const Motion& motion2 = registry.motions.get(e2);
-		vec2 dp = motion1.position - motion2.position;
-		float dist_squared = dot(dp, dp);
-		const vec2 other_bonding_box = get_bounding_box(motion1) / 2.f;
-		const float other_r_squared = dot(other_bonding_box, other_bonding_box);
-		const vec2 my_bonding_box = get_bounding_box(motion2) / 2.f;
-		const float my_r_squared = dot(my_bonding_box, my_bonding_box);
-		const float r_squared = max(other_r_squared, my_r_squared);
-		if (dist_squared < r_squared)
-			return true;
-		return false;
-	}
-	return false;
+	const Motion& motion = registry.motions.get(entity);
+	const Motion& other_motion = registry.motions.get(other_entity);
+	return doesRadiusCollide(motion, other_motion);
 }
 
 bool blockCollides(vec2 nextPosition, const Motion& block) {
@@ -249,7 +239,7 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 
 			// visualize the radius with two axis-aligned lines
 			
-			if (registry.players.has(entity_i) || registry.enemyHunters.has(entity_i)) {
+			if (registry.hitboxes.has(entity_i)) {
 				Mesh* hitbox = registry.hitboxes.get(entity_i);
 				Motion& motion = registry.motions.get(entity_i);
 				for (const ColoredVertex vertex : hitbox->vertices) {
