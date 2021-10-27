@@ -14,20 +14,70 @@ vec2 get_bounding_box(const Motion& motion)
 	return { abs(motion.scale.x), abs(motion.scale.y) };
 }
 
+vec3 transformVertex(Motion& motion, ColoredVertex vertex) {
+	Transform transform;
+	transform.translate(motion.position);
+	transform.scale(vec2(motion.scale.x, motion.scale.y)); 
+	return transform.mat * vertex.position;
+}
+
 // This is a SUPER APPROXIMATE check that puts a circle around the bounding boxes and sees
 // if the center point of either object is inside the other's bounding-box-circle. You can
 // surely implement a more accurate detection
-bool collides(const Motion& motion1, const Motion& motion2)
+bool collides(const Entity e1, const Entity e2)
 {
-	vec2 dp = motion1.position - motion2.position;
-	float dist_squared = dot(dp,dp);
-	const vec2 other_bonding_box = get_bounding_box(motion1) / 2.f;
-	const float other_r_squared = dot(other_bonding_box, other_bonding_box);
-	const vec2 my_bonding_box = get_bounding_box(motion2) / 2.f;
-	const float my_r_squared = dot(my_bonding_box, my_bonding_box);
-	const float r_squared = max(other_r_squared, my_r_squared);
-	if (dist_squared < r_squared)
-		return true;
+	if (registry.players.has(e1) || registry.enemyHunters.has(e1)) {
+		Mesh* hitbox = registry.hitboxes.get(e1);
+		Motion& motion = registry.motions.get(e1);
+		for (const ColoredVertex vertex : hitbox->vertices) {
+			vec3 transformed_vertex = transformVertex(motion, vertex);
+			const Motion& motion2 = registry.motions.get(e2);
+			const vec2 bounding_box = get_bounding_box(motion2) / 2.f; 
+			float left_position = motion2.position.x - bounding_box.x / 2;
+			float right_position = motion2.position.x + bounding_box.x / 2;
+			float up_position = motion2.position.y - bounding_box.y / 2;
+			float down_position = motion2.position.y + bounding_box.y / 2;
+			if (transformed_vertex.x >= left_position &&
+				transformed_vertex.y >= up_position &&
+				transformed_vertex.x <= right_position &&
+				transformed_vertex.y <= down_position)
+				return true;
+		}
+		return false;
+	}
+	else if (registry.players.has(e2) || registry.enemyHunters.has(e2)) {
+		Mesh* hitbox = registry.hitboxes.get(e2);
+		Motion& motion = registry.motions.get(e2);
+		for (const ColoredVertex vertex : hitbox->vertices) {
+			vec3 transformed_vertex = transformVertex(motion, vertex);
+			const Motion& motion1 = registry.motions.get(e1);
+			const vec2 bounding_box = get_bounding_box(motion1) / 2.f;
+			float left_position = motion1.position.x - bounding_box.x / 2;
+			float right_position = motion1.position.x + bounding_box.x / 2;
+			float up_position = motion1.position.y - bounding_box.y / 2;
+			float down_position = motion1.position.y + bounding_box.y / 2;
+			if (transformed_vertex.x >= left_position &&
+				transformed_vertex.y >= up_position &&
+				transformed_vertex.x <= right_position &&
+				transformed_vertex.y <= down_position)
+				return true;
+		}
+		return false;
+	}
+	else {
+		const Motion& motion1 = registry.motions.get(e1);
+		const Motion& motion2 = registry.motions.get(e2);
+		vec2 dp = motion1.position - motion2.position;
+		float dist_squared = dot(dp, dp);
+		const vec2 other_bonding_box = get_bounding_box(motion1) / 2.f;
+		const float other_r_squared = dot(other_bonding_box, other_bonding_box);
+		const vec2 my_bonding_box = get_bounding_box(motion2) / 2.f;
+		const float my_r_squared = dot(my_bonding_box, my_bonding_box);
+		const float r_squared = max(other_r_squared, my_r_squared);
+		if (dist_squared < r_squared)
+			return true;
+		return false;
+	}
 	return false;
 }
 
@@ -176,11 +226,10 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 		{
 			if (i == j)
 				continue;
-
+			Entity entity_j = motion_container.entities[j];
 			Motion& motion_j = motion_container.components[j];
-			if (collides(motion_i, motion_j))
+			if (collides(entity_i, entity_j))
 			{
-				Entity entity_j = motion_container.entities[j];
 				// Create a collisions event
 				// We are abusing the ECS system a bit in that we potentially insert muliple collisions for the same entity
 				registry.collisions.emplace_with_duplicates(entity_i, entity_j);
@@ -199,8 +248,15 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 			Entity entity_i = motion_container.entities[i];
 
 			// visualize the radius with two axis-aligned lines
-			// TODO: retire cross graphic once collisions are updated
-			if (!registry.walls.has(entity_i)) {
+			
+			if (registry.players.has(entity_i) || registry.enemyHunters.has(entity_i)) {
+				Mesh* hitbox = registry.hitboxes.get(entity_i);
+				Motion& motion = registry.motions.get(entity_i);
+				for (const ColoredVertex vertex : hitbox->vertices) {
+					vec3 transformed_vertex = transformVertex(motion, vertex);
+					Entity vertex_line = createLine(vec2(transformed_vertex.x, transformed_vertex.y) + motion.position, { 4, 4 });
+				}
+			} else if (!registry.walls.has(entity_i)) {
 				// visualize the radius with two axis-aligned lines
 				const vec2 bonding_box = get_bounding_box(motion_i);
 				float radius = sqrt(dot(bonding_box / 2.f, bonding_box / 2.f));
@@ -208,8 +264,6 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 				Entity line1 = createLine(motion_i.position, line_scale1);
 				vec2 line_scale2 = { 2 * radius, motion_i.scale.x / 10 };
 				Entity line2 = createLine(motion_i.position, line_scale2);
-
-				// !!! TODO A2: implement debugging of bounding boxes and mesh
 			}
 		}
 	}

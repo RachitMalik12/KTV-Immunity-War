@@ -9,6 +9,8 @@ Entity createWizard(RenderSystem* renderer, vec2 position) {
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
+	Mesh& hitbox = renderer->getMesh(GEOMETRY_BUFFER_ID::WIZARD);
+	registry.hitboxes.emplace(entity, &hitbox);
 
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
@@ -173,6 +175,8 @@ Entity createEnemyHunter(RenderSystem* renderer, vec2 position, vec2 velocity) {
 	auto entity = Entity();
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
+	Mesh& hitbox = renderer->getMesh(GEOMETRY_BUFFER_ID::HUNTER);
+	registry.hitboxes.emplace(entity, &hitbox);
 
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
