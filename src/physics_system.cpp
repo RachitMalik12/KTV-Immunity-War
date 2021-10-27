@@ -301,9 +301,6 @@ vec2 PhysicsSystem::alignNextPositionToBoundingBox(vec2 nextPosition, const Moti
 	return nextPosition;
 }
 
-// This is a SUPER APPROXIMATE check that puts a circle around the bounding boxes and sees
-// if the center point of either object is inside the other's bounding-box-circle. You can
-// surely implement a more accurate detection
 bool PhysicsSystem::collides(const Entity entity, const Entity other_entity)
 {
 	if (registry.hitboxes.has(entity)) {
