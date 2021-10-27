@@ -22,9 +22,25 @@ vec3 transformVertex(Motion& motion, ColoredVertex vertex) {
 	return transform.mat * vertex.position;
 }
 
+bool doesRadiusCollide(const Motion& motion, const Motion& other_motion) {
+	vec2 dp = motion.position - other_motion.position;
+	float dist_squared = dot(dp, dp);
+	const vec2 other_bonding_box = get_bounding_box(motion) / 2.f;
+	const float other_r_squared = dot(other_bonding_box, other_bonding_box);
+	const vec2 my_bonding_box = get_bounding_box(other_motion) / 2.f;
+	const float my_r_squared = dot(my_bonding_box, my_bonding_box);
+	const float r_squared = max(other_r_squared, my_r_squared);
+	if (dist_squared < r_squared)
+		return true;
+	return false;
+}
+
 bool isMeshInBoundingBox(const Entity entity, const Entity other_entity) {
 	Mesh* hitbox = registry.hitboxes.get(entity);
 	Motion& motion = registry.motions.get(entity);
+	Motion& other_motion = registry.motions.get(other_entity);
+	if (!doesRadiusCollide(motion, other_motion))
+		return false;
 	for (const ColoredVertex vertex : hitbox->vertices) {
 		vec3 transformed_vertex = transformVertex(motion, vertex);
 		const Motion& other_motion = registry.motions.get(other_entity);
@@ -39,19 +55,6 @@ bool isMeshInBoundingBox(const Entity entity, const Entity other_entity) {
 			transformed_vertex.y + motion.position.y <= down_position)
 			return true;
 	}
-	return false;
-}
-
-bool doesRadiusCollide(const Motion& motion, const Motion& other_motion) {
-	vec2 dp = motion.position - other_motion.position;
-	float dist_squared = dot(dp, dp);
-	const vec2 other_bonding_box = get_bounding_box(motion) / 2.f;
-	const float other_r_squared = dot(other_bonding_box, other_bonding_box);
-	const vec2 my_bonding_box = get_bounding_box(other_motion) / 2.f;
-	const float my_r_squared = dot(my_bonding_box, my_bonding_box);
-	const float r_squared = max(other_r_squared, my_r_squared);
-	if (dist_squared < r_squared)
-		return true;
 	return false;
 }
 
@@ -256,8 +259,6 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 		{
 			Motion& motion_i = motion_container.components[i];
 			Entity entity_i = motion_container.entities[i];
-
-			// visualize the radius with two axis-aligned lines
 			
 			if (registry.hitboxes.has(entity_i)) {
 				Mesh* hitbox = registry.hitboxes.get(entity_i);
@@ -268,8 +269,7 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 				}
 			} 
 			if (!registry.walls.has(entity_i)) {
-				// visualize the radius with two axis-aligned lines
-
+				// visualize the bounding box with a hollow red box.
 				const vec2 bounding_box = get_bounding_box(motion_i);
 				vec2 horizontal_scale = { bounding_box.x,2 };
 				vec2 vertical_scale = { 2,bounding_box.y };
@@ -298,26 +298,8 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 			Motion& motion_i = motion_container.components[i];
 			Entity entity_i = motion_container.entities[i];
 		
-			// visualize the bounding box with a hollow red box.
-			// TODO: Move to debug mode and use createLine
 			const vec2 bounding_box = get_bounding_box(motion_i);
-			vec2 horizontal_scale = { bounding_box.x,2 };
-			vec2 vertical_scale = { 2,bounding_box.y };
-			vec2 left_position = motion_i.position;
-			left_position.x -= bounding_box.x / 2;
-			vec2 right_position = motion_i.position;
-			right_position.x += bounding_box.x / 2;
-			vec2 up_position = motion_i.position;
-			up_position.y -= bounding_box.y / 2;
-			vec2 down_position = motion_i.position;
-			down_position.y += bounding_box.y / 2;
-			Entity left_line = createBox(left_position, vertical_scale);
-			Entity right_line = createBox(right_position, vertical_scale);
-			Entity up_line = createBox(up_position, horizontal_scale);
-			Entity down_line = createBox(down_position, horizontal_scale);
-
-			// visualize all sprites as grayboxes. Code currently unneeded.
-			// Entity graybox = createBox(motion_i.position, bounding_box);
+			Entity graybox = createBox(motion_i.position, bounding_box);
 		}
 	}
 }
