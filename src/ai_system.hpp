@@ -23,4 +23,5 @@ private:
 	void setHunterWonderingRandomly(Entity hunterEntity);
 	void setHunterChasingThePlayer(Entity hunterEntity);
 	Entity determineWhichPlayerToChase(Entity hunterEntity);
+	void stepEnemyHunter(float elapsed_ms);
 };

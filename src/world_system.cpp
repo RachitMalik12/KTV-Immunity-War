@@ -159,10 +159,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	while (registry.debugComponents.entities.size() > 0)
 	    registry.remove_all_components_of(registry.debugComponents.entities.back());
 
-	// Remove graybox info from the last step
-	while (registry.grayboxComponents.entities.size() > 0)
-		registry.remove_all_components_of(registry.grayboxComponents.entities.back());
-
 	// Removing out of screen entities
 	auto& motions_registry = registry.motions;
 	auto& destinations_registry = registry.mouseDestinations;
@@ -295,13 +291,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (key == GLFW_KEY_BACKSLASH) {
 		if (action == GLFW_RELEASE) {
 			debugging.in_debug_mode = !debugging.in_debug_mode;
-		}
-	}
-
-	// Grayboxing
-	if (key == GLFW_KEY_RIGHT_BRACKET) {
-		if (action == GLFW_RELEASE) {
-			debugging.in_graybox_mode = !debugging.in_graybox_mode;
 		}
 	}
 	

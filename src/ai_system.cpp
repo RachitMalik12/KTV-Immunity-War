@@ -1,9 +1,12 @@
 // internal
 #include "ai_system.hpp"
 
-void AISystem::step(float elapsed_ms)
-{
-	for (Entity hunterEntity: registry.enemyHunters.entities) {
+void AISystem::step(float elapsed_ms) {
+	stepEnemyHunter(elapsed_ms);
+}
+
+void AISystem::stepEnemyHunter(float elapsed_ms) {
+	for (Entity hunterEntity : registry.enemyHunters.entities) {
 		EnemyHunter& hunter = registry.enemyHunters.get(hunterEntity);
 		Enemy& hunterStatus = registry.enemies.get(hunterEntity);
 		if (hunterStatus.hp <= 2) {
@@ -12,12 +15,14 @@ void AISystem::step(float elapsed_ms)
 		if (hunter.currentState == hunter.fleeingMode && hunter.isFleeing == false) {
 			registry.motions.get(hunterEntity).velocity = vec2(2.0f * hunterStatus.speed, 0);
 			hunter.isFleeing = true;
-		} else {
+		}
+		else {
 			if (hunter.timeToUpdateAi) {
 				if (hunter.currentState == hunter.searchingMode) {
 					if (isHunterInRangeOfThePlayers(hunterEntity)) {
 						hunter.currentState = hunter.huntingMode;
-					} else {
+					}
+					else {
 						setHunterWonderingRandomly(hunterEntity);
 					}
 				}
@@ -26,7 +31,8 @@ void AISystem::step(float elapsed_ms)
 				}
 				hunter.timeToUpdateAi = false;
 				hunter.aiUpdateTimer = hunter.aiUpdateTime;
-			} else {
+			}
+			else {
 				hunter.aiUpdateTimer -= elapsed_ms;
 				if (hunter.aiUpdateTimer < 0) {
 					hunter.timeToUpdateAi = true;
