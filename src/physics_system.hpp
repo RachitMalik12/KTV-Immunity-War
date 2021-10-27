@@ -31,4 +31,6 @@ private:
 	bool collides(const Entity entity, const Entity other_entity);
 	bool blockCollides(vec2 nextPosition, const Motion& block, const Motion& motion);
 	bool wallCollides(vec2 nextPosition, Entity wall, const Motion& motion);
+	void drawMeshDebug(const Entity entity);
+	void drawBoundingBoxDebug(const Motion& motion);
 };

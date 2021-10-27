@@ -119,22 +119,22 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
     ComponentContainer<Motion> &motion_container = registry.motions;
 	for(uint i = 0; i<motion_container.components.size(); i++)
 	{
-		Motion& motion_i = motion_container.components[i];
-		Entity entity_i = motion_container.entities[i];
+		Motion& motion = motion_container.components[i];
+		Entity entity = motion_container.entities[i];
 		for(uint j = 0; j<motion_container.components.size(); j++) // i+1
 		{
 			if (i == j)
 				continue;
-			Entity entity_j = motion_container.entities[j];
-			if (registry.walls.has(entity_i) || registry.walls.has(entity_j))
+			Entity other_entity = motion_container.entities[j];
+			if (registry.walls.has(entity) || registry.walls.has(other_entity))
 				continue;
-			Motion& motion_j = motion_container.components[j];
-			if (collides(entity_i, entity_j))
+			Motion& other_motion = motion_container.components[j];
+			if (collides(entity, other_entity))
 			{
 				// Create a collisions event
 				// We are abusing the ECS system a bit in that we potentially insert muliple collisions for the same entity
-				registry.collisions.emplace_with_duplicates(entity_i, entity_j);
-				registry.collisions.emplace_with_duplicates(entity_j, entity_i);
+				registry.collisions.emplace_with_duplicates(entity, other_entity);
+				registry.collisions.emplace_with_duplicates(other_entity, entity);
 			}
 		}
 	}
@@ -149,30 +149,10 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 			Entity entity_i = motion_container.entities[i];
 			
 			if (registry.hitboxes.has(entity_i)) {
-				Mesh* hitbox = registry.hitboxes.get(entity_i);
-				Motion& motion = registry.motions.get(entity_i);
-				for (const ColoredVertex vertex : hitbox->vertices) {
-					vec3 transformed_vertex = transformVertex(motion, vertex);
-					Entity vertex_line = createLine(vec2(transformed_vertex.x, transformed_vertex.y) + motion.position, { 4, 4 });
-				}
+				drawMeshDebug(entity_i);
 			} 
 			if (!registry.walls.has(entity_i)) {
-				// visualize the bounding box with a hollow red box.
-				const vec2 bounding_box = get_bounding_box(motion_i);
-				vec2 horizontal_scale = { bounding_box.x,2 };
-				vec2 vertical_scale = { 2,bounding_box.y };
-				vec2 left_position = motion_i.position;
-				left_position.x -= bounding_box.x / 2;
-				vec2 right_position = motion_i.position;
-				right_position.x += bounding_box.x / 2;
-				vec2 up_position = motion_i.position;
-				up_position.y -= bounding_box.y / 2;
-				vec2 down_position = motion_i.position;
-				down_position.y += bounding_box.y / 2;
-				Entity left_line = createLine(left_position, vertical_scale);
-				Entity right_line = createLine(right_position, vertical_scale);
-				Entity up_line = createLine(up_position, horizontal_scale);
-				Entity down_line = createLine(down_position, horizontal_scale);
+				drawBoundingBoxDebug(motion_i);
 			}
 		}
 	}
@@ -362,4 +342,31 @@ bool PhysicsSystem::wallCollides(vec2 nextPosition, Entity wall, const Motion& m
 		return true;
 	}
 	return false;
+}
+
+void PhysicsSystem::drawMeshDebug(const Entity entity) {
+	Mesh* hitbox = registry.hitboxes.get(entity);
+	Motion& motion = registry.motions.get(entity);
+	for (const ColoredVertex vertex : hitbox->vertices) {
+		vec3 transformed_vertex = transformVertex(motion, vertex);
+		Entity vertex_line = createLine(vec2(transformed_vertex.x, transformed_vertex.y) + motion.position, { 4, 4 });
+	}
+}
+
+void PhysicsSystem::drawBoundingBoxDebug(const Motion& motion) {
+	const vec2 bounding_box = get_bounding_box(motion);
+	vec2 horizontal_scale = { bounding_box.x,2 };
+	vec2 vertical_scale = { 2,bounding_box.y };
+	vec2 left_position = motion.position;
+	left_position.x -= bounding_box.x / 2;
+	vec2 right_position = motion.position;
+	right_position.x += bounding_box.x / 2;
+	vec2 up_position = motion.position;
+	up_position.y -= bounding_box.y / 2;
+	vec2 down_position = motion.position;
+	down_position.y += bounding_box.y / 2;
+	Entity left_line = createLine(left_position, vertical_scale);
+	Entity right_line = createLine(right_position, vertical_scale);
+	Entity up_line = createLine(up_position, horizontal_scale);
+	Entity down_line = createLine(down_position, horizontal_scale);
 }
