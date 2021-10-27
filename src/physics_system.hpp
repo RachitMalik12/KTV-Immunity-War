@@ -23,4 +23,12 @@ public:
 private:
 	std::default_random_engine rng1;
 	std::uniform_real_distribution<float> uniform_dist1;
+	vec2 get_bounding_box(const Motion& motion);
+	vec3 transformVertex(Motion& motion, ColoredVertex vertex);
+	bool doesRadiusCollide(const Motion& motion, const Motion& other_motion);
+	bool isMeshInBoundingBox(const Entity entity, const Entity other_entity);
+	vec2 alignNextPositionToBoundingBox(vec2 nextPosition, const Motion& motion);
+	bool collides(const Entity entity, const Entity other_entity);
+	bool blockCollides(vec2 nextPosition, const Motion& block, const Motion& motion);
+	bool wallCollides(vec2 nextPosition, Entity wall, const Motion& motion);
 };

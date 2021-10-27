@@ -6,118 +6,6 @@ const int MAX_DIST_WZ_EN = 50*50;
 const int ENEMY_AVOID_DIST = 100;
 const int ENEMY_DAMAGE = 1;
 
-
-// Returns the local bounding coordinates scaled by the current size of the entity
-vec2 get_bounding_box(const Motion& motion)
-{
-	// abs is to avoid negative scale due to the facing direction.
-	return { abs(motion.scale.x), abs(motion.scale.y) };
-}
-
-vec3 transformVertex(Motion& motion, ColoredVertex vertex) {
-	Transform transform;
-	transform.translate(motion.position);
-	transform.rotate(motion.angle);
-	transform.scale(vec2(motion.scale.x, motion.scale.y)); 
-	return transform.mat * vertex.position;
-}
-
-bool doesRadiusCollide(const Motion& motion, const Motion& other_motion) {
-	vec2 dp = motion.position - other_motion.position;
-	float dist_squared = dot(dp, dp);
-	const vec2 other_bonding_box = get_bounding_box(motion) / 2.f;
-	const float other_r_squared = dot(other_bonding_box, other_bonding_box);
-	const vec2 my_bonding_box = get_bounding_box(other_motion) / 2.f;
-	const float my_r_squared = dot(my_bonding_box, my_bonding_box);
-	const float r_squared = max(other_r_squared, my_r_squared);
-	if (dist_squared < r_squared)
-		return true;
-	return false;
-}
-
-bool isMeshInBoundingBox(const Entity entity, const Entity other_entity) {
-	Mesh* hitbox = registry.hitboxes.get(entity);
-	Motion& motion = registry.motions.get(entity);
-	Motion& other_motion = registry.motions.get(other_entity);
-	if (!doesRadiusCollide(motion, other_motion))
-		return false;
-	for (const ColoredVertex vertex : hitbox->vertices) {
-		vec3 transformed_vertex = transformVertex(motion, vertex);
-		const Motion& other_motion = registry.motions.get(other_entity);
-		const vec2 bounding_box = get_bounding_box(other_motion);
-		float left_position = other_motion.position.x - bounding_box.x / 2;
-		float right_position = other_motion.position.x + bounding_box.x / 2;
-		float up_position = other_motion.position.y - bounding_box.y / 2;
-		float down_position = other_motion.position.y + bounding_box.y / 2;
-		if (transformed_vertex.x + motion.position.x >= left_position &&
-			transformed_vertex.y + motion.position.y >= up_position &&
-			transformed_vertex.x + motion.position.x <= right_position &&
-			transformed_vertex.y + motion.position.y <= down_position)
-			return true;
-	}
-	return false;
-}
-
-vec2 alignNextPositionToBoundingBox(vec2 nextPosition, const Motion& motion) {
-	const vec2 bounding_box = get_bounding_box(motion) / 2.f;
-	if (motion.velocity.x > 0) {
-		nextPosition.x += bounding_box.x;
-	}
-	else if (motion.velocity.x < 0) {
-		nextPosition.x -= bounding_box.x;
-	}
-	if (motion.velocity.y > 0) {
-		nextPosition.y += bounding_box.y;
-	}
-	else if (motion.velocity.y < 0) {
-		nextPosition.y -= bounding_box.y;
-	}
-	return nextPosition;
-}
-
-// This is a SUPER APPROXIMATE check that puts a circle around the bounding boxes and sees
-// if the center point of either object is inside the other's bounding-box-circle. You can
-// surely implement a more accurate detection
-bool collides(const Entity entity, const Entity other_entity)
-{
-	if (registry.hitboxes.has(entity)) {
-		return isMeshInBoundingBox(entity, other_entity);
-	}
-	else if (registry.hitboxes.has(other_entity)) {
-		return isMeshInBoundingBox(other_entity, entity);
-	}
-	const Motion& motion = registry.motions.get(entity);
-	const Motion& other_motion = registry.motions.get(other_entity);
-	return doesRadiusCollide(motion, other_motion);
-}
-
-bool blockCollides(vec2 nextPosition, const Motion& block, const Motion& motion) {
-	nextPosition = alignNextPositionToBoundingBox(nextPosition, motion);
-	vec2 dp = nextPosition - block.position;
-	float dist_squared = dot(dp, dp);
-	const vec2 wall_bonding_box = get_bounding_box(block) / 2.f;
-	const float r_squared = dot(wall_bonding_box, wall_bonding_box);
-	if (dist_squared < r_squared)
-		return true;
-	return false;
-
-}
-
-bool wallCollides(vec2 nextPosition, Entity wall, const Motion& motion) {
-	nextPosition = alignNextPositionToBoundingBox(nextPosition, motion);
-	Motion& wallMotion = registry.motions.get(wall);
-	vec2 wallPos = wallMotion.position;
-	vec2 wallScale = wallMotion.scale;
-	float left = wallPos.x - (wallScale.x / 2);
-	float right = wallPos.x + (wallScale.x / 2);
-	float top = wallPos.y - (wallScale.y / 2);
-	float bottom = wallPos.y + (wallScale.y / 2);
-	if (nextPosition.y >= top && nextPosition.y <= bottom && nextPosition.x >= left && nextPosition.x <= right) {
-		return true;
-	}
-	return false;
-}
-
 void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_height_px)
 {
 	// Move fish based on how much time has passed, this is to (partially) avoid
@@ -288,20 +176,6 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 			}
 		}
 	}
-
-	// I suspect that the above debug mode will be changed once new collisions are implemented, so I'm putting both the bounding boxes and grayboxes in the same mode for now.
-	if (debugging.in_graybox_mode)
-	{
-		uint size_before_adding_new = (uint)motion_container.components.size();
-		for (uint i = 0; i < size_before_adding_new; i++)
-		{
-			Motion& motion_i = motion_container.components[i];
-			Entity entity_i = motion_container.entities[i];
-		
-			const vec2 bounding_box = get_bounding_box(motion_i);
-			Entity graybox = createBox(motion_i.position, bounding_box);
-		}
-	}
 }
 
 void PhysicsSystem::handle_collision() {
@@ -377,4 +251,115 @@ void PhysicsSystem::handle_collision() {
 
 	// Remove all collisions from this simulation step
 	registry.collisions.clear();
+}
+
+// Returns the local bounding coordinates scaled by the current size of the entity
+vec2 PhysicsSystem::get_bounding_box(const Motion& motion)
+{
+	// abs is to avoid negative scale due to the facing direction.
+	return { abs(motion.scale.x), abs(motion.scale.y) };
+}
+
+vec3 PhysicsSystem::transformVertex(Motion& motion, ColoredVertex vertex) {
+	Transform transform;
+	transform.translate(motion.position);
+	transform.rotate(motion.angle);
+	transform.scale(vec2(motion.scale.x, motion.scale.y));
+	return transform.mat * vertex.position;
+}
+
+bool PhysicsSystem::doesRadiusCollide(const Motion& motion, const Motion& other_motion) {
+	vec2 dp = motion.position - other_motion.position;
+	float dist_squared = dot(dp, dp);
+	const vec2 other_bonding_box = get_bounding_box(motion) / 2.f;
+	const float other_r_squared = dot(other_bonding_box, other_bonding_box);
+	const vec2 my_bonding_box = get_bounding_box(other_motion) / 2.f;
+	const float my_r_squared = dot(my_bonding_box, my_bonding_box);
+	const float r_squared = max(other_r_squared, my_r_squared);
+	if (dist_squared < r_squared)
+		return true;
+	return false;
+}
+
+bool PhysicsSystem::isMeshInBoundingBox(const Entity entity, const Entity other_entity) {
+	Mesh* hitbox = registry.hitboxes.get(entity);
+	Motion& motion = registry.motions.get(entity);
+	Motion& other_motion = registry.motions.get(other_entity);
+	if (!doesRadiusCollide(motion, other_motion))
+		return false;
+	for (const ColoredVertex vertex : hitbox->vertices) {
+		vec3 transformed_vertex = transformVertex(motion, vertex);
+		const Motion& other_motion = registry.motions.get(other_entity);
+		const vec2 bounding_box = get_bounding_box(other_motion);
+		float left_position = other_motion.position.x - bounding_box.x / 2;
+		float right_position = other_motion.position.x + bounding_box.x / 2;
+		float up_position = other_motion.position.y - bounding_box.y / 2;
+		float down_position = other_motion.position.y + bounding_box.y / 2;
+		if (transformed_vertex.x + motion.position.x >= left_position &&
+			transformed_vertex.y + motion.position.y >= up_position &&
+			transformed_vertex.x + motion.position.x <= right_position &&
+			transformed_vertex.y + motion.position.y <= down_position)
+			return true;
+	}
+	return false;
+}
+
+vec2 PhysicsSystem::alignNextPositionToBoundingBox(vec2 nextPosition, const Motion& motion) {
+	const vec2 bounding_box = get_bounding_box(motion) / 2.f;
+	if (motion.velocity.x > 0) {
+		nextPosition.x += bounding_box.x;
+	}
+	else if (motion.velocity.x < 0) {
+		nextPosition.x -= bounding_box.x;
+	}
+	if (motion.velocity.y > 0) {
+		nextPosition.y += bounding_box.y;
+	}
+	else if (motion.velocity.y < 0) {
+		nextPosition.y -= bounding_box.y;
+	}
+	return nextPosition;
+}
+
+// This is a SUPER APPROXIMATE check that puts a circle around the bounding boxes and sees
+// if the center point of either object is inside the other's bounding-box-circle. You can
+// surely implement a more accurate detection
+bool PhysicsSystem::collides(const Entity entity, const Entity other_entity)
+{
+	if (registry.hitboxes.has(entity)) {
+		return isMeshInBoundingBox(entity, other_entity);
+	}
+	else if (registry.hitboxes.has(other_entity)) {
+		return isMeshInBoundingBox(other_entity, entity);
+	}
+	const Motion& motion = registry.motions.get(entity);
+	const Motion& other_motion = registry.motions.get(other_entity);
+	return doesRadiusCollide(motion, other_motion);
+}
+
+bool PhysicsSystem::blockCollides(vec2 nextPosition, const Motion& block, const Motion& motion) {
+	nextPosition = alignNextPositionToBoundingBox(nextPosition, motion);
+	vec2 dp = nextPosition - block.position;
+	float dist_squared = dot(dp, dp);
+	const vec2 wall_bonding_box = get_bounding_box(block) / 2.f;
+	const float r_squared = dot(wall_bonding_box, wall_bonding_box);
+	if (dist_squared < r_squared)
+		return true;
+	return false;
+
+}
+
+bool PhysicsSystem::wallCollides(vec2 nextPosition, Entity wall, const Motion& motion) {
+	nextPosition = alignNextPositionToBoundingBox(nextPosition, motion);
+	Motion& wallMotion = registry.motions.get(wall);
+	vec2 wallPos = wallMotion.position;
+	vec2 wallScale = wallMotion.scale;
+	float left = wallPos.x - (wallScale.x / 2);
+	float right = wallPos.x + (wallScale.x / 2);
+	float top = wallPos.y - (wallScale.y / 2);
+	float bottom = wallPos.y + (wallScale.y / 2);
+	if (nextPosition.y >= top && nextPosition.y <= bottom && nextPosition.x >= left && nextPosition.x <= right) {
+		return true;
+	}
+	return false;
 }
