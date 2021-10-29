@@ -307,7 +307,6 @@ void WorldSystem::restart_game() {
 	player_wizard = createWizard(renderer, { screenWidth / 10, screenHeight * 0.33f });
 	if (twoPlayer.inTwoPlayerMode) {
 		player2_wizard = createWizard(renderer, { screenWidth / 10, screenHeight * 0.66f });
-		registry.players.get(player2_wizard).mouseControlled = true;
 	}
 
 	// temp location to test state machine enemy hunter

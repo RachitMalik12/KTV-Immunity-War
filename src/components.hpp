@@ -15,7 +15,6 @@ struct Player
 	bool isInvin = false;
 	bool isFiringProjectile = false;
 	int firingDirection = 0;
-	bool mouseControlled = false;
 };
 
 // The projectile shot by the wizard character.
