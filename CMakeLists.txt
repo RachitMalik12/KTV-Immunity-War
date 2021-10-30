@@ -67,6 +67,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES ENABLE_EXPORTS 0)
 # External header-only libraries in the ext/
 target_include_directories(${PROJECT_NAME} PUBLIC ext/stb_image/)
 target_include_directories(${PROJECT_NAME} PUBLIC ext/gl3w)
+target_include_directories(${PROJECT_NAME} PUBLIC ext/json/include/)
 
 # Find OpenGL
 find_package(OpenGL REQUIRED)
@@ -103,6 +104,7 @@ elseif (IS_OS_WINDOWS)
 # https://stackoverflow.com/questions/17126860/cmake-link-precompiled-library-depending-on-os-and-architecture
     set(GLFW_FOUND TRUE)
     set(SDL2_FOUND TRUE)
+   # set(JSON_FOUND TRUE)
 
     set(GLFW_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/ext/glfw/include")
     set(SDL2_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/ext/sdl/include/SDL")
@@ -161,6 +163,8 @@ endif()
 if (NOT GLFW_FOUND OR NOT SDL2_FOUND)
    if (NOT GLFW_FOUND)
       message(FATAL_ERROR "Can't find GLFW." )
+  # elseif(NOT JSON_FOUND)
+      # message(FATAL_ERROR "Can't find JSON." )
    else ()
       message(FATAL_ERROR "Can't find SDL." )
    endif()
@@ -168,6 +172,7 @@ endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${GLFW_INCLUDE_DIRS})
 target_include_directories(${PROJECT_NAME} PUBLIC ${SDL2_INCLUDE_DIRS})
+#target_include_directories(${PROJECT_NAME} PUBLIC ${JSON_INCLUDE_DIRS})
 
 target_link_libraries(${PROJECT_NAME} PUBLIC ${GLFW_LIBRARIES} ${SDL2_LIBRARIES} ${SDL2MIXER_LIBRARIES} glm::glm)
 
