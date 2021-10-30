@@ -14,6 +14,7 @@
 using Clock = std::chrono::high_resolution_clock;
 DefaultResolution defaultResolution;
 TwoPlayer twoPlayer;
+LevelFileLoader fileLoader; 
 
 // Entry point
 int main()
@@ -41,7 +42,8 @@ int main()
 	glfwGetWindowSize(window, &w, &h);
 	renderer.init(w, h, window);
 	world.init(&renderer);
-
+	// TODO: Remove once test of json lib is completed. 
+	fileLoader.readFile();
 	// variable timestep loop
 	auto t = Clock::now();
 	while (!world.is_over()) {

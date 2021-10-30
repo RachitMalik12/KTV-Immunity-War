@@ -249,3 +249,8 @@ struct RenderRequest {
 	GEOMETRY_BUFFER_ID used_geometry = GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 };
 
+class LevelFileLoader {
+public:
+	void readFile();
+};
+
