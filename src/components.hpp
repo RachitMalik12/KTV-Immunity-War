@@ -15,6 +15,8 @@ struct Player
 	bool isInvin = false;
 	bool isFiringProjectile = false;
 	int firingDirection = 0;
+	int PROJECTILE_SPEED = 300;
+	int PROJECTILE_FIRE_RATE = 500;
 };
 
 // The projectile shot by the wizard character.
