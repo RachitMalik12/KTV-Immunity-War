@@ -13,7 +13,6 @@ const size_t MAX_ENEMIES = 5;
 const size_t MAX_ENEMIESRUN = 2;
 const size_t ENEMY_DELAY_MS = 1000;
 const size_t PLAYER_SPEED = 150;
-const size_t PROJECTILE_SPEED = 300;
 const size_t DEFAULT_HEIGHT = 800;
 const int WALL_THICKNESS = 40;
 const int SHOP_WALL_THICKNESS = 100;
@@ -225,6 +224,49 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// handle player1 projectiles
+	next_projectile_fire_player1 -= elapsed_ms_since_last_update * current_speed;
+	Player& player1 = registry.players.get(player_wizard);
+	Motion playerMotion = motions_registry.get(player_wizard);
+	if (player1.isFiringProjectile && next_projectile_fire_player1 < 0.f) {
+		next_projectile_fire_player1 = player1.PROJECTILE_FIRE_RATE;
+		switch (player1.firingDirection) {
+			case 0: // up
+				createProjectile(renderer, playerMotion.position, { 0, -1.f * player1.PROJECTILE_SPEED * defaultResolution.scaling }, player_wizard);
+				break;
+			case 1: // right
+				createProjectile(renderer, playerMotion.position, { player1.PROJECTILE_SPEED * defaultResolution.scaling, 0 }, player_wizard);
+				break;
+			case 2: // down
+				createProjectile(renderer, playerMotion.position, { 0, player1.PROJECTILE_SPEED * defaultResolution.scaling }, player_wizard);
+				break;
+			case 3: // left
+				createProjectile(renderer, playerMotion.position, { -1.f * player1.PROJECTILE_SPEED * defaultResolution.scaling, 0 }, player_wizard);
+				break;
+		}
+	}
+
+	// handle player2 projectile
+	if (twoPlayer.inTwoPlayerMode) {
+		next_projectile_fire_player2 -= elapsed_ms_since_last_update * current_speed;
+		Motion player2Motion = motions_registry.get(player2_wizard);
+		Player& player2 = registry.players.get(player2_wizard);
+		if (player2.isFiringProjectile && next_projectile_fire_player2 < 0.f) {
+			next_projectile_fire_player2 = player2.PROJECTILE_FIRE_RATE;
+			double x, y;
+			glfwGetCursorPos(window, &x, &y);
+			if (registry.inShops.has(player2_wizard)) {
+				y += DEFAULT_HEIGHT * defaultResolution.scaling;
+			}
+			float dx = (float)x - player2Motion.position.x;
+			float dy = (float)y - player2Motion.position.y;
+			float h = sqrtf(powf(dx, 2) + powf(dy, 2));
+			float scale = player2.PROJECTILE_SPEED * defaultResolution.scaling / h;
+			createProjectile(renderer, player2Motion.position, { dx * scale, dy * scale }, player2_wizard);
+		}
+	}
+
+
 	return true;
 }
 
@@ -276,8 +318,6 @@ bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
 }
 
-
-
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
 	int w, h;
@@ -295,6 +335,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 	
 	Motion& player1motion = registry.motions.get(player_wizard);
+	Player& player = registry.players.get(player_wizard);
+
 	vec2 currentVelocity = vec2(player1motion.velocity.x, player1motion.velocity.y);
 	if (action == GLFW_PRESS && key == GLFW_KEY_W) {
 		player1motion.velocity = vec2(currentVelocity.x, currentVelocity.y - playerSpeed);
@@ -341,22 +383,29 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_T) {
-		createProjectile(renderer, player1motion.position, { 0, -1.f * PROJECTILE_SPEED * defaultResolution.scaling }, player_wizard);
+		player.isFiringProjectile = true;
+		player.firingDirection = 0;
 	}
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_G) {
-		createProjectile(renderer, player1motion.position, { 0, PROJECTILE_SPEED * defaultResolution.scaling }, player_wizard);
+		player.isFiringProjectile = true;
+		player.firingDirection = 2;
 	}
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_H) {
-		createProjectile(renderer, player1motion.position, { PROJECTILE_SPEED * defaultResolution.scaling, 0 }, player_wizard);
+		player.isFiringProjectile = true;
+		player.firingDirection = 1;
 
 	}
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_F) {
-		createProjectile(renderer, player1motion.position, { -1.f * PROJECTILE_SPEED * defaultResolution.scaling, 0 }, player_wizard);
+		player.isFiringProjectile = true;
+		player.firingDirection = 3;
 	}
 	
+	if (action == GLFW_RELEASE && (key == GLFW_KEY_F || key == GLFW_KEY_H || key == GLFW_KEY_G || key == GLFW_KEY_T)) {
+		player.isFiringProjectile = false;
+	}
 
 	// Open/close door
 	if (action == GLFW_PRESS && key == GLFW_KEY_O) {
@@ -446,17 +495,15 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 
 		if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_RIGHT) {
 			Motion& wizard2_motion = registry.motions.get(player2_wizard);
-			double x, y;
-			glfwGetCursorPos(window, &x, &y);
-			if (registry.inShops.has(player2_wizard)) {
-				y += DEFAULT_HEIGHT * defaultResolution.scaling;
-			}
-			float dx = (float)x - wizard2_motion.position.x;
-			float dy = (float)y - wizard2_motion.position.y;
-			float h = sqrtf(powf(dx, 2) + powf(dy, 2));
-			float scale = PROJECTILE_SPEED * defaultResolution.scaling / h;
-			createProjectile(renderer, wizard2_motion.position, { dx * scale, dy * scale }, player2_wizard);
+			Player& player = registry.players.get(player2_wizard);
+			player.isFiringProjectile = true;
 		}
+
+		if (action == GLFW_RELEASE && button == GLFW_MOUSE_BUTTON_RIGHT) {
+			Player& player = registry.players.get(player2_wizard);
+			player.isFiringProjectile = false;
+		}
+
 	}
 }
 
