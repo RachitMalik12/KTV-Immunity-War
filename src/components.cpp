@@ -3,6 +3,7 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "../ext/stb_image/stb_image.h"
+#include "../ext/json/dist/json/json.h" 
 
 // stlib
 #include <iostream>
@@ -105,4 +106,21 @@ bool Mesh::loadFromOBJFile(std::string obj_path, std::vector<ColoredVertex>& out
 		pos.position = ((pos.position - min_position) / size3d) - vec3(0.5f, 0.5f, 0.f);
 
 	return true;
+}
+
+void LevelFileLoader::readFile() {
+	// Source: https://stackoverflow.com/questions/4273056/jsoncpp-not-reading-files-correctly
+	Json::Value root;   // will contain the root value after parsing.
+	Json::CharReaderBuilder builder;
+	std::ifstream file(data_path() + "/levels/test.json",std::ifstream::binary);
+	std::string errs;
+	bool parsedSuccessfully = Json::parseFromStream(builder, file, &root, &errs);
+	if (!parsedSuccessfully)
+	{
+		// Print error
+		std::cout << errs << "\n";
+	}
+	// TODO: remove temp test code and replace it with populating level state. 
+	int val = root.get("key", -1).asInt();
+	std::cout << val << "\n";
 }
