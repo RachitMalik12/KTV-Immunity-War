@@ -210,8 +210,6 @@ void PhysicsSystem::handle_collision() {
 					player.hp -= registry.enemies.get(entity_other).damage;
 					// if hp - 1 is <= 0 then initiate death unless already dying 
 					if (player.hp <= 0) {
-						// TODO: handle death here when HP is 0. 
-						// Temp change hp to 0 
 						player.hp = 0;
 						player.isDead = true;
 					}
