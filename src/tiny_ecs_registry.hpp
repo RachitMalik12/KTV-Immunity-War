@@ -30,6 +30,7 @@ public:
 	ComponentContainer<EnemyBlob> enemyBlobs;
 	ComponentContainer<EnemyRun> enemiesrun;
 	ComponentContainer<EnemyHunter> enemyHunters;
+	ComponentContainer<EnemyBacteria> enemyBacteria;
 	ComponentContainer<Powerup> powerups; 
 	ComponentContainer<Flip> flips;
 	ComponentContainer<InShop> inShops;

@@ -227,6 +227,41 @@ Entity createEnemyHunter(RenderSystem* renderer, vec2 position) {
 	return entity;
 }
 
+Entity createEnemyBacteria(RenderSystem* renderer, vec2 position) {
+	auto entity = Entity();
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+	Mesh& hitbox = renderer->getMesh(GEOMETRY_BUFFER_ID::BACTERIA);
+	registry.hitboxes.emplace(entity, &hitbox);
+
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = vec2(0, 0);
+	motion.position = position;
+
+	motion.scale = vec2({ ENEMYHUNTER_BB_WIDTH * defaultResolution.scaling, ENEMYHUNTER_BB_HEIGHT * defaultResolution.scaling });
+
+	registry.enemies.emplace(entity);
+	registry.enemyHunters.emplace(entity);
+	// Set enemy attributes
+	auto& enemyCom = registry.enemies.get(entity);
+	enemyCom.damage = 1;
+	enemyCom.hp = 5;
+	enemyCom.loot = 2;
+	enemyCom.speed = 200.f * defaultResolution.scaling;
+	auto& hunterCom = registry.enemyHunters.get(entity);
+	hunterCom.currentState = hunterCom.searchingMode;
+	hunterCom.huntingRange = hunterCom.huntingRange * defaultResolution.scaling;
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ENEMYBACTERIA,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
 Entity createProjectile(RenderSystem* renderer, vec2 pos, vec2 velocity, Entity playerEntity) {
 	// Reserve en entity
 	auto entity = Entity();
