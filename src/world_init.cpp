@@ -1,6 +1,11 @@
 #include "world_init.hpp"
 #include "tiny_ecs_registry.hpp"
 
+#include <random>
+
+// Seeding rng with random device
+std::default_random_engine rng = std::default_random_engine(std::random_device()());
+std::uniform_real_distribution<float> uniform_dist;
 
 Entity createWizard(RenderSystem* renderer, vec2 position) {
 	// Reserve en entity
@@ -101,7 +106,19 @@ Entity createBlock(RenderSystem* renderer, vec2 pos, std::string color) {
 	return entity;
 }
 
-Entity createEnemyBlob(RenderSystem* renderer, vec2 position, vec2 velocity)
+Entity createEnemy(RenderSystem* renderer, vec2 position, int enemyType) {
+	Entity curEnemy;
+	if (enemyType == 0) {
+		curEnemy = createEnemyBlob(renderer, position);
+	} else if (enemyType == 1) {
+		curEnemy = createEnemyRun(renderer, position);
+	} else if (enemyType == 2) {
+		curEnemy = createEnemyHunter(renderer, position);
+	}
+	return curEnemy;
+}
+
+Entity createEnemyBlob(RenderSystem* renderer, vec2 position)
 {
 	// Reserve en entity
 	auto entity = Entity();
@@ -115,7 +132,7 @@ Entity createEnemyBlob(RenderSystem* renderer, vec2 position, vec2 velocity)
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = velocity;
+	motion.velocity = vec2(0.f, 200.f * defaultResolution.scaling);
 	motion.position = position;
 
 	motion.scale = vec2({ ENEMYBLOB_BB_WIDTH * defaultResolution.scaling, ENEMYBLOB_BB_HEIGHT * defaultResolution.scaling });
@@ -138,7 +155,7 @@ Entity createEnemyBlob(RenderSystem* renderer, vec2 position, vec2 velocity)
 	return entity;
 }
 
-Entity createEnemyRun(RenderSystem* renderer, vec2 position, vec2 velocity)
+Entity createEnemyRun(RenderSystem* renderer, vec2 position)
 {
 	// Reserve en entity
 	auto entity = Entity();
@@ -152,7 +169,7 @@ Entity createEnemyRun(RenderSystem* renderer, vec2 position, vec2 velocity)
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = velocity;
+	motion.velocity = vec2(uniform_dist(rng) * 200.f * defaultResolution.scaling, uniform_dist(rng) * 200.f * defaultResolution.scaling);;
 	motion.position = position;
 
 	motion.scale = vec2({ ENEMYRUN_BB_WIDTH * defaultResolution.scaling, ENEMYRUN_BB_HEIGHT * defaultResolution.scaling });
@@ -175,7 +192,7 @@ Entity createEnemyRun(RenderSystem* renderer, vec2 position, vec2 velocity)
 	return entity;
 }
 
-Entity createEnemyHunter(RenderSystem* renderer, vec2 position, vec2 velocity) {
+Entity createEnemyHunter(RenderSystem* renderer, vec2 position) {
 	auto entity = Entity();
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
@@ -184,7 +201,7 @@ Entity createEnemyHunter(RenderSystem* renderer, vec2 position, vec2 velocity) {
 
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = velocity;
+	motion.velocity = vec2(0, 0);
 	motion.position = position;
 
 	motion.scale = vec2({ ENEMYHUNTER_BB_WIDTH * defaultResolution.scaling, ENEMYHUNTER_BB_HEIGHT * defaultResolution.scaling });

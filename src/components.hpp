@@ -183,14 +183,14 @@ struct Flip {
 
 struct Level {
 	std::vector<int> enemies; 
+	std::vector<std::vector<vec2>> enemyPositions;
 	int num_blocks = 0; 
 	std::vector<vec2> block_positions; 
 	std::vector<int> enemy_types; 
-	int num_enemy_types = 1;
 	// 0 means spawn all enemies at once, 1 time based, 2 waves. 
 	int level_type = 0; 
 	vec2 player_position = vec2(50, 200); 
-	std::string color; 
+	vec2 player2_position = vec2(50, 200);
 };
 
 /**

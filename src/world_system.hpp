@@ -46,12 +46,11 @@ private:
 	void on_key(int key, int, int action, int mod);
 	void on_mouse_move(vec2 pos);
 	void on_mouse_click(int button, int action, int mods);
-	void handleProjectile(float elapsed_ms_since_last_update, int direction, Motion playerMotion, Entity player);
 
 	// restart level
 	void restart_game();
 
-	void setupLevel(bool firstTime, bool restart); 
+	void setupLevel(bool firstTime, bool restart, int levelNum); 
 
 	// OpenGL window handle
 	GLFWwindow* window;

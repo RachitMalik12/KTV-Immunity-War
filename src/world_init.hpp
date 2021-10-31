@@ -34,14 +34,16 @@ Entity createBlock(RenderSystem* renderer, vec2 pos, std::string color);
 
 Entity createDoor(vec2 position, vec2 scale);
 
+Entity createEnemy(RenderSystem* renderer, vec2 position, int enemyType);
+
 // the enemy 
-Entity createEnemyBlob(RenderSystem* renderer, vec2 position, vec2 velocity);
+Entity createEnemyBlob(RenderSystem* renderer, vec2 position);
 
 // the enemy that tries to avoid wizards 
-Entity createEnemyRun(RenderSystem* renderer, vec2 position, vec2 velocity);
+Entity createEnemyRun(RenderSystem* renderer, vec2 positio);
 
 // state machine enemy
-Entity createEnemyHunter(RenderSystem* renderer, vec2 position, vec2 velocity);
+Entity createEnemyHunter(RenderSystem* renderer, vec2 position);
 
 // The powerup 
 Entity createPowerup(RenderSystem* render, vec2 pos); 
