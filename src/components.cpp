@@ -120,7 +120,6 @@ void LevelFileLoader::readFile() {
 	{   // Print error
 		std::cout << errs << "\n";
 	}
-	// TODO: remove temp test code and replace it with populating level state. 
 	auto jsonLevel = root.get("levels", -1); 
 
     // Help from: https://stackoverflow.com/questions/44442932/iterate-over-an-array-of-json-objects-with-jsoncpp
@@ -139,10 +138,10 @@ void LevelFileLoader::readFile() {
 		}
 		auto enemyPositions = current_file_level["enemy_positions"];
 		int size = enemyPositions.size();
-		for (Json::Value::ArrayIndex i = 0; i < enemyPositions.size(); i++) {
+		for (Json::Value::ArrayIndex i = 0; i < size; i++) {
 			std::vector<vec2> curEnemyPosition;
 			int curSize = enemyPositions[i].size();
-			for (Json::Value::ArrayIndex j = 0; j < enemyPositions[i].size() ; j++) {
+			for (Json::Value::ArrayIndex j = 0; j < curSize ; j++) {
 				vec2 curPosition = vec2(enemyPositions[i][j]["x"].asFloat(), enemyPositions[i][j]["y"].asFloat());
 				curEnemyPosition.push_back(curPosition);
 			}

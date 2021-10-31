@@ -383,7 +383,7 @@ void WorldSystem::restart_game() {
 	// Create walls and doors
 	createWalls(screenWidth, screenHeight);
 	createADoor(screenWidth, screenHeight);
-	setupLevel(1); 
+	setupLevel(level_number); 
 	initial_level_load = false; 
 }
 
@@ -493,11 +493,13 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 	// load level 1
 	if (action == GLFW_PRESS && key == GLFW_KEY_1) {
-		setupLevel(1);
+		level_number = 1; 
+		setupLevel(level_number);
 	}
 	// load level 1
 	if (action == GLFW_PRESS && key == GLFW_KEY_2) {
-		setupLevel(2);
+		level_number = 2; 
+		setupLevel(level_number);
 	}
 	
 	if (action == GLFW_RELEASE && (key == GLFW_KEY_F || key == GLFW_KEY_H || key == GLFW_KEY_G || key == GLFW_KEY_T)) {
