@@ -10,6 +10,7 @@
 #include <sstream>
 
 Debug debugging;
+LevelFileLoader levelFileLoader; 
 float death_timer_counter_ms = 3000;
 
 
@@ -112,15 +113,45 @@ void LevelFileLoader::readFile() {
 	// Source: https://stackoverflow.com/questions/4273056/jsoncpp-not-reading-files-correctly
 	Json::Value root;   // will contain the root value after parsing.
 	Json::CharReaderBuilder builder;
-	std::ifstream file(data_path() + "/levels/test.json",std::ifstream::binary);
+	std::ifstream file(data_path() + "/levels/level_design.json",std::ifstream::binary);
 	std::string errs;
 	bool parsedSuccessfully = Json::parseFromStream(builder, file, &root, &errs);
 	if (!parsedSuccessfully)
-	{
-		// Print error
+	{   // Print error
 		std::cout << errs << "\n";
 	}
 	// TODO: remove temp test code and replace it with populating level state. 
-	int val = root.get("key", -1).asInt();
-	std::cout << val << "\n";
+	auto jsonLevel = root.get("levels", -1); 
+
+    // Help from: https://stackoverflow.com/questions/44442932/iterate-over-an-array-of-json-objects-with-jsoncpp
+	for (Json::Value::ArrayIndex i = 0; i != jsonLevel.size(); i++) {
+		auto enemy_types = jsonLevel[i]["enemy_types"];
+		Level output_level; 
+		auto current_file_level = jsonLevel[i]; 
+		auto enemies = current_file_level["enemies"];
+		for (Json::Value::ArrayIndex i = 0; i != enemies.size(); i++) {
+			output_level.enemies.push_back(enemies[i].asInt()); 
+		}
+		output_level.num_blocks = current_file_level["blocks"].asInt(); 
+		auto block_positions = jsonLevel[i]["block_positions"]; 
+		for (Json::Value::ArrayIndex i = 0; i != block_positions.size(); i++) {
+			vec2 position_i = vec2(block_positions[i]["x"].asFloat(), block_positions[i]["y"].asFloat()); 
+			output_level.block_positions.push_back(position_i);
+		}
+		auto num_enemy_types = jsonLevel[i]["num_enemy_types"]; 
+		output_level.num_enemy_types = num_enemy_types.asInt(); 
+		for (Json::Value::ArrayIndex i = 0; i != enemy_types.size(); i++) {
+			output_level.enemy_types.push_back(enemy_types[i].asInt()); 
+		}
+		auto player_position = jsonLevel[i]["player_position"]; 
+		output_level.player_position = vec2(player_position["x"].asFloat(), player_position["y"].asFloat()); 
+		auto color = jsonLevel[i]["block_color"].asString();
+		output_level.color = color;
+		levels.push_back(output_level); 
+	}
 }
+
+std::vector<Level> LevelFileLoader::getLevels() {
+	return levels;
+}
+

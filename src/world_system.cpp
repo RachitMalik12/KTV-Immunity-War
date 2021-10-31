@@ -19,7 +19,10 @@ const int SHOP_WALL_THICKNESS = 100;
 
 // Create the fish world
 WorldSystem::WorldSystem()
-	: spawnPowerup(true)
+	: spawnPowerup(true), 
+	  isLevelOver(false),
+	  initial_level_load(true), 
+	  level_number(1)
 {
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
@@ -117,8 +120,83 @@ GLFWwindow* WorldSystem::create_window(int width, int height) {
 
 	// set player speed base on resolution scaling
 	playerSpeed = PLAYER_SPEED * defaultResolution.scaling;
+	// Load level information 
+	levelFileLoader.readFile(); 
+	levels = levelFileLoader.getLevels(); 
 
 	return window;
+}
+
+void WorldSystem::setupLevel(bool firstTime, bool restart) {
+	int screen_width, screen_height;
+	glfwGetFramebufferSize(window, &screen_width, &screen_height);
+	if (!firstTime) {
+		// Remove all players, enemies, blocks 
+	
+		if (!restart) {
+			while (registry.enemies.entities.size() > 0)
+				registry.remove_all_components_of(registry.enemies.entities.back());
+			while (registry.blocks.entities.size() > 0)
+				registry.remove_all_components_of(registry.blocks.entities.back());
+			level_number += 1;
+		} else if (restart) {
+			while (registry.players.entities.size() > 0)
+				registry.remove_all_components_of(registry.players.entities.back());
+			while (registry.projectiles.entities.size() > 0)
+				registry.remove_all_components_of(registry.projectiles.entities.back()); 
+			while (registry.enemies.entities.size() > 0)
+				registry.remove_all_components_of(registry.enemies.entities.back());
+			while (registry.blocks.entities.size() > 0)
+				registry.remove_all_components_of(registry.blocks.entities.back());
+		}
+	
+	}
+	int index = level_number - 1; 
+	Level firstLevel = levels[index];
+	auto enemies = firstLevel.enemies;
+	auto enemy_types = firstLevel.enemy_types;
+	auto num_enemy_types = firstLevel.num_enemy_types;
+	for (int i = 0; i < enemy_types.size(); i++) {
+		// enemy blob 
+		if (enemy_types[i] == 1) {
+			// Spawn enemies number of enemies for type enemy_type[i]
+			for (int j = 0; j < enemies[i]; j++) {
+				vec2 position = vec2(uniform_dist(rng) * (screen_width - (screen_width / 6.f)), screen_height / 16.f);
+				vec2 velocity = vec2(0.f, 200.f * defaultResolution.scaling);
+				createEnemyBlob(renderer, position, velocity);
+			}
+		}
+
+		if (enemy_types[i] == 2) {
+			for (int j = 0; j < enemies[i]; j++) {
+				// Create enemy run
+				vec2 position = vec2(uniform_dist(rng) * (screen_width - (screen_width / 6.f)), screen_height / 16.f);
+				vec2 velocity = vec2(uniform_dist(rng) * 200.f * defaultResolution.scaling, uniform_dist(rng) * 200.f * defaultResolution.scaling);
+				createEnemyRun(renderer, position, velocity);
+			}
+		}
+
+		if (enemy_types[i] == 3) {
+			for (int j = 0; j < enemies[i]; j++) {
+				createEnemyHunter(renderer, vec2(screen_width * 0.66f, screen_height * 0.5f), vec2(1, 0));
+			}
+		}
+	}
+
+	// Blocks 
+	for (int b = 0; b < firstLevel.block_positions.size(); b++) {
+		vec2 block_pos_i = firstLevel.block_positions[b];
+		std::string block_color_i = firstLevel.color; 
+		createBlock(renderer, block_pos_i, block_color_i);
+	}
+	if (firstTime || restart) {
+		player_wizard = createWizard(renderer, firstLevel.player_position);
+		if (twoPlayer.inTwoPlayerMode) {
+			player2_wizard = createWizard(renderer, { screen_width / 10, screen_height * 0.66f });
+		}
+	}
+	// Update state 
+	isLevelOver = false;
 }
 
 
@@ -139,7 +217,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	std::stringstream title_ss;
 	// Get hp of player 1 and player 2 
 	int hp_p1 = 0; 
-	int hp_p2 = 0; 
+	int hp_p2 = 0;
+	title_ss << "Level: " << level_number; 
 	if (!registry.deathTimers.has(player_wizard) && registry.players.has(player_wizard)) {
 		hp_p1 = registry.players.get(player_wizard).hp; 
 	}
@@ -147,10 +226,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		hp_p2 = registry.players.get(player2_wizard).hp; 
 	}
 	if (twoPlayer.inTwoPlayerMode) {
-		title_ss << "Money P1: " << registry.players.get(player_wizard).money << " Health P1 " << hp_p1
+		title_ss << " Money P1: " << registry.players.get(player_wizard).money << " Health P1 " << hp_p1
 			     << " & Money P2: " << registry.players.get(player2_wizard).money  << " Health P2 " << hp_p2;
 	} else {
-		title_ss << "Money: " << registry.players.get(player_wizard).money << " & Health P1 " << hp_p1;
+		title_ss << " Money: " << registry.players.get(player_wizard).money << " & Health P1 " << hp_p1;
 	}
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
@@ -161,28 +240,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Removing out of screen entities
 	auto& motions_registry = registry.motions;
 	auto& destinations_registry = registry.mouseDestinations;
-
-	// Spawning new enemy
-	next_enemyblob_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (registry.enemyBlobs.components.size() <= MAX_ENEMIES && next_enemyblob_spawn < 0.f) {
-		// Reset timer
-		next_enemyblob_spawn = (ENEMY_DELAY_MS / 2) + uniform_dist(rng) * (ENEMY_DELAY_MS / 2);
-		// Create enemyBlob
-		vec2 position = vec2(uniform_dist(rng) * (screen_width - (screen_width / 6.f)), screen_height / 16.f);
-		vec2 velocity = vec2(0.f, 200.f * defaultResolution.scaling);
-		createEnemyBlob(renderer, position, velocity);
+	int nextLevel = level_number + 1; 
+	if (isLevelOver && nextLevel <= levels.size()) {
+		// Only if we have levels left we need to change level 
+		initial_level_load = false; 
+		setupLevel(initial_level_load, false); 
 	}
 
-	// Spawning new enemy run
-	// TODO: Make so that enemy cannot MOVE outside of first room
-	next_enemyrun_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (registry.enemiesrun.components.size() <= MAX_ENEMIESRUN && next_enemyrun_spawn < 0.f) {
-		// Reset timer
-		next_enemyrun_spawn = (ENEMY_DELAY_MS / 2) + uniform_dist(rng) * (ENEMY_DELAY_MS / 2);
-		// Create enemy run
-		vec2 position = vec2(uniform_dist(rng) * (screen_width - (screen_width / 6.f)), screen_height / 16.f);
-		vec2 velocity = vec2(uniform_dist(rng) * 200.f * defaultResolution.scaling, uniform_dist(rng) * 200.f * defaultResolution.scaling);
-		createEnemyRun(renderer, position, velocity);
+	// Check level completion 
+	if (registry.enemies.size() == 0) {
+		isLevelOver = true; 
 	}
 
 	if (twoPlayer.inTwoPlayerMode && destinations_registry.has(player2_wizard)) {
@@ -277,9 +344,10 @@ void WorldSystem::restart_game() {
 	// Debugging for memory/component leaks
 
 	registry.list_all_components();
-
+	// Restart game starts from level 1 always 
+	initial_level_load = true; 
+	level_number = 1; 
 	spawnPowerup = true; 
-
 	// Set all states to default
 	// Reset the game speed
 	current_speed = 1.f;
@@ -295,15 +363,9 @@ void WorldSystem::restart_game() {
 	// Create walls and doors
 	createWalls(screenWidth, screenHeight);
 	createADoor(screenWidth, screenHeight);
+	setupLevel(initial_level_load, false); 
+	initial_level_load = false; 
 
-	// Create a new player character
-	player_wizard = createWizard(renderer, { screenWidth / 10, screenHeight * 0.33f });
-	if (twoPlayer.inTwoPlayerMode) {
-		player2_wizard = createWizard(renderer, { screenWidth / 10, screenHeight * 0.66f });
-	}
-
-	// temp location to test state machine enemy hunter
-	createEnemyHunter(renderer, vec2(screenWidth * 0.66f, screenHeight * 0.5f), vec2(1, 0));
 }
 
 void WorldSystem::createADoor(int screenWidth, int screenHeight) {
@@ -401,6 +463,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (action == GLFW_PRESS && key == GLFW_KEY_F) {
 		player.isFiringProjectile = true;
 		player.firingDirection = 3;
+	}
+	if (action == GLFW_PRESS && key == GLFW_KEY_L) {
+		setupLevel(initial_level_load, true); 
 	}
 	
 	if (action == GLFW_RELEASE && (key == GLFW_KEY_F || key == GLFW_KEY_H || key == GLFW_KEY_G || key == GLFW_KEY_T)) {
