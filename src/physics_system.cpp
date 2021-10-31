@@ -176,10 +176,7 @@ void PhysicsSystem::handle_collision() {
 					playerCom.money += enemyCom.loot;
 					registry.remove_all_components_of(entity_other);
 				} else {
-					Motion& enemyMotionCom = registry.motions.get(entity_other);
-					float jumpBackFrames = 0.1f;
-					enemyMotionCom.position = vec2(enemyMotionCom.position.x + projectileMotionCom.velocity.x * jumpBackFrames,
-												   enemyMotionCom.position.y + projectileMotionCom.velocity.y * jumpBackFrames);
+					// TODO:: Implement some kind of enemy hit handling
 				}
 			}
 		}

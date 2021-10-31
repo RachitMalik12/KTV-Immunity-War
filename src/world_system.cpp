@@ -9,9 +9,6 @@
 #include "physics_system.hpp"
 
 // Game configuration
-const size_t MAX_ENEMIES = 5;
-const size_t MAX_ENEMIESRUN = 2;
-const size_t ENEMY_DELAY_MS = 1000;
 const size_t DEFAULT_HEIGHT = 800;
 const int WALL_THICKNESS = 40;
 const int SHOP_WALL_THICKNESS = 100;
@@ -124,7 +121,7 @@ GLFWwindow* WorldSystem::create_window(int width, int height) {
 	return window;
 }
 
-void WorldSystem::setupLevel(bool firstTime, bool restart) {
+void WorldSystem::setupLevel(bool firstTime, bool restart, int levelNum) {
 	int screen_width, screen_height;
 	glfwGetFramebufferSize(window, &screen_width, &screen_height);
 	if (!firstTime) {
@@ -135,7 +132,6 @@ void WorldSystem::setupLevel(bool firstTime, bool restart) {
 				registry.remove_all_components_of(registry.enemies.entities.back());
 			while (registry.blocks.entities.size() > 0)
 				registry.remove_all_components_of(registry.blocks.entities.back());
-			level_number += 1;
 		} else if (restart) {
 			while (registry.players.entities.size() > 0)
 				registry.remove_all_components_of(registry.players.entities.back());
@@ -148,53 +144,48 @@ void WorldSystem::setupLevel(bool firstTime, bool restart) {
 		}
 	
 	}
-	int index = level_number - 1; 
-	Level firstLevel = levels[index];
-	auto enemies = firstLevel.enemies;
-	auto enemy_types = firstLevel.enemy_types;
-	auto num_enemy_types = firstLevel.num_enemy_types;
-	for (int i = 0; i < enemy_types.size(); i++) {
-		// enemy blob 
-		if (enemy_types[i] == 1) {
-			// Spawn enemies number of enemies for type enemy_type[i]
-			for (int j = 0; j < enemies[i]; j++) {
-				vec2 position = vec2(uniform_dist(rng) * (screen_width - (screen_width / 6.f)), screen_height / 16.f);
-				vec2 velocity = vec2(0.f, 200.f * defaultResolution.scaling);
-				createEnemyBlob(renderer, position, velocity);
-			}
-		}
-
-		if (enemy_types[i] == 2) {
-			for (int j = 0; j < enemies[i]; j++) {
-				// Create enemy run
-				vec2 position = vec2(uniform_dist(rng) * (screen_width - (screen_width / 6.f)), screen_height / 16.f);
-				vec2 velocity = vec2(uniform_dist(rng) * 200.f * defaultResolution.scaling, uniform_dist(rng) * 200.f * defaultResolution.scaling);
-				createEnemyRun(renderer, position, velocity);
-			}
-		}
-
-		if (enemy_types[i] == 3) {
-			for (int j = 0; j < enemies[i]; j++) {
-				createEnemyHunter(renderer, vec2(screen_width * 0.66f, screen_height * 0.5f), vec2(1, 0));
-			}
+	int index = levelNum - 1; 
+	Level level = levels[index];
+	auto enemies = level.enemies;
+	auto enemy_types = level.enemy_types;
+	auto enemyPositions = level.enemyPositions;
+	for (int i = 0; i < enemyPositions.size(); i++) {
+		for (int j = 0; j < enemyPositions[i].size(); j++) {
+			createEnemy(renderer, enemyPositions[i][j] * defaultResolution.scaling, enemy_types[i]);
 		}
 	}
 
 	// Blocks 
-	for (int b = 0; b < firstLevel.block_positions.size(); b++) {
-		vec2 block_pos_i = firstLevel.block_positions[b];
-		std::string block_color_i = firstLevel.color; 
-		createBlock(renderer, block_pos_i, block_color_i);
+	for (int b = 0; b < level.block_positions.size(); b++) {
+		vec2 block_pos_i = level.block_positions[b];
+		std::string block_color_i;
+		if (uniform_dist(rng) < 0.33) {
+			block_color_i = "red";
+		} else if (uniform_dist(rng) >= 0.33 && uniform_dist(rng) < 0.66) {
+			block_color_i = "orange";
+		} else {
+			block_color_i = "yellow";
+		}
+		createBlock(renderer, block_pos_i * defaultResolution.scaling, block_color_i);
 	}
+
 	if (firstTime || restart) {
-		player_wizard = createWizard(renderer, firstLevel.player_position);
+		player_wizard = createWizard(renderer, level.player_position * defaultResolution.scaling);
 		Player& player1 = registry.players.get(player_wizard);
 		player1.PLAYER_SPEED = player1.PLAYER_SPEED * defaultResolution.scaling;
 		if (twoPlayer.inTwoPlayerMode) {
-			player2_wizard = createWizard(renderer, { screen_width / 10, screen_height * 0.66f });
+			player2_wizard = createWizard(renderer, level.player2_position * defaultResolution.scaling);
 			Player& player2 = registry.players.get(player2_wizard);
 			player2.PLAYER_SPEED = player2.PLAYER_SPEED * defaultResolution.scaling;
 		}
+	}
+
+	// Reset player position on level transition
+	Motion& player1Motion = registry.motions.get(player_wizard);
+	player1Motion.position = level.player_position * defaultResolution.scaling;
+	if (twoPlayer.inTwoPlayerMode) {
+		Motion& player2Motion = registry.motions.get(player2_wizard);
+		player2Motion.position = level.player2_position * defaultResolution.scaling;
 	}
 	// Update state 
 	isLevelOver = false;
@@ -245,7 +236,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	if (isLevelOver && nextLevel <= levels.size()) {
 		// Only if we have levels left we need to change level 
 		initial_level_load = false; 
-		setupLevel(initial_level_load, false); 
+		level_number = nextLevel;
+		setupLevel(initial_level_load, false, level_number);
 	}
 
 	// Check level completion 
@@ -364,7 +356,7 @@ void WorldSystem::restart_game() {
 	// Create walls and doors
 	createWalls(screenWidth, screenHeight);
 	createADoor(screenWidth, screenHeight);
-	setupLevel(initial_level_load, false); 
+	setupLevel(initial_level_load, false, 1); 
 	initial_level_load = false; 
 
 }
@@ -465,8 +457,18 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		player.isFiringProjectile = true;
 		player.firingDirection = 3;
 	}
+
+	// level loading
 	if (action == GLFW_PRESS && key == GLFW_KEY_L) {
-		setupLevel(initial_level_load, true); 
+		setupLevel(initial_level_load, true, level_number); 
+	}
+	// load level 1
+	if (action == GLFW_PRESS && key == GLFW_KEY_1) {
+		setupLevel(initial_level_load, true, 1);
+	}
+	// load level 1
+	if (action == GLFW_PRESS && key == GLFW_KEY_2) {
+		setupLevel(initial_level_load, true, 2);
 	}
 	
 	if (action == GLFW_RELEASE && (key == GLFW_KEY_F || key == GLFW_KEY_H || key == GLFW_KEY_G || key == GLFW_KEY_T)) {
@@ -492,7 +494,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	// Switch between one player/two player
-	if (action == GLFW_PRESS && key == GLFW_KEY_2) {
+	if (action == GLFW_PRESS && key == GLFW_KEY_X) {
 		if (twoPlayer.inTwoPlayerMode) {
 			twoPlayer.inTwoPlayerMode = false;
 		} else {
@@ -500,7 +502,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 		restart_game();
 	}
-
 
 	// Control the current speed with `<` `>`
 	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA) {
