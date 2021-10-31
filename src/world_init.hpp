@@ -40,7 +40,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, int enemyType);
 Entity createEnemyBlob(RenderSystem* renderer, vec2 position);
 
 // the enemy that tries to avoid wizards 
-Entity createEnemyRun(RenderSystem* renderer, vec2 positio);
+Entity createEnemyRun(RenderSystem* renderer, vec2 position);
 
 // state machine enemy
 Entity createEnemyHunter(RenderSystem* renderer, vec2 position);
