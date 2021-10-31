@@ -8,16 +8,23 @@
 struct Player
 {
 	int hp = 3;
-	int money = 0;
-	int damage = 1;
 	float invinFrame = 2000.f;
 	float invinTimerInMs = 0;
 	bool isInvin = false;
 	bool isFiringProjectile = false;
 	int firingDirection = 0;
-	float PROJECTILE_SPEED = 300;
-	float PROJECTILE_FIRE_RATE = 500;
-	float PLAYER_SPEED = 150.f;
+	bool isDead = false;
+	Entity playerStat;
+};
+
+struct PlayerStat
+{
+	float projectileSpeed = 300.f;
+	float projectileFireRate = 500.f;
+	float movementSpeed = 150.f;
+	int maxHp = 3;
+	int money = 0;
+	int damage = 1;
 };
 
 // The projectile shot by the wizard character.
