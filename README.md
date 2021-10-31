@@ -8,6 +8,8 @@ Adaptive Resolution (BZ): We offer player a choice between 3 resolution when the
 
 State Machine (BZ): Implemented a state machine enemy "hunter". Hunter has three states: wondering mode, hunting mode and fleeing mode. In wondering mode, hunter wonders randomly until it gets close enough to a player. Then in hunting mode it chases after the player. Then finally, after its HP gets low, it gets into fleeing mode, which runs horizontally across the map at a high speed.
 
+Precise Collision (BS): Implemented precise collision detection by means of a coarse mesh "hitbox" overlayed on a sprite. Current detection works by checking if one entity's hitbox collides with another entity's bounding box. 
+
 Revised Project Proposal:
 Feature changes:
 -Swarm behaviour was pushed to milestone 3 in favour of library integration for this milestone
