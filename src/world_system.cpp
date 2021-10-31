@@ -9,9 +9,6 @@
 #include "physics_system.hpp"
 
 // Game configuration
-const size_t MAX_ENEMIES = 5;
-const size_t MAX_ENEMIESRUN = 2;
-const size_t ENEMY_DELAY_MS = 1000;
 const size_t DEFAULT_HEIGHT = 800;
 const int WALL_THICKNESS = 40;
 const int SHOP_WALL_THICKNESS = 100;
