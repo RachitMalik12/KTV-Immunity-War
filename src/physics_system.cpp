@@ -126,8 +126,6 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 			if (i == j)
 				continue;
 			Entity other_entity = motion_container.entities[j];
-			if (registry.walls.has(entity) || registry.walls.has(other_entity))
-				continue;
 			Motion& other_motion = motion_container.components[j];
 			if (collides(entity, other_entity))
 			{

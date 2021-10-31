@@ -12,7 +12,6 @@
 const size_t MAX_ENEMIES = 5;
 const size_t MAX_ENEMIESRUN = 2;
 const size_t ENEMY_DELAY_MS = 1000;
-const size_t PLAYER_SPEED = 150;
 const size_t DEFAULT_HEIGHT = 800;
 const int WALL_THICKNESS = 40;
 const int SHOP_WALL_THICKNESS = 100;
@@ -118,8 +117,6 @@ GLFWwindow* WorldSystem::create_window(int width, int height) {
 		return nullptr;
 	}
 
-	// set player speed base on resolution scaling
-	playerSpeed = PLAYER_SPEED * defaultResolution.scaling;
 	// Load level information 
 	levelFileLoader.readFile(); 
 	levels = levelFileLoader.getLevels(); 
@@ -191,8 +188,12 @@ void WorldSystem::setupLevel(bool firstTime, bool restart) {
 	}
 	if (firstTime || restart) {
 		player_wizard = createWizard(renderer, firstLevel.player_position);
+		Player& player1 = registry.players.get(player_wizard);
+		player1.PLAYER_SPEED = player1.PLAYER_SPEED * defaultResolution.scaling;
 		if (twoPlayer.inTwoPlayerMode) {
 			player2_wizard = createWizard(renderer, { screen_width / 10, screen_height * 0.66f });
+			Player& player2 = registry.players.get(player2_wizard);
+			player2.PLAYER_SPEED = player2.PLAYER_SPEED * defaultResolution.scaling;
 		}
 	}
 	// Update state 
@@ -401,17 +402,17 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	vec2 currentVelocity = vec2(player1motion.velocity.x, player1motion.velocity.y);
 	if (action == GLFW_PRESS && key == GLFW_KEY_W) {
-		player1motion.velocity = vec2(currentVelocity.x, currentVelocity.y - playerSpeed);
+		player1motion.velocity = vec2(currentVelocity.x, currentVelocity.y - player.PLAYER_SPEED);
 	}
 	if (action == GLFW_RELEASE && key == GLFW_KEY_W) {
-		player1motion.velocity = vec2(currentVelocity.x, currentVelocity.y + playerSpeed);
+		player1motion.velocity = vec2(currentVelocity.x, currentVelocity.y + player.PLAYER_SPEED);
 	}
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_S) {
-		player1motion.velocity = vec2(currentVelocity.x, currentVelocity.y + playerSpeed);
+		player1motion.velocity = vec2(currentVelocity.x, currentVelocity.y + player.PLAYER_SPEED);
 	}
 	if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
-		player1motion.velocity = vec2(currentVelocity.x, currentVelocity.y - playerSpeed);
+		player1motion.velocity = vec2(currentVelocity.x, currentVelocity.y - player.PLAYER_SPEED);
 	}
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_A) {
@@ -422,10 +423,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 				player1motion.scale = vec2({ -WIZARD_BB_WIDTH * defaultResolution.scaling, WIZARD_BB_HEIGHT * defaultResolution.scaling });
 		}
 
-		player1motion.velocity = vec2(currentVelocity.x - playerSpeed, currentVelocity.y);
+		player1motion.velocity = vec2(currentVelocity.x - player.PLAYER_SPEED, currentVelocity.y);
 	}
 	if (action == GLFW_RELEASE && key == GLFW_KEY_A) {
-		player1motion.velocity = vec2(currentVelocity.x + playerSpeed, currentVelocity.y);
+		player1motion.velocity = vec2(currentVelocity.x + player.PLAYER_SPEED, currentVelocity.y);
 
 	}
 
@@ -437,11 +438,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			registry.flips.remove(player_wizard);
 			player1motion.scale = vec2({ WIZARD_BB_WIDTH * defaultResolution.scaling, WIZARD_BB_HEIGHT * defaultResolution.scaling });
 		}
-		player1motion.velocity = vec2(currentVelocity.x + playerSpeed, currentVelocity.y);
+		player1motion.velocity = vec2(currentVelocity.x + player.PLAYER_SPEED, currentVelocity.y);
 	}
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_D) {
-		player1motion.velocity = vec2(currentVelocity.x - playerSpeed, currentVelocity.y);
+		player1motion.velocity = vec2(currentVelocity.x - player.PLAYER_SPEED, currentVelocity.y);
 	}
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_T) {
@@ -545,6 +546,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			if (registry.mouseDestinations.has(player2_wizard))
 				registry.mouseDestinations.remove(player2_wizard);
 			Motion& wizard2_motion = registry.motions.get(player2_wizard);
+			Player& wizard2_player = registry.players.get(player2_wizard);
 			double x, y;
 			glfwGetCursorPos(window, &x, &y);
 			if (registry.inShops.has(player2_wizard)) {
@@ -553,7 +555,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			float dx = (float)x - wizard2_motion.position.x;
 			float dy = (float)y - wizard2_motion.position.y;
 			float h = sqrtf(powf(dx, 2) + powf(dy, 2));
-			float scale = playerSpeed / h;
+			float scale = wizard2_player.PLAYER_SPEED / h;
 			wizard2_motion.velocity = vec2(dx * scale, dy * scale);
 			registry.mouseDestinations.emplace(player2_wizard, vec2(x, y));
 		}
