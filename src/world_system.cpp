@@ -142,6 +142,15 @@ void WorldSystem::setupLevel(bool firstTime, bool restart) {
 		} else if (restart) {
 			while (registry.players.entities.size() > 0)
 				registry.remove_all_components_of(registry.players.entities.back());
+			while (registry.projectiles.entities.size() > 0)
+				registry.remove_all_components_of(registry.projectiles.entities.back()); 
+			// Add new players back immediately to prevent weird collision bug 
+			int ind = level_number - 1;
+			Level lvl = levels[ind];
+			player_wizard = createWizard(renderer, lvl.player_position);
+			if (twoPlayer.inTwoPlayerMode) {
+				player2_wizard = createWizard(renderer, { screen_width / 10, screen_height * 0.66f });
+			}
 			while (registry.enemies.entities.size() > 0)
 				registry.remove_all_components_of(registry.enemies.entities.back());
 			while (registry.blocks.entities.size() > 0)
@@ -185,10 +194,9 @@ void WorldSystem::setupLevel(bool firstTime, bool restart) {
 	for (int b = 0; b < firstLevel.block_positions.size(); b++) {
 		vec2 block_pos_i = firstLevel.block_positions[b];
 		std::string block_color_i = firstLevel.color; 
-		// TODO: add json field for block_color 
 		createBlock(renderer, block_pos_i, block_color_i);
 	}
-	if (firstTime || restart) {
+	if (firstTime) {
 		player_wizard = createWizard(renderer, firstLevel.player_position);
 		if (twoPlayer.inTwoPlayerMode) {
 			player2_wizard = createWizard(renderer, { screen_width / 10, screen_height * 0.66f });
