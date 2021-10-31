@@ -84,6 +84,8 @@ Entity createBlock(RenderSystem* renderer, vec2 pos, std::string color) {
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
+	Mesh& hitbox = renderer->getMesh(GEOMETRY_BUFFER_ID::TREE);
+	registry.hitboxes.emplace(entity, &hitbox);
 
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
