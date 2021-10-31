@@ -132,7 +132,6 @@ Entity createEnemyBlob(RenderSystem* renderer, vec2 position)
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = vec2(0.f, 200.f * defaultResolution.scaling);
 	motion.position = position;
 
 	motion.scale = vec2({ ENEMYBLOB_BB_WIDTH * defaultResolution.scaling, ENEMYBLOB_BB_HEIGHT * defaultResolution.scaling });
@@ -144,7 +143,8 @@ Entity createEnemyBlob(RenderSystem* renderer, vec2 position)
 	enemyCom.damage = 1;
 	enemyCom.hp = 3;
 	enemyCom.loot = 1;
-	enemyCom.speed = 200 * defaultResolution.scaling;
+	enemyCom.speed = 200.f * defaultResolution.scaling;
+	motion.velocity = vec2(0.f, enemyCom.speed);
 
 	registry.renderRequests.insert(
 		entity,
@@ -169,7 +169,6 @@ Entity createEnemyRun(RenderSystem* renderer, vec2 position)
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = vec2(uniform_dist(rng) * 200.f * defaultResolution.scaling, uniform_dist(rng) * 200.f * defaultResolution.scaling);;
 	motion.position = position;
 
 	motion.scale = vec2({ ENEMYRUN_BB_WIDTH * defaultResolution.scaling, ENEMYRUN_BB_HEIGHT * defaultResolution.scaling });
@@ -182,6 +181,7 @@ Entity createEnemyRun(RenderSystem* renderer, vec2 position)
 	enemyCom.hp = 2;
 	enemyCom.loot = 1;
 	enemyCom.speed = 200.f * defaultResolution.scaling;
+	motion.velocity = vec2(uniform_dist(rng) * enemyCom.speed, uniform_dist(rng) * enemyCom.speed);;
 
 	registry.renderRequests.insert(
 		entity,

@@ -169,11 +169,12 @@ void PhysicsSystem::handle_collision() {
 			if (registry.enemies.has(entity_other)) {
 				Enemy& enemyCom = registry.enemies.get(entity_other);
 				Player& playerCom = registry.players.get(registry.projectiles.get(entity).belongToPlayer);
+				PlayerStat& playerStatCom = registry.playerStats.get(playerCom.playerStat);
 				Motion& projectileMotionCom = registry.motions.get(entity);
 				registry.remove_all_components_of(entity);
-				enemyCom.hp -= playerCom.damage;
+				enemyCom.hp -= playerStatCom.damage;
 				if (enemyCom.hp <= 0) {
-					playerCom.money += enemyCom.loot;
+					playerStatCom.money += enemyCom.loot;
 					registry.remove_all_components_of(entity_other);
 				} else {
 					// TODO:: Implement some kind of enemy hit handling
@@ -195,11 +196,9 @@ void PhysicsSystem::handle_collision() {
 		if (registry.powerups.has(entity)) {
 			if (registry.players.has(entity_other)) {
 				//Deduct if money is available
-				if (registry.players.get(entity_other).money - 1 >= 0) {
-					registry.players.get(entity_other).money -= 1;
-					registry.players.get(entity_other).hp += 10;
-					registry.remove_all_components_of(entity);
-				}
+				Player& playerCom = registry.players.get(entity_other);
+				PlayerStat& playerStatCom = registry.playerStats.get(playerCom.playerStat);
+				// TODO: Implement buying power up
 			}
 		}
 
@@ -211,9 +210,8 @@ void PhysicsSystem::handle_collision() {
 					player.hp -= registry.enemies.get(entity_other).damage;
 					// if hp - 1 is <= 0 then initiate death unless already dying 
 					if (player.hp <= 0) {
-						// TODO: handle death here when HP is 0. 
-						// Temp change hp to 0 
 						player.hp = 0;
+						player.isDead = true;
 					}
 					else {
 						player.isInvin = true;
