@@ -154,7 +154,7 @@ void WorldSystem::setupLevel(bool firstTime, bool restart, int levelNum) {
 	auto enemyPositions = level.enemyPositions;
 	for (int i = 0; i < enemyPositions.size(); i++) {
 		for (int j = 0; j < enemyPositions[i].size(); j++) {
-			createEnemy(renderer, enemyPositions[i][j], enemy_types[i]);
+			createEnemy(renderer, enemyPositions[i][j] * defaultResolution.scaling, enemy_types[i]);
 		}
 	}
 
@@ -169,17 +169,26 @@ void WorldSystem::setupLevel(bool firstTime, bool restart, int levelNum) {
 		} else {
 			block_color_i = "yellow";
 		}
-		createBlock(renderer, block_pos_i, block_color_i);
+		createBlock(renderer, block_pos_i * defaultResolution.scaling, block_color_i);
 	}
+
 	if (firstTime || restart) {
-		player_wizard = createWizard(renderer, level.player_position);
+		player_wizard = createWizard(renderer, level.player_position * defaultResolution.scaling);
 		Player& player1 = registry.players.get(player_wizard);
 		player1.PLAYER_SPEED = player1.PLAYER_SPEED * defaultResolution.scaling;
 		if (twoPlayer.inTwoPlayerMode) {
-			player2_wizard = createWizard(renderer, level.player2_position);
+			player2_wizard = createWizard(renderer, level.player2_position * defaultResolution.scaling);
 			Player& player2 = registry.players.get(player2_wizard);
 			player2.PLAYER_SPEED = player2.PLAYER_SPEED * defaultResolution.scaling;
 		}
+	}
+
+	// Reset player position on level transition
+	Motion& player1Motion = registry.motions.get(player_wizard);
+	player1Motion.position = level.player_position * defaultResolution.scaling;
+	if (twoPlayer.inTwoPlayerMode) {
+		Motion& player2Motion = registry.motions.get(player2_wizard);
+		player2Motion.position = level.player2_position * defaultResolution.scaling;
 	}
 	// Update state 
 	isLevelOver = false;
