@@ -210,8 +210,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		hp_p2 = registry.players.get(player2_wizard).hp; 
 	}
 	if (twoPlayer.inTwoPlayerMode) {
-		title_ss << " Money P1: " << registry.playerStats.get(registry.players.get(player_wizard).playerStat).money << " Health P1 " << hp_p1
-			     << " & Money P2: " << registry.playerStats.get(registry.players.get(player2_wizard).playerStat).money  << " Health P2 " << hp_p2;
+		title_ss << " P1 Money: " << registry.playerStats.get(registry.players.get(player_wizard).playerStat).money << " Health: " << hp_p1
+			     << " & P2 Money: " << registry.playerStats.get(registry.players.get(player2_wizard).playerStat).money  << " Health: " << hp_p2;
 	} else {
 		title_ss << " Money: " << registry.playerStats.get(registry.players.get(player_wizard).playerStat).money << " & Health P1 " << hp_p1;
 	}

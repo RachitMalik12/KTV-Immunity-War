@@ -7,7 +7,7 @@
 // Player component
 struct Player
 {
-	int hp = 3;
+	int hp = 0;
 	float invinFrame = 2000.f;
 	float invinTimerInMs = 0;
 	bool isInvin = false;
