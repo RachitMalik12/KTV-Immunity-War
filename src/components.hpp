@@ -176,6 +176,18 @@ struct Flip {
 	bool left = false;
 };
 
+struct Level {
+	std::vector<int> enemies; 
+	int num_blocks = 0; 
+	std::vector<vec2> block_positions; 
+	std::vector<int> enemy_types; 
+	int num_enemy_types = 1;
+	// 0 means spawn all enemies at once, 1 time based, 2 waves. 
+	int level_type = 0; 
+	vec2 player_position = vec2(50, 200); 
+	std::string color; 
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -250,7 +262,12 @@ struct RenderRequest {
 };
 
 class LevelFileLoader {
+private: 
+	std::vector<Level> levels; 
 public:
 	void readFile();
+	std::vector<Level> getLevels(); 
 };
+
+extern LevelFileLoader levelFileLoader; 
 

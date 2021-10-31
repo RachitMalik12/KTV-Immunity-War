@@ -1,0 +1,94 @@
+{
+  "levels": [
+    {
+      "enemies": [ 5 ],
+      "blocks": 2,
+      "block_positions": [
+        {
+          "x": 600,
+          "y": 600
+        },
+        {
+          "x": 550,
+          "y": 500
+        }
+
+      ],
+      "block_color":  "red", 
+      "player_position": {
+        "x": 100, 
+        "y": 200 
+      },
+      "enemy_positions": [
+        {
+          "0": [
+            {
+              "x": 221,
+              "y": 10
+            },
+            {
+              "x": 429,
+              "y": 201
+            }
+          ]
+        }
+       ],
+      "enemy_types": [ 1 ],
+      "num_enemy_types": 1,
+      "level_type": 0
+
+    },
+
+    {
+      "enemies": [ 10, 5 ],
+      "blocks": 2,
+      "block_positions": [
+        {
+          "x": 300,
+          "y": 300
+        },
+        {
+          "x": 500,
+          "y": 500
+        }
+
+      ],
+      "block_color":  "yellow", 
+      "player_position": {
+        "x": 100, 
+        "y": 50 
+      },
+      "enemy_positions": [
+
+        {
+          "0": [
+            {
+              "x": 221,
+              "y": 10
+            },
+            {
+              "x": 429,
+              "y": 201
+            }
+          ]
+        },
+        {
+          "1": [
+            {
+              "x": 221,
+              "y": 10
+            },
+            {
+              "x": 429,
+              "y": 201
+            }
+          ]
+        }
+      ],
+      "enemy_types": [ 1, 2 ],
+      "num_enemy_types": 2,
+      "level_type": 0
+
+    }
+  ] 
+}

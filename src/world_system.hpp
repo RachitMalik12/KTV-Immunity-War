@@ -51,10 +51,18 @@ private:
 	// restart level
 	void restart_game();
 
+	void setupLevel(bool firstTime, bool restart); 
+
 	// OpenGL window handle
 	GLFWwindow* window;
 
 	bool spawnPowerup;
+	int level_number;
+	bool initial_level_load; 
+	std::vector<Level> levels; 
+	// to start with true. 
+	bool isLevelOver;
+
 	// Game state
 	RenderSystem* renderer;
 	float current_speed;
