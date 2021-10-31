@@ -144,13 +144,6 @@ void WorldSystem::setupLevel(bool firstTime, bool restart) {
 				registry.remove_all_components_of(registry.players.entities.back());
 			while (registry.projectiles.entities.size() > 0)
 				registry.remove_all_components_of(registry.projectiles.entities.back()); 
-			// Add new players back immediately to prevent weird collision bug 
-			int ind = level_number - 1;
-			Level lvl = levels[ind];
-			player_wizard = createWizard(renderer, lvl.player_position);
-			if (twoPlayer.inTwoPlayerMode) {
-				player2_wizard = createWizard(renderer, { screen_width / 10, screen_height * 0.66f });
-			}
 			while (registry.enemies.entities.size() > 0)
 				registry.remove_all_components_of(registry.enemies.entities.back());
 			while (registry.blocks.entities.size() > 0)
@@ -196,7 +189,7 @@ void WorldSystem::setupLevel(bool firstTime, bool restart) {
 		std::string block_color_i = firstLevel.color; 
 		createBlock(renderer, block_pos_i, block_color_i);
 	}
-	if (firstTime) {
+	if (firstTime || restart) {
 		player_wizard = createWizard(renderer, firstLevel.player_position);
 		if (twoPlayer.inTwoPlayerMode) {
 			player2_wizard = createWizard(renderer, { screen_width / 10, screen_height * 0.66f });
@@ -258,28 +251,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	if (registry.enemies.size() == 0) {
 		isLevelOver = true; 
 	}
-	//// Spawning new enemy
-	//next_enemyblob_spawn -= elapsed_ms_since_last_update * current_speed;
-	//if (registry.enemyBlobs.components.size() <= MAX_ENEMIES && next_enemyblob_spawn < 0.f) {
-	//	// Reset timer
-	//	next_enemyblob_spawn = (ENEMY_DELAY_MS / 2) + uniform_dist(rng) * (ENEMY_DELAY_MS / 2);
-	//	// Create enemyBlob
-	//	vec2 position = vec2(uniform_dist(rng) * (screen_width - (screen_width / 6.f)), screen_height / 16.f);
-	//	vec2 velocity = vec2(0.f, 200.f * defaultResolution.scaling);
-	//	createEnemyBlob(renderer, position, velocity);
-	//}
-
-	//// Spawning new enemy run
-	//// TODO: Make so that enemy cannot MOVE outside of first room
-	//next_enemyrun_spawn -= elapsed_ms_since_last_update * current_speed;
-	//if (registry.enemiesrun.components.size() <= MAX_ENEMIESRUN && next_enemyrun_spawn < 0.f) {
-	//	// Reset timer
-	//	next_enemyrun_spawn = (ENEMY_DELAY_MS / 2) + uniform_dist(rng) * (ENEMY_DELAY_MS / 2);
-	//	// Create enemy run
-	//	vec2 position = vec2(uniform_dist(rng) * (screen_width - (screen_width / 6.f)), screen_height / 16.f);
-	//	vec2 velocity = vec2(uniform_dist(rng) * 200.f * defaultResolution.scaling, uniform_dist(rng) * 200.f * defaultResolution.scaling);
-	//	createEnemyRun(renderer, position, velocity);
-	//}
 
 	if (twoPlayer.inTwoPlayerMode && destinations_registry.has(player2_wizard)) {
 		Motion& motion = motions_registry.get(player2_wizard);
