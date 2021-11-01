@@ -207,7 +207,7 @@ void AISystem::bfsSearchPath(float initX, float initY, float finX, float finY, E
 void AISystem::moveToSpot(float initX, float initY, float finalX, float finalY, Entity& bacteriaEntity) {
 	vec2 diff = vec2(finalX, finalY) - vec2(initX, initY);
 	float angle = atan2(diff.y, diff.x);
-	registry.motions.get(bacteriaEntity).velocity = vec2(cos(angle) * 100, sin(angle) * 100);
+	registry.motions.get(bacteriaEntity).velocity = vec2(cos(angle) * 150, sin(angle) * 150);
 }
 
 bool AISystem::isHunterInRangeOfThePlayers(Entity hunterEntity) {
