@@ -109,6 +109,11 @@ struct TwoPlayer {
 };
 extern TwoPlayer twoPlayer;
 
+struct HelpMode {
+	bool inHelpMode = false;
+};
+extern HelpMode helpMode;
+
 struct DefaultResolution {
 	int width = 1200;
 	int height = 800;
@@ -229,7 +234,8 @@ enum class TEXTURE_ASSET_ID {
 	POWERUP = ENEMY + 1,
 	ENEMYRUN = POWERUP + 1,
 	ENEMYHUNTER = ENEMYRUN + 1,
-	TEXTURE_COUNT = ENEMYHUNTER + 1
+	HELPPANEL = ENEMYHUNTER + 1,
+	TEXTURE_COUNT = HELPPANEL + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

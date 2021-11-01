@@ -34,6 +34,7 @@ public:
 	ComponentContainer<Flip> flips;
 	ComponentContainer<InShop> inShops;
 	ComponentContainer<Mesh*> hitboxes;
+	ComponentContainer<HelpMode> helpModes;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -62,6 +63,7 @@ public:
 		registry_list.push_back(&flips);
 		registry_list.push_back(&inShops);
 		registry_list.push_back(&hitboxes);
+		registry_list.push_back(&helpModes);
 	}
 
 	void clear_all_components() {
