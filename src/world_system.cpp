@@ -13,8 +13,7 @@ const size_t DEFAULT_HEIGHT = 800;
 const int WALL_THICKNESS = 40;
 const int SHOP_WALL_THICKNESS = 100;
 
-float elapsed_ms = 0;
-bool pressed = 0;
+
 
 // Create the fish world
 WorldSystem::WorldSystem()
@@ -198,14 +197,14 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
-	elapsed_ms = elapsed_ms_since_last_update;
+	
 	// Get the screen dimensions
 	int screen_width, screen_height;
 	glfwGetFramebufferSize(window, &screen_width, &screen_height);
-
+	Animation& playerOneAnimation = registry.animations.get(registry.animations.entities.front());
 	//animate
-	if (pressed) {
-		Animation& playerOneAnimation = registry.animations.get(registry.animations.entities.front());
+	if (playerOneAnimation.pressed) {
+		
 		playerOneAnimation.xFrame = frame_counter(elapsed_ms_since_last_update, 5, 20, playerOneAnimation.xFrame, 9);
 		registry.renderRequests.remove(player_wizard);
 		registry.renderRequests.insert(
@@ -454,7 +453,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (!player.isDead) {
 		vec2 currentVelocity = vec2(player1motion.velocity.x, player1motion.velocity.y);
 		if (action == GLFW_PRESS && key == GLFW_KEY_W) {
-			pressed = true;
+			playerOneAnimation.pressed = true;
 			player1motion.velocity = vec2(currentVelocity.x, currentVelocity.y - playerOneStat.movementSpeed);
 			playerOneAnimation.xFrame = 0;
 			playerOneAnimation.yFrame = 0;
@@ -466,12 +465,12 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 					GEOMETRY_BUFFER_ID::SPRITE }, false);
 		}
 		if (action == GLFW_RELEASE && key == GLFW_KEY_W) {
-			pressed = false;
+			playerOneAnimation.pressed = false;
 			player1motion.velocity = vec2(currentVelocity.x, 0);
 		}
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_S) {
-			pressed = true;
+			playerOneAnimation.pressed = true;
 			player1motion.velocity = vec2(currentVelocity.x, currentVelocity.y + playerOneStat.movementSpeed);
 			int counter = 0;
 			playerOneAnimation.xFrame = 0;
@@ -484,12 +483,12 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 					GEOMETRY_BUFFER_ID::SPRITE }, false);
 		}
 		if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
-			pressed = false;
+			playerOneAnimation.pressed = false;
 			player1motion.velocity = vec2(currentVelocity.x, 0);
 		}
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_A) {
-			pressed = true;
+			playerOneAnimation.pressed = true;
 			player1motion.velocity = vec2(currentVelocity.x - playerOneStat.movementSpeed, currentVelocity.y);
 			playerOneAnimation.xFrame = 0;
 			playerOneAnimation.yFrame = 1;
@@ -501,13 +500,13 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 					GEOMETRY_BUFFER_ID::SPRITE }, false);
 		}
 		if (action == GLFW_RELEASE && key == GLFW_KEY_A) {
-			pressed = false;
+			playerOneAnimation.pressed = false;
 			player1motion.velocity = vec2(0, currentVelocity.y);
 
 		}
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_D) {
-			pressed = true;
+			playerOneAnimation.pressed = true;
 			player1motion.velocity = vec2(currentVelocity.x + playerOneStat.movementSpeed, currentVelocity.y);
 			playerOneAnimation.xFrame = 0;
 			playerOneAnimation.yFrame = 3;
@@ -520,7 +519,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 
 		if (action == GLFW_RELEASE && key == GLFW_KEY_D) {
-			pressed = false;
+			playerOneAnimation.pressed = false;
 			player1motion.velocity = vec2(0, currentVelocity.y);
 		}
 

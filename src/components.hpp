@@ -215,6 +215,7 @@ struct Level {
 struct Animation {
 	int xFrame = 0;
 	int yFrame = 0;
+	bool pressed = 0;
 };
 
 /**

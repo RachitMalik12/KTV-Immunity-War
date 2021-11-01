@@ -30,12 +30,6 @@ Entity createWizard(RenderSystem* renderer, vec2 position) {
 		{ TEXTURE_ASSET_ID::WIZARD,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
-	/*registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::KNIGHT,
-			EFFECT_ASSET_ID::KNIGHT,
-			GEOMETRY_BUFFER_ID::SPRITE });*/
-
 	return entity;
 }
 
