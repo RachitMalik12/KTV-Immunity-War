@@ -65,8 +65,6 @@ private:
 	// Game state
 	RenderSystem* renderer;
 	float current_speed;
-	float next_enemyblob_spawn;
-	float next_enemyrun_spawn;
 	float next_projectile_fire_player1;
 	float next_projectile_fire_player2;
 	Entity player_wizard;

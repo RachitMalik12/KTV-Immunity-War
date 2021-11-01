@@ -499,9 +499,14 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		level_number = 1; 
 		setupLevel(level_number);
 	}
-	// load level 1
+	// load level 2
 	if (action == GLFW_PRESS && key == GLFW_KEY_2) {
 		level_number = 2; 
+		setupLevel(level_number);
+	}
+	// load level 3
+	if (action == GLFW_PRESS && key == GLFW_KEY_3) {
+		level_number = 3;
 		setupLevel(level_number);
 	}
 	

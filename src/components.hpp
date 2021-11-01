@@ -73,6 +73,13 @@ struct EnemyHunter
 	float huntingRange = 500.f;
 };
 
+// BFS Enemy
+struct EnemyBacteria
+{
+	bool huntingMode = true;
+	float bfsUpdateTime = 2000.f;
+};
+
 struct Powerup 
 {
 
@@ -242,7 +249,8 @@ enum class TEXTURE_ASSET_ID {
 	ENEMYRUN = POWERUP + 1,
 	ENEMYHUNTER = ENEMYRUN + 1,
 	HELPPANEL = ENEMYHUNTER + 1,
-	TEXTURE_COUNT = HELPPANEL + 1
+	ENEMYBACTERIA = HELPPANEL + 1,
+	TEXTURE_COUNT = ENEMYBACTERIA + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -270,7 +278,8 @@ enum class GEOMETRY_BUFFER_ID {
 	RUNNER = BLOBBER + 1,
 	FIREBALL = RUNNER + 1,
 	TREE = FIREBALL + 1,
-	GEOMETRY_COUNT = TREE + 1
+	BACTERIA = TREE + 1,
+	GEOMETRY_COUNT = BACTERIA + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 

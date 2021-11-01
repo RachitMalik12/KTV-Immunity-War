@@ -116,6 +116,8 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, int enemyType) {
 		curEnemy = createEnemyRun(renderer, position);
 	} else if (enemyType == 2) {
 		curEnemy = createEnemyHunter(renderer, position);
+	} else if (enemyType == 3) {
+		curEnemy = createEnemyBacteria(renderer, position);
 	}
 	return curEnemy;
 }
@@ -223,6 +225,39 @@ Entity createEnemyHunter(RenderSystem* renderer, vec2 position) {
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ENEMYHUNTER,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
+Entity createEnemyBacteria(RenderSystem* renderer, vec2 position) {
+	auto entity = Entity();
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+	Mesh& hitbox = renderer->getMesh(GEOMETRY_BUFFER_ID::BACTERIA);
+	registry.hitboxes.emplace(entity, &hitbox);
+
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = vec2(0, 0);
+	motion.position = position;
+
+	motion.scale = vec2({ ENEMYBACTERIA_BB_WIDTH * defaultResolution.scaling, ENEMYBACTERIA_BB_HEIGHT * defaultResolution.scaling });
+
+	registry.enemies.emplace(entity);
+	registry.enemyBacterias.emplace(entity);
+	// Set enemy attributes
+	auto& enemyCom = registry.enemies.get(entity);
+	enemyCom.damage = 1;
+	enemyCom.hp = 5;
+	enemyCom.loot = 4;
+	enemyCom.speed = 200.f * defaultResolution.scaling;
+	auto& bacteria = registry.enemyBacterias.get(entity);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ENEMYBACTERIA,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
