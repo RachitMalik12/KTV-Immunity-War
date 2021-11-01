@@ -5,6 +5,7 @@
 // stlib
 #include <cassert>
 #include <sstream>
+#include "SFML/Graphics.hpp"
 
 #include "physics_system.hpp"
 
