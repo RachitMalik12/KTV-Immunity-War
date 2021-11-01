@@ -10,6 +10,8 @@ State Machine (BZ): Implemented a state machine enemy "hunter". Hunter has three
 
 Precise Collision (BS): Implemented precise collision detection by means of a coarse mesh "hitbox" overlayed on a sprite. Current detection works by checking if one entity's hitbox collides with another entity's bounding box. Currently, the player, all enemies, the projectile and trees have mesh hitboxes.
 
+Simple Path Finding (FC): Implemented a BFS enemy "bacteria". The enemy updates it's path to what the current player (or one of the players, if there are two players) position is. It calculates it's path using BFS with a queue, where the map is separated into an 8x8 grid as "nodes", using it's predecessor nodes to find a path to the player it is hunting. 
+
 Revised Project Proposal:
 Feature changes:
 -Swarm behaviour was pushed to milestone 3 in favour of library integration for this milestone
