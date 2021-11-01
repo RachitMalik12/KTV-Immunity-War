@@ -212,6 +212,11 @@ struct Level {
 	vec2 player2_position = vec2(50, 200);
 };
 
+struct Animation {
+	int xFrame = 0;
+	int yFrame = 0;
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -250,7 +255,8 @@ enum class TEXTURE_ASSET_ID {
 	ENEMYHUNTER = ENEMYRUN + 1,
 	HELPPANEL = ENEMYHUNTER + 1,
 	ENEMYBACTERIA = HELPPANEL + 1,
-	TEXTURE_COUNT = ENEMYBACTERIA + 1
+	KNIGHT = ENEMYBACTERIA +1,
+	TEXTURE_COUNT = KNIGHT + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -260,7 +266,8 @@ enum class EFFECT_ASSET_ID {
 	SALMON = PEBBLE + 1,
 	TEXTURED = SALMON + 1,
 	WATER = TEXTURED + 1,
-	EFFECT_COUNT = WATER + 1
+	KNIGHT = WATER + 1,
+	EFFECT_COUNT = KNIGHT + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 

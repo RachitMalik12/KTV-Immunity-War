@@ -5,7 +5,6 @@
 // stlib
 #include <cassert>
 #include <sstream>
-#include <SFML/Graphics.hpp>
 
 #include "physics_system.hpp"
 
@@ -24,6 +23,8 @@ WorldSystem::WorldSystem()
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
 	setupWindowScaling();
+	auto entity = Entity();
+	registry.animations.emplace(entity);
 }
 
 WorldSystem::~WorldSystem() {
@@ -422,11 +423,20 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	Motion& player1motion = registry.motions.get(player_wizard);
 	Player& player = registry.players.get(player_wizard);
 	PlayerStat& playerOneStat = registry.playerStats.get(player.playerStat);
+	Animation& playerOneAnimation = registry.animations.get(registry.animations.entities.front());
 
 	if (!player.isDead) {
 		vec2 currentVelocity = vec2(player1motion.velocity.x, player1motion.velocity.y);
 		if (action == GLFW_PRESS && key == GLFW_KEY_W) {
 			player1motion.velocity = vec2(currentVelocity.x, currentVelocity.y - playerOneStat.movementSpeed);
+			playerOneAnimation.xFrame = 0;
+			playerOneAnimation.yFrame = 0;
+			registry.renderRequests.remove(player_wizard);
+			registry.renderRequests.insert(
+				player_wizard,
+				{ TEXTURE_ASSET_ID::KNIGHT,
+					EFFECT_ASSET_ID::KNIGHT,
+					GEOMETRY_BUFFER_ID::SPRITE }, false);
 		}
 		if (action == GLFW_RELEASE && key == GLFW_KEY_W) {
 			player1motion.velocity = vec2(currentVelocity.x, 0);
@@ -434,20 +444,36 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_S) {
 			player1motion.velocity = vec2(currentVelocity.x, currentVelocity.y + playerOneStat.movementSpeed);
+			playerOneAnimation.xFrame = 0;
+			playerOneAnimation.yFrame = 2;
+			registry.renderRequests.remove(player_wizard);
+			registry.renderRequests.insert(
+				player_wizard,
+				{ TEXTURE_ASSET_ID::KNIGHT,
+					EFFECT_ASSET_ID::KNIGHT,
+					GEOMETRY_BUFFER_ID::SPRITE }, false);
 		}
 		if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
 			player1motion.velocity = vec2(currentVelocity.x, 0);
 		}
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_A) {
-			if (!registry.flips.has(player_wizard)) {
+			/*if (!registry.flips.has(player_wizard)) {
 				registry.flips.emplace(player_wizard);
 				Flip& flipped = registry.flips.get(player_wizard);
 				flipped.left = true;
 				player1motion.scale = vec2({ -WIZARD_BB_WIDTH * defaultResolution.scaling, WIZARD_BB_HEIGHT * defaultResolution.scaling });
-			}
+			}*/
 
 			player1motion.velocity = vec2(currentVelocity.x - playerOneStat.movementSpeed, currentVelocity.y);
+			playerOneAnimation.xFrame = 0;
+			playerOneAnimation.yFrame = 1;
+			registry.renderRequests.remove(player_wizard);
+			registry.renderRequests.insert(
+				player_wizard,
+				{ TEXTURE_ASSET_ID::KNIGHT,
+					EFFECT_ASSET_ID::KNIGHT,
+					GEOMETRY_BUFFER_ID::SPRITE }, false);
 		}
 		if (action == GLFW_RELEASE && key == GLFW_KEY_A) {
 			player1motion.velocity = vec2(0, currentVelocity.y);
@@ -455,14 +481,22 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_D) {
-			if (registry.flips.has(player_wizard))
+			/*if (registry.flips.has(player_wizard))
 			{
 				Flip& flipped = registry.flips.get(player_wizard);
 				flipped.left = false;
 				registry.flips.remove(player_wizard);
 				player1motion.scale = vec2({ WIZARD_BB_WIDTH * defaultResolution.scaling, WIZARD_BB_HEIGHT * defaultResolution.scaling });
-			}
+			}*/
 			player1motion.velocity = vec2(currentVelocity.x + playerOneStat.movementSpeed, currentVelocity.y);
+			playerOneAnimation.xFrame = 0;
+			playerOneAnimation.yFrame = 3;
+			registry.renderRequests.remove(player_wizard);
+			registry.renderRequests.insert(
+				player_wizard,
+				{ TEXTURE_ASSET_ID::KNIGHT,
+					EFFECT_ASSET_ID::KNIGHT,
+					GEOMETRY_BUFFER_ID::SPRITE }, false);
 		}
 
 		if (action == GLFW_RELEASE && key == GLFW_KEY_D) {

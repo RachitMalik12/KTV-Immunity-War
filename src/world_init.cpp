@@ -25,10 +25,15 @@ Entity createWizard(RenderSystem* renderer, vec2 position) {
 	motion.scale = vec2({ WIZARD_BB_WIDTH * defaultResolution.scaling, WIZARD_BB_HEIGHT * defaultResolution.scaling });
 
 	registry.players.emplace(entity);
-	registry.renderRequests.insert(
+	/*registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::WIZARD,
 			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });*/
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::KNIGHT,
+			EFFECT_ASSET_ID::KNIGHT,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
