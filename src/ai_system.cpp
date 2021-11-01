@@ -76,7 +76,7 @@ void AISystem::stepEnemyBacteria(float elapsed_ms, float width, float height) {
 					Motion player2Motion = motions_registry.get(registry.players.entities[1]);
 					float pickPlayer = rand() % 2 + 1;
 
-					if (pickPlayer != 1) {
+					if (pickPlayer != 1 && !registry.players.get(registry.players.entities[1]).isDead) {
 						handlePath(player2Motion.position.x, player2Motion.position.y, width, height, bacteriaEntity);
 					}
 					else {
