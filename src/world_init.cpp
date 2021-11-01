@@ -114,6 +114,8 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, int enemyType) {
 		curEnemy = createEnemyRun(renderer, position);
 	} else if (enemyType == 2) {
 		curEnemy = createEnemyHunter(renderer, position);
+	} else if (enemyType == 3) {
+		curEnemy = createEnemyBacteria(renderer, position);
 	}
 	return curEnemy;
 }
@@ -239,19 +241,17 @@ Entity createEnemyBacteria(RenderSystem* renderer, vec2 position) {
 	motion.velocity = vec2(0, 0);
 	motion.position = position;
 
-	motion.scale = vec2({ ENEMYHUNTER_BB_WIDTH * defaultResolution.scaling, ENEMYHUNTER_BB_HEIGHT * defaultResolution.scaling });
+	motion.scale = vec2({ ENEMYBACTERIA_BB_WIDTH * defaultResolution.scaling, ENEMYBACTERIA_BB_HEIGHT * defaultResolution.scaling });
 
 	registry.enemies.emplace(entity);
-	registry.enemyHunters.emplace(entity);
+	registry.enemyBacterias.emplace(entity);
 	// Set enemy attributes
 	auto& enemyCom = registry.enemies.get(entity);
 	enemyCom.damage = 1;
 	enemyCom.hp = 5;
-	enemyCom.loot = 2;
-	enemyCom.speed = 200.f * defaultResolution.scaling;
-	auto& hunterCom = registry.enemyHunters.get(entity);
-	hunterCom.currentState = hunterCom.searchingMode;
-	hunterCom.huntingRange = hunterCom.huntingRange * defaultResolution.scaling;
+	enemyCom.loot = 4;
+	enemyCom.speed = 100.f * defaultResolution.scaling;
+	auto& bacteria = registry.enemyBacterias.get(entity);
 
 	registry.renderRequests.insert(
 		entity,

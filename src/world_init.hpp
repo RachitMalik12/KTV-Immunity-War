@@ -47,6 +47,9 @@ Entity createEnemyRun(RenderSystem* renderer, vec2 position);
 // state machine enemy
 Entity createEnemyHunter(RenderSystem* renderer, vec2 position);
 
+// BFS enemy
+Entity createEnemyBacteria(RenderSystem* renderer, vec2 position);
+
 // The powerup 
 Entity createPowerup(RenderSystem* render, vec2 pos); 
 

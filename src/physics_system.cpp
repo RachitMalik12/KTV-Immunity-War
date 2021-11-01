@@ -76,6 +76,11 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 				Motion& hunterMotion = motion_registry.get(entity);
 				hunterMotion.velocity = vec2(hunterMotion.velocity.x * -1.f, hunterMotion.velocity.y);
 			}
+			else if (registry.enemyBacterias.has(entity)) {
+				Motion& bacteriaMotion = motion_registry.get(entity);
+				bacteriaMotion.velocity = vec2(bacteriaMotion.velocity.x * -1.f, bacteriaMotion.velocity.y);
+			}
+
 		}
 
 		// if enemyrun within MAX_DIST_WZ_EN of either wizard

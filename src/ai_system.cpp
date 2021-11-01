@@ -1,8 +1,10 @@
 // internal
 #include "ai_system.hpp"
+#include <iostream>
 
-void AISystem::step(float elapsed_ms) {
+void AISystem::step(float elapsed_ms, float width, float height) {
 	stepEnemyHunter(elapsed_ms);
+	stepEnemyBacteria(elapsed_ms, width, height);
 }
 
 void AISystem::stepEnemyHunter(float elapsed_ms) {
@@ -42,19 +44,225 @@ void AISystem::stepEnemyHunter(float elapsed_ms) {
 	}
 }
 
+// separate map into an 8x8 "grid"
+void AISystem::createAdj(const float width, const float height) {
+	int i = 0;
+	int j = 0;
+
+	int iCounter = 0;
+	int jCounter = 0;
+	for (i; i < 8; i++) {
+		for (j; j < 8; j++) {
+			visited[i][j] = false;
+			pred[i][j] = { -1, -1 };
+			adj[i][j] = { i, j };
+		}
+		j = 0;
+		jCounter = 0;
+	}
+	blocksInitialized = true;
+}
+
+void AISystem::stepEnemyBacteria(float elapsed_ms, float width, float height) {
+	next_bacteria_BFS_calculation -= elapsed_ms;
+	auto& motions_registry = registry.motions;
+	if (next_bacteria_BFS_calculation < 0.f) {
+		for (Entity bacteriaEntity : registry.enemyBacterias.entities) {
+			EnemyBacteria& bacteria = registry.enemyBacterias.get(bacteriaEntity);
+			Motion& bacteriaMotion = registry.motions.get(bacteriaEntity);
+			Enemy& bacteriaStatus = registry.enemies.get(bacteriaEntity);
+			Motion& player1Motion = motions_registry.get(registry.players.entities[0]);
+
+			// if bacteria is hunting, it will do BFS to find player
+			if (bacteria.huntingMode) {
+				bacteria.huntingMode = false;
+
+				// initialize "grid"
+				if (!blocksInitialized) {
+					createAdj(width, height);
+				};
+
+				// twoPlayerMode ? select random player to follow
+				if (twoPlayer.inTwoPlayerMode) {
+					Motion player2Motion = motions_registry.get(registry.players.entities[1]);
+					float pickPlayer = rand() % 2 + 1;
+
+					if (pickPlayer != 1) {
+						handlePath(player2Motion.position.x, player2Motion.position.y, bacteriaMotion, width, height, bacteriaEntity);
+					}
+					else {
+						handlePath(player1Motion.position.x, player1Motion.position.y, bacteriaMotion, width, height, bacteriaEntity);
+					}
+				}
+				else {
+					next_bacteria_BFS_calculation = bacteria.bfsUpdateTime;
+					handlePath(player1Motion.position.x, player1Motion.position.y, bacteriaMotion, width, height, bacteriaEntity);
+				}
+			}
+		}
+	}
+}
+
+bool AISystem::handlePath(int positionX, int positionY, Motion& bacteriaMotion, float width, float height, Entity& bacteriaEntity) {
+		Motion playerMotion = registry.motions.get(registry.players.entities[0]);
+
+		// bacteria initial position (with respect to 8x8 grid)
+		int resIndexX = bacteriaMotion.position.x / (width / 8);
+		int resIndexY = bacteriaMotion.position.y / (height / 8);
+
+		// final position (player position, with respect to 8x8 grid)
+		int finXPosition = positionX / (width / 8);
+		int finYPosition = positionY / (height / 8);
+
+		// initialize first position, it will be visited later, add it to the queue
+		visited[resIndexX][resIndexY] = false;
+		adjacentsQueue.push({ resIndexX, resIndexY });
+		std::pair<int, int> currPosition = adjacentsQueue.front();
+
+		while (!adjacentsQueue.empty()) {
+			// get first element in queue
+			currPosition = adjacentsQueue.front();
+			adjacentsQueue.pop();
+
+			// check if it's out of bounds or has been visited. if so, skip
+			if (currPosition.first <= 8 && currPosition.second <= 8 && visited[currPosition.first][currPosition.second] == false && currPosition.first <= 8 && currPosition.second <= 8 && currPosition.first >= 0 && currPosition.second >= 0) {
+				
+				// visited
+				visited[currPosition.first][currPosition.second] = true;
+
+
+				// We stop BFS when we find destination.
+				if (currPosition.first == finXPosition && currPosition.second == finYPosition) {
+					bfsSearchPath(resIndexX, resIndexY, finXPosition, finYPosition, bacteriaMotion, bacteriaEntity, width, height);
+					registry.enemyBacterias.get(bacteriaEntity).huntingMode = true;
+					return true;
+				}
+
+				// add adjacent "grid" block above to queue
+				if (currPosition.second - 1 >= 0) {
+					if (visited[currPosition.first][currPosition.second - 1] == false) {
+						adjacentsQueue.push({ currPosition.first, currPosition.second - 1 });
+					}
+					if (pred[currPosition.first][currPosition.second - 1].first == -1 && pred[currPosition.first][currPosition.second - 1].second == -1) {
+						pred[currPosition.first][currPosition.second - 1] = { currPosition.first, currPosition.second };
+					}
+				}
+
+				// add adjacent "grid" block below to queue
+				if (currPosition.second + 1 <= 20) {
+					if (visited[currPosition.first][currPosition.second + 1] == false) {
+						adjacentsQueue.push({ currPosition.first, currPosition.second + 1 });
+					}
+					if (pred[currPosition.first][currPosition.second + 1].first == -1 && pred[currPosition.first][currPosition.second + 1].second == -1) {
+						pred[currPosition.first][currPosition.second + 1] = { currPosition.first, currPosition.second };
+					}
+				}
+
+				// add adjacent "grid" block left to queue
+				if (currPosition.first - 1 >= 0) {
+					if (visited[currPosition.first - 1][currPosition.second] == false) {
+						adjacentsQueue.push({ currPosition.first - 1, currPosition.second });
+					}
+					if (pred[currPosition.first - 1][currPosition.second].first == -1 && pred[currPosition.first - 1][currPosition.second].second == -1) {
+						pred[currPosition.first - 1][currPosition.second] = { currPosition.first, currPosition.second };
+					}
+				}
+
+				// add adjacent "grid" block right to queue
+				if (currPosition.first + 1 <= 20) {
+					if (visited[currPosition.first + 1][currPosition.second] == false) {
+						adjacentsQueue.push({ currPosition.first + 1, currPosition.second });
+					}
+					if (pred[currPosition.first + 1][currPosition.second].first == -1 && pred[currPosition.first + 1][currPosition.second].second == -1) {
+						pred[currPosition.first + 1][currPosition.second] = { currPosition.first, currPosition.second };
+					}
+				}
+			}
+
+		}
+	return false;
+
+}
+
+void AISystem::bfsSearchPath(float initX, float initY, float finX, float finY, Motion& bacteriaMotion, Entity& bacteriaEntity, float width, float height) {
+	std::pair<int, int> currPosition = { finX , finY };
+
+	// traverse from the final destination "grid" block
+	// turn it back into the actually screen size using * (width/8) or * (height/8)
+	// push into our traversalStack -- stack because we are now going BACKWARDS from the end to the beginning, using the predecessor to find our path from the player to the bacteria.
+	while (currPosition.first != initX || currPosition.second != initY) {
+		std::pair<int, int> temp = { pred[currPosition.first][currPosition.second].first * (width / 8),  pred[currPosition.first][currPosition.second].second * (height / 8) };
+		traversalStack.push(temp);
+		currPosition = pred[currPosition.first][currPosition.second];
+	}
+
+	std::cout << "SIZE TRAVERSAL Q: " << traversalStack.size() << "\n";
+	// go through traversal stack. it should have the path now.
+	// if it's empty, stop.
+	while (!traversalStack.empty()) {
+		// get current position of traversal stack
+		currPosition = traversalStack.top();
+		traversalStack.pop();
+		int bacteriaPositionX = bacteriaMotion.position.x;
+		int bacteriaPositionY = bacteriaMotion.position.y;
+		std::cout << "X: " << currPosition.first << "== " << bacteriaPositionX << "\n";
+		std::cout << "Y: " << currPosition.second << "== " << bacteriaPositionY << "\n";
+
+		// from the current bacteria position, go to 
+		moveToSpot(bacteriaPositionX, bacteriaPositionY, currPosition.first, currPosition.second, bacteriaMotion, bacteriaEntity, width, height);
+	}
+}
+
+void AISystem::moveToSpot(float initX, float initY, float finalX, float finalY, Motion& bacteriaMotion, Entity& bacteriaEntity, float width, float height) {
+	// find distance between each (x and y) between the next point on the map we are going to and the bacteria
+	float distX = abs(finalX - initX);
+	float distY = abs(finalY - initY);
+
+	// find distance between each (x and y) between the next point on the map we are going to and the bacteria
+	// change the velocity accordingly
+	if (abs(distX) > 50){
+		if (distX > 0) {
+			std::cout << "RES > FINX \n";
+			bacteriaMotion.velocity.x = -distX *10.f;
+			initX = bacteriaMotion.position.x;
+		}
+		else {
+			std::cout << "RES < FINX \n";
+			bacteriaMotion.velocity.x = distX * 10.f;
+			initX = bacteriaMotion.position.x;
+		}
+	}
+
+	if (abs(distY) > 50) {
+		if (distY > 0) {
+			std::cout << "RES > FINY \n";
+			bacteriaMotion.velocity.y = -distY * 10.f;
+			initY = bacteriaMotion.position.y;
+		}
+		else {
+			std::cout << "RES < FINY \n";
+			bacteriaMotion.velocity.y = distY * 10.f;
+			initY = bacteriaMotion.position.y;
+		}
+	}
+
+	std::cout << "XVelocity " << bacteriaMotion.velocity.x << " \n" << "YVelocity " << bacteriaMotion.velocity.y << "\n";
+	std::cout << "XVelocity " << bacteriaMotion.velocity.x << " \n" << "YVelocity " << bacteriaMotion.velocity.y << "\n";
+}
+
 bool AISystem::isHunterInRangeOfThePlayers(Entity hunterEntity) {
 	Motion& hunterMotion = registry.motions.get(hunterEntity);
 	float distance;
 	if (twoPlayer.inTwoPlayerMode) {
 		Motion& player1Motion = registry.motions.get(registry.players.entities.front());
 		Motion& player2Motion = registry.motions.get(registry.players.entities.back());
-		float distFromPlayer1 = hunterDistanceFromPlayer(player1Motion, hunterMotion);
-		float distFromPlayer2 = hunterDistanceFromPlayer(player2Motion, hunterMotion);
+		float distFromPlayer1 = enemyDistanceFromPlayer(player1Motion, hunterMotion);
+		float distFromPlayer2 = enemyDistanceFromPlayer(player2Motion, hunterMotion);
 		distance = std::min(distFromPlayer1, distFromPlayer2);
 	}
 	else {
 		Motion& player1Motion = registry.motions.get(registry.players.entities.front());
-		distance = hunterDistanceFromPlayer(player1Motion, hunterMotion);
+		distance = enemyDistanceFromPlayer(player1Motion, hunterMotion);
 	}
 	if (distance < registry.enemyHunters.get(hunterEntity).huntingRange) {
 		return true;
@@ -62,7 +270,7 @@ bool AISystem::isHunterInRangeOfThePlayers(Entity hunterEntity) {
 	return false;
 }
 
-float AISystem::hunterDistanceFromPlayer(const Motion& player, const Motion& hunter) {
+float AISystem::enemyDistanceFromPlayer(const Motion& player, const Motion& hunter) {
 	vec2 dp = player.position - hunter.position;
 	return sqrt(dot(dp, dp));
 }
@@ -93,12 +301,12 @@ void AISystem::setHunterChasingThePlayer(Entity hunterEntity) {
 	hunterMotion.velocity = vec2(cos(angle) * hunterStatus.speed, sin(angle) * hunterStatus.speed);
 }
 
-Entity AISystem::determineWhichPlayerToChase(Entity hunterEntity) {
-	Motion& hunterMotion = registry.motions.get(hunterEntity);
+Entity AISystem::determineWhichPlayerToChase(Entity enemyEntity) {
+	Motion& enemyMotion = registry.motions.get(enemyEntity);
 	Motion& player1Motion = registry.motions.get(registry.players.entities.front());
 	Motion& player2Motion = registry.motions.get(registry.players.entities.back());
-	float distFromPlayer1 = hunterDistanceFromPlayer(player1Motion, hunterMotion);
-	float distFromPlayer2 = hunterDistanceFromPlayer(player2Motion, hunterMotion);
+	float distFromPlayer1 = enemyDistanceFromPlayer(player1Motion, enemyMotion);
+	float distFromPlayer2 = enemyDistanceFromPlayer(player2Motion, enemyMotion);
 	if (distFromPlayer1 < distFromPlayer2) {
 		return registry.players.entities.front();
 	}

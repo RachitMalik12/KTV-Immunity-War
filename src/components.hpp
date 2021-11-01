@@ -69,15 +69,8 @@ struct EnemyHunter
 // BFS Enemy
 struct EnemyBacteria
 {
-	int currentState;
-	int searchingMode = 0;
-	int huntingMode = 1;
-	int fleeingMode = 2;
-	float aiUpdateTime = 1000.f;
-	float aiUpdateTimer = 0;
-	bool timeToUpdateAi = true;
-	bool isFleeing = false;
-	float huntingRange = 500.f;
+	bool huntingMode = true;
+	float bfsUpdateTime = 500.f;
 };
 
 struct Powerup 

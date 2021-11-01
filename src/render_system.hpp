@@ -29,7 +29,8 @@ class RenderSystem {
 		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::HUNTER, mesh_path("hunter_hitbox.obj")),
 		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::BLOBBER, mesh_path("blob_hitbox.obj")),
 		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::RUNNER, mesh_path("runner_hitbox.obj")),
-		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::FIREBALL, mesh_path("fireball_hitbox.obj"))
+		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::FIREBALL, mesh_path("fireball_hitbox.obj")),
+		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::FIREBALL, mesh_path("yellow-bacteria_hitbox.obj"))
 		  // specify meshes of other assets here
 	};
 
@@ -48,7 +49,7 @@ class RenderSystem {
 			textures_path("powerup.png"),
 			textures_path("enemyrun.png"),
 			textures_path("hunter1.png"),
-			textures_path("hunter1.png")
+			textures_path("yellow-bacteria.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
