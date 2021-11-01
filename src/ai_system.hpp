@@ -38,5 +38,5 @@ private:
 	bool handlePath(int positionX, int positionY, float width, float height, Entity& bacteriaEntity);
 	void bfsSearchPath(float initX, float initY, float finX, float finY, Entity& bacteriaEntity, float width, float height);
 	void moveToSpot(float initX, float initY, float finalX, float finalY, Entity& bacteriaEntity);
-	void createAdj(const float width, const float height);
+	void createAdj();
 };

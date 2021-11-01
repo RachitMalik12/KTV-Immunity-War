@@ -45,7 +45,7 @@ void AISystem::stepEnemyHunter(float elapsed_ms) {
 }
 
 // separate map into an 8x8 "grid"
-void AISystem::createAdj(const float width, const float height) {
+void AISystem::createAdj() {
 	for (int i = 0; i < 8; i++) {
 		for (int j = 0; j < 8; j++) {
 			visited[i][j] = false;
@@ -62,15 +62,13 @@ void AISystem::stepEnemyBacteria(float elapsed_ms, float width, float height) {
 	if (next_bacteria_BFS_calculation < 0.f) {
 		for (Entity bacteriaEntity : registry.enemyBacterias.entities) {
 			EnemyBacteria& bacteria = registry.enemyBacterias.get(bacteriaEntity);
-			Motion& bacteriaMotion = registry.motions.get(bacteriaEntity);
-			Enemy& bacteriaStatus = registry.enemies.get(bacteriaEntity);
 			Motion& player1Motion = motions_registry.get(registry.players.entities[0]);
 
 			// if bacteria is hunting, it will do BFS to find player
 			if (bacteria.huntingMode) {
 				bacteria.huntingMode = false;
 
-				createAdj(width, height);
+				createAdj();
 
 				// twoPlayerMode ? select random player to follow
 				if (twoPlayer.inTwoPlayerMode) {
@@ -207,7 +205,6 @@ void AISystem::bfsSearchPath(float initX, float initY, float finX, float finY, E
 }
 
 void AISystem::moveToSpot(float initX, float initY, float finalX, float finalY, Entity& bacteriaEntity) {
-	Enemy& bacStatus = registry.enemies.get(bacteriaEntity);
 	vec2 diff = vec2(finalX, finalY) - vec2(initX, initY);
 	float angle = atan2(diff.y, diff.x);
 	registry.motions.get(bacteriaEntity).velocity = vec2(cos(angle) * 200, sin(angle) * 200);
@@ -239,7 +236,6 @@ float AISystem::enemyDistanceFromPlayer(const Motion& player, const Motion& hunt
 }
 
 void AISystem::setHunterWonderingRandomly(Entity hunterEntity) {
-	EnemyHunter& hunter = registry.enemyHunters.get(hunterEntity);
 	Enemy& hunterStatus = registry.enemies.get(hunterEntity);
 	float randomNumBetweenNegativeOneAndOne = (uniform_dist(rng) - 0.5) * 2;
 	float anotherRandomNumBetweenNegativeOneAndOne = (uniform_dist(rng) - 0.5) * 2;
