@@ -7,17 +7,24 @@
 // Player component
 struct Player
 {
-	int hp = 3;
-	int money = 0;
-	int damage = 1;
+	int hp = 0;
 	float invinFrame = 2000.f;
 	float invinTimerInMs = 0;
 	bool isInvin = false;
 	bool isFiringProjectile = false;
 	int firingDirection = 0;
-	float PROJECTILE_SPEED = 300;
-	float PROJECTILE_FIRE_RATE = 500;
-	float PLAYER_SPEED = 150.f;
+	bool isDead = false;
+	Entity playerStat;
+};
+
+struct PlayerStat
+{
+	float projectileSpeed = 300.f;
+	float projectileFireRate = 500.f;
+	float movementSpeed = 150.f;
+	int maxHp = 3;
+	int money = 0;
+	int damage = 1;
 };
 
 // The projectile shot by the wizard character.
@@ -188,14 +195,14 @@ struct Flip {
 
 struct Level {
 	std::vector<int> enemies; 
+	std::vector<std::vector<vec2>> enemyPositions;
 	int num_blocks = 0; 
 	std::vector<vec2> block_positions; 
 	std::vector<int> enemy_types; 
-	int num_enemy_types = 1;
 	// 0 means spawn all enemies at once, 1 time based, 2 waves. 
 	int level_type = 0; 
 	vec2 player_position = vec2(50, 200); 
-	std::string color; 
+	vec2 player2_position = vec2(50, 200);
 };
 
 /**
@@ -262,7 +269,8 @@ enum class GEOMETRY_BUFFER_ID {
 	BLOBBER = HUNTER + 1,
 	RUNNER = BLOBBER + 1,
 	FIREBALL = RUNNER + 1,
-	GEOMETRY_COUNT = FIREBALL + 1
+	TREE = FIREBALL + 1,
+	GEOMETRY_COUNT = TREE + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 

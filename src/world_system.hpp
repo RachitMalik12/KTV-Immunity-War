@@ -46,12 +46,11 @@ private:
 	void on_key(int key, int, int action, int mod);
 	void on_mouse_move(vec2 pos);
 	void on_mouse_click(int button, int action, int mods);
-	void handleProjectile(float elapsed_ms_since_last_update, int direction, Motion playerMotion, Entity player);
 
 	// restart level
 	void restart_game();
 
-	void setupLevel(bool firstTime, bool restart); 
+	void setupLevel(int levelNum); 
 
 	// OpenGL window handle
 	GLFWwindow* window;
@@ -70,9 +69,10 @@ private:
 	float next_enemyrun_spawn;
 	float next_projectile_fire_player1;
 	float next_projectile_fire_player2;
-	Entity player_salmon;
 	Entity player_wizard;
 	Entity player2_wizard;
+	Entity player_stat;
+	Entity player2_stat;
 
 	// music references
 	Mix_Music* background_music;
@@ -93,4 +93,8 @@ private:
 	// create and remove walls and doors
 	void createWalls(int screenWidth, int screenHeight);
 	void createADoor(int screenWidth, int screenHeight);
+
+	void deathHandling();
+
+	void setPlayerStats();
 }; 

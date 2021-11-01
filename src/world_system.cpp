@@ -9,9 +9,6 @@
 #include "physics_system.hpp"
 
 // Game configuration
-const size_t MAX_ENEMIES = 5;
-const size_t MAX_ENEMIESRUN = 2;
-const size_t ENEMY_DELAY_MS = 1000;
 const size_t DEFAULT_HEIGHT = 800;
 const int WALL_THICKNESS = 40;
 const int SHOP_WALL_THICKNESS = 100;
@@ -124,77 +121,63 @@ GLFWwindow* WorldSystem::create_window(int width, int height) {
 	return window;
 }
 
-void WorldSystem::setupLevel(bool firstTime, bool restart) {
+void WorldSystem::setupLevel(int levelNum) {
 	int screen_width, screen_height;
 	glfwGetFramebufferSize(window, &screen_width, &screen_height);
-	if (!firstTime) {
-		// Remove all players, enemies, blocks 
-	
-		if (!restart) {
-			while (registry.enemies.entities.size() > 0)
-				registry.remove_all_components_of(registry.enemies.entities.back());
-			while (registry.blocks.entities.size() > 0)
-				registry.remove_all_components_of(registry.blocks.entities.back());
-			level_number += 1;
-		} else if (restart) {
-			while (registry.players.entities.size() > 0)
-				registry.remove_all_components_of(registry.players.entities.back());
-			while (registry.projectiles.entities.size() > 0)
-				registry.remove_all_components_of(registry.projectiles.entities.back()); 
-			while (registry.enemies.entities.size() > 0)
-				registry.remove_all_components_of(registry.enemies.entities.back());
-			while (registry.blocks.entities.size() > 0)
-				registry.remove_all_components_of(registry.blocks.entities.back());
-		}
-	
-	}
-	int index = level_number - 1; 
-	Level firstLevel = levels[index];
-	auto enemies = firstLevel.enemies;
-	auto enemy_types = firstLevel.enemy_types;
-	auto num_enemy_types = firstLevel.num_enemy_types;
-	for (int i = 0; i < enemy_types.size(); i++) {
-		// enemy blob 
-		if (enemy_types[i] == 1) {
-			// Spawn enemies number of enemies for type enemy_type[i]
-			for (int j = 0; j < enemies[i]; j++) {
-				vec2 position = vec2(uniform_dist(rng) * (screen_width - (screen_width / 6.f)), screen_height / 16.f);
-				vec2 velocity = vec2(0.f, 200.f * defaultResolution.scaling);
-				createEnemyBlob(renderer, position, velocity);
-			}
-		}
 
-		if (enemy_types[i] == 2) {
-			for (int j = 0; j < enemies[i]; j++) {
-				// Create enemy run
-				vec2 position = vec2(uniform_dist(rng) * (screen_width - (screen_width / 6.f)), screen_height / 16.f);
-				vec2 velocity = vec2(uniform_dist(rng) * 200.f * defaultResolution.scaling, uniform_dist(rng) * 200.f * defaultResolution.scaling);
-				createEnemyRun(renderer, position, velocity);
-			}
-		}
+	while (registry.players.entities.size() > 0)
+		registry.remove_all_components_of(registry.players.entities.back());
+	while (registry.projectiles.entities.size() > 0)
+		registry.remove_all_components_of(registry.projectiles.entities.back()); 
+	while (registry.enemies.entities.size() > 0)
+		registry.remove_all_components_of(registry.enemies.entities.back());
+	while (registry.blocks.entities.size() > 0)
+		registry.remove_all_components_of(registry.blocks.entities.back());
 
-		if (enemy_types[i] == 3) {
-			for (int j = 0; j < enemies[i]; j++) {
-				createEnemyHunter(renderer, vec2(screen_width * 0.66f, screen_height * 0.5f), vec2(1, 0));
-			}
+	int index = levelNum - 1; 
+	Level level = levels[index];
+	auto enemies = level.enemies;
+	auto enemy_types = level.enemy_types;
+	auto enemyPositions = level.enemyPositions;
+	for (int i = 0; i < enemyPositions.size(); i++) {
+		for (int j = 0; j < enemyPositions[i].size(); j++) {
+			createEnemy(renderer, enemyPositions[i][j] * defaultResolution.scaling, enemy_types[i]);
 		}
 	}
 
 	// Blocks 
-	for (int b = 0; b < firstLevel.block_positions.size(); b++) {
-		vec2 block_pos_i = firstLevel.block_positions[b];
-		std::string block_color_i = firstLevel.color; 
-		createBlock(renderer, block_pos_i, block_color_i);
-	}
-	if (firstTime || restart) {
-		player_wizard = createWizard(renderer, firstLevel.player_position);
-		Player& player1 = registry.players.get(player_wizard);
-		player1.PLAYER_SPEED = player1.PLAYER_SPEED * defaultResolution.scaling;
-		if (twoPlayer.inTwoPlayerMode) {
-			player2_wizard = createWizard(renderer, { screen_width / 10, screen_height * 0.66f });
-			Player& player2 = registry.players.get(player2_wizard);
-			player2.PLAYER_SPEED = player2.PLAYER_SPEED * defaultResolution.scaling;
+	for (int b = 0; b < level.block_positions.size(); b++) {
+		vec2 block_pos_i = level.block_positions[b];
+		std::string block_color_i;
+		if (uniform_dist(rng) < 0.33) {
+			block_color_i = "red";
+		} else if (uniform_dist(rng) >= 0.33 && uniform_dist(rng) < 0.66) {
+			block_color_i = "orange";
+		} else {
+			block_color_i = "yellow";
 		}
+		createBlock(renderer, block_pos_i * defaultResolution.scaling, block_color_i);
+	}
+
+	player_wizard = createWizard(renderer, level.player_position * defaultResolution.scaling);
+	Player& player1 = registry.players.get(player_wizard);
+	player1.playerStat = player_stat;
+	PlayerStat& playerOneStat = registry.playerStats.get(player_stat);
+	player1.hp = playerOneStat.maxHp;
+	if (twoPlayer.inTwoPlayerMode) {
+		player2_wizard = createWizard(renderer, level.player2_position * defaultResolution.scaling);
+		Player& player2 = registry.players.get(player2_wizard);
+		player2.playerStat = player2_stat;
+		PlayerStat& playerTwoStat = registry.playerStats.get(player2_stat);
+		player2.hp = playerTwoStat.maxHp;
+	}
+
+	// Reset player position on level transition
+	Motion& player1Motion = registry.motions.get(player_wizard);
+	player1Motion.position = level.player_position * defaultResolution.scaling;
+	if (twoPlayer.inTwoPlayerMode) {
+		Motion& player2Motion = registry.motions.get(player2_wizard);
+		player2Motion.position = level.player2_position * defaultResolution.scaling;
 	}
 	// Update state 
 	isLevelOver = false;
@@ -227,10 +210,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		hp_p2 = registry.players.get(player2_wizard).hp; 
 	}
 	if (twoPlayer.inTwoPlayerMode) {
-		title_ss << " Money P1: " << registry.players.get(player_wizard).money << " Health P1 " << hp_p1
-			     << " & Money P2: " << registry.players.get(player2_wizard).money  << " Health P2 " << hp_p2;
+		title_ss << " P1 Money: " << registry.playerStats.get(registry.players.get(player_wizard).playerStat).money << " Health: " << hp_p1
+			     << " & P2 Money: " << registry.playerStats.get(registry.players.get(player2_wizard).playerStat).money  << " Health: " << hp_p2;
 	} else {
-		title_ss << " Money: " << registry.players.get(player_wizard).money << " & Health P1 " << hp_p1;
+		title_ss << " Money: " << registry.playerStats.get(registry.players.get(player_wizard).playerStat).money << " & Health P1 " << hp_p1;
 	}
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
@@ -245,7 +228,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	if (isLevelOver && nextLevel <= levels.size()) {
 		// Only if we have levels left we need to change level 
 		initial_level_load = false; 
-		setupLevel(initial_level_load, false); 
+		level_number = nextLevel;
+		setupLevel(level_number);
 	}
 
 	// Check level completion 
@@ -295,21 +279,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// handle player1 projectiles
 	next_projectile_fire_player1 -= elapsed_ms_since_last_update * current_speed;
 	Player& player1 = registry.players.get(player_wizard);
+	PlayerStat& playerOneStat = registry.playerStats.get(player1.playerStat);
 	Motion playerMotion = motions_registry.get(player_wizard);
 	if (player1.isFiringProjectile && next_projectile_fire_player1 < 0.f) {
-		next_projectile_fire_player1 = player1.PROJECTILE_FIRE_RATE;
+		next_projectile_fire_player1 = playerOneStat.projectileFireRate;
 		switch (player1.firingDirection) {
 			case 0: // up
-				createProjectile(renderer, playerMotion.position, { 0, -1.f * player1.PROJECTILE_SPEED * defaultResolution.scaling }, player_wizard);
+				createProjectile(renderer, playerMotion.position, { 0, -1.f * playerOneStat.projectileSpeed * defaultResolution.scaling }, player_wizard);
 				break;
 			case 1: // right
-				createProjectile(renderer, playerMotion.position, { player1.PROJECTILE_SPEED * defaultResolution.scaling, 0 }, player_wizard);
+				createProjectile(renderer, playerMotion.position, { playerOneStat.projectileSpeed * defaultResolution.scaling, 0 }, player_wizard);
 				break;
 			case 2: // down
-				createProjectile(renderer, playerMotion.position, { 0, player1.PROJECTILE_SPEED * defaultResolution.scaling }, player_wizard);
+				createProjectile(renderer, playerMotion.position, { 0, playerOneStat.projectileSpeed * defaultResolution.scaling }, player_wizard);
 				break;
 			case 3: // left
-				createProjectile(renderer, playerMotion.position, { -1.f * player1.PROJECTILE_SPEED * defaultResolution.scaling, 0 }, player_wizard);
+				createProjectile(renderer, playerMotion.position, { -1.f * playerOneStat.projectileSpeed * defaultResolution.scaling, 0 }, player_wizard);
 				break;
 		}
 	}
@@ -319,8 +304,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		next_projectile_fire_player2 -= elapsed_ms_since_last_update * current_speed;
 		Motion player2Motion = motions_registry.get(player2_wizard);
 		Player& player2 = registry.players.get(player2_wizard);
+		PlayerStat& playerTwoStat = registry.playerStats.get(player2.playerStat);
 		if (player2.isFiringProjectile && next_projectile_fire_player2 < 0.f) {
-			next_projectile_fire_player2 = player2.PROJECTILE_FIRE_RATE;
+			next_projectile_fire_player2 = playerTwoStat.projectileFireRate;
 			double x, y;
 			glfwGetCursorPos(window, &x, &y);
 			if (registry.inShops.has(player2_wizard)) {
@@ -329,13 +315,41 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			float dx = (float)x - player2Motion.position.x;
 			float dy = (float)y - player2Motion.position.y;
 			float h = sqrtf(powf(dx, 2) + powf(dy, 2));
-			float scale = player2.PROJECTILE_SPEED * defaultResolution.scaling / h;
+			float scale = playerTwoStat.projectileSpeed * defaultResolution.scaling / h;
 			createProjectile(renderer, player2Motion.position, { dx * scale, dy * scale }, player2_wizard);
 		}
 	}
 
+	// handle death
+	deathHandling();
 
 	return true;
+}
+
+void WorldSystem::deathHandling() {
+	if (twoPlayer.inTwoPlayerMode) {
+		Player& player1 = registry.players.get(player_wizard);
+		Player& player2 = registry.players.get(player2_wizard);
+		if (player1.isDead) {
+			Motion& player1Motion = registry.motions.get(player_wizard);
+			player1Motion.position = vec2(-200, 0);
+			player1Motion.velocity = vec2(0, 0);
+		}
+		if (player2.isDead) {
+			Motion& player2Motion = registry.motions.get(player2_wizard);
+			player2Motion.position = vec2(-200, 0);
+			player2Motion.velocity = vec2(0, 0);
+		}
+		if (player1.isDead && player2.isDead) {
+			setupLevel(level_number);
+		}
+	}
+	else {
+		Player& player1 = registry.players.get(player_wizard);
+		if (player1.isDead) {
+			setupLevel(level_number);
+		}
+	}
 }
 
 // Reset the world state to its initial state
@@ -361,15 +375,19 @@ void WorldSystem::restart_game() {
 	while (registry.motions.entities.size() > 0)
 	    registry.remove_all_components_of(registry.motions.entities.back());
 
+	// reset player stats
+	while (registry.playerStats.entities.size() > 0)
+		registry.remove_all_components_of(registry.playerStats.entities.back());
+	setPlayerStats();
+
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
 	// Create walls and doors
 	createWalls(screenWidth, screenHeight);
 	createADoor(screenWidth, screenHeight);
-	setupLevel(initial_level_load, false); 
+	setupLevel(level_number); 
 	initial_level_load = false; 
-
 }
 
 void WorldSystem::createADoor(int screenWidth, int screenHeight) {
@@ -402,74 +420,89 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	
 	Motion& player1motion = registry.motions.get(player_wizard);
 	Player& player = registry.players.get(player_wizard);
+	PlayerStat& playerOneStat = registry.playerStats.get(player.playerStat);
 
-	vec2 currentVelocity = vec2(player1motion.velocity.x, player1motion.velocity.y);
-	if (action == GLFW_PRESS && key == GLFW_KEY_W) {
-		player1motion.velocity = vec2(currentVelocity.x, currentVelocity.y - player.PLAYER_SPEED);
-	}
-	if (action == GLFW_RELEASE && key == GLFW_KEY_W) {
-		player1motion.velocity = vec2(currentVelocity.x, currentVelocity.y + player.PLAYER_SPEED);
-	}
+	if (!player.isDead) {
+		vec2 currentVelocity = vec2(player1motion.velocity.x, player1motion.velocity.y);
+		if (action == GLFW_PRESS && key == GLFW_KEY_W) {
+			player1motion.velocity = vec2(currentVelocity.x, currentVelocity.y - playerOneStat.movementSpeed);
+		}
+		if (action == GLFW_RELEASE && key == GLFW_KEY_W) {
+			player1motion.velocity = vec2(currentVelocity.x, 0);
+		}
 
-	if (action == GLFW_PRESS && key == GLFW_KEY_S) {
-		player1motion.velocity = vec2(currentVelocity.x, currentVelocity.y + player.PLAYER_SPEED);
-	}
-	if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
-		player1motion.velocity = vec2(currentVelocity.x, currentVelocity.y - player.PLAYER_SPEED);
-	}
+		if (action == GLFW_PRESS && key == GLFW_KEY_S) {
+			player1motion.velocity = vec2(currentVelocity.x, currentVelocity.y + playerOneStat.movementSpeed);
+		}
+		if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
+			player1motion.velocity = vec2(currentVelocity.x, 0);
+		}
 
-	if (action == GLFW_PRESS && key == GLFW_KEY_A) {
-		if (!registry.flips.has(player_wizard)){
+		if (action == GLFW_PRESS && key == GLFW_KEY_A) {
+			if (!registry.flips.has(player_wizard)) {
 				registry.flips.emplace(player_wizard);
 				Flip& flipped = registry.flips.get(player_wizard);
 				flipped.left = true;
 				player1motion.scale = vec2({ -WIZARD_BB_WIDTH * defaultResolution.scaling, WIZARD_BB_HEIGHT * defaultResolution.scaling });
+			}
+
+			player1motion.velocity = vec2(currentVelocity.x - playerOneStat.movementSpeed, currentVelocity.y);
+		}
+		if (action == GLFW_RELEASE && key == GLFW_KEY_A) {
+			player1motion.velocity = vec2(0, currentVelocity.y);
+
 		}
 
-		player1motion.velocity = vec2(currentVelocity.x - player.PLAYER_SPEED, currentVelocity.y);
-	}
-	if (action == GLFW_RELEASE && key == GLFW_KEY_A) {
-		player1motion.velocity = vec2(currentVelocity.x + player.PLAYER_SPEED, currentVelocity.y);
-
-	}
-
-	if (action == GLFW_PRESS && key == GLFW_KEY_D) {
-		if (registry.flips.has(player_wizard))
-		{
-			Flip& flipped = registry.flips.get(player_wizard);
-			flipped.left = false;
-			registry.flips.remove(player_wizard);
-			player1motion.scale = vec2({ WIZARD_BB_WIDTH * defaultResolution.scaling, WIZARD_BB_HEIGHT * defaultResolution.scaling });
+		if (action == GLFW_PRESS && key == GLFW_KEY_D) {
+			if (registry.flips.has(player_wizard))
+			{
+				Flip& flipped = registry.flips.get(player_wizard);
+				flipped.left = false;
+				registry.flips.remove(player_wizard);
+				player1motion.scale = vec2({ WIZARD_BB_WIDTH * defaultResolution.scaling, WIZARD_BB_HEIGHT * defaultResolution.scaling });
+			}
+			player1motion.velocity = vec2(currentVelocity.x + playerOneStat.movementSpeed, currentVelocity.y);
 		}
-		player1motion.velocity = vec2(currentVelocity.x + player.PLAYER_SPEED, currentVelocity.y);
-	}
 
-	if (action == GLFW_RELEASE && key == GLFW_KEY_D) {
-		player1motion.velocity = vec2(currentVelocity.x - player.PLAYER_SPEED, currentVelocity.y);
-	}
+		if (action == GLFW_RELEASE && key == GLFW_KEY_D) {
+			player1motion.velocity = vec2(0, currentVelocity.y);
+		}
 
-	if (action == GLFW_PRESS && key == GLFW_KEY_T) {
-		player.isFiringProjectile = true;
-		player.firingDirection = 0;
-	}
+		if (action == GLFW_PRESS && key == GLFW_KEY_T) {
+			player.isFiringProjectile = true;
+			player.firingDirection = 0;
+		}
 
-	if (action == GLFW_PRESS && key == GLFW_KEY_G) {
-		player.isFiringProjectile = true;
-		player.firingDirection = 2;
-	}
+		if (action == GLFW_PRESS && key == GLFW_KEY_G) {
+			player.isFiringProjectile = true;
+			player.firingDirection = 2;
+		}
 
-	if (action == GLFW_PRESS && key == GLFW_KEY_H) {
-		player.isFiringProjectile = true;
-		player.firingDirection = 1;
+		if (action == GLFW_PRESS && key == GLFW_KEY_H) {
+			player.isFiringProjectile = true;
+			player.firingDirection = 1;
 
-	}
+		}
 
-	if (action == GLFW_PRESS && key == GLFW_KEY_F) {
-		player.isFiringProjectile = true;
-		player.firingDirection = 3;
-	}
+		if (action == GLFW_PRESS && key == GLFW_KEY_F) {
+			player.isFiringProjectile = true;
+			player.firingDirection = 3;
+		}
+	}	
+
+	// level loading
 	if (action == GLFW_PRESS && key == GLFW_KEY_L) {
-		setupLevel(initial_level_load, true); 
+		setupLevel(level_number); 
+	}
+	// load level 1
+	if (action == GLFW_PRESS && key == GLFW_KEY_1) {
+		level_number = 1; 
+		setupLevel(level_number);
+	}
+	// load level 1
+	if (action == GLFW_PRESS && key == GLFW_KEY_2) {
+		level_number = 2; 
+		setupLevel(level_number);
 	}
 	
 	if (action == GLFW_RELEASE && (key == GLFW_KEY_F || key == GLFW_KEY_H || key == GLFW_KEY_G || key == GLFW_KEY_T)) {
@@ -495,7 +528,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	// Switch between one player/two player
-	if (action == GLFW_PRESS && key == GLFW_KEY_2) {
+	if (action == GLFW_PRESS && key == GLFW_KEY_X) {
 		if (twoPlayer.inTwoPlayerMode) {
 			twoPlayer.inTwoPlayerMode = false;
 		} else {
@@ -559,35 +592,34 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 
 void WorldSystem::on_mouse_click(int button, int action, int mods) {
 	if (twoPlayer.inTwoPlayerMode) {
-		if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_LEFT) {
-			if (registry.mouseDestinations.has(player2_wizard))
-				registry.mouseDestinations.remove(player2_wizard);
-			Motion& wizard2_motion = registry.motions.get(player2_wizard);
-			Player& wizard2_player = registry.players.get(player2_wizard);
-			double x, y;
-			glfwGetCursorPos(window, &x, &y);
-			if (registry.inShops.has(player2_wizard)) {
-				y += DEFAULT_HEIGHT * defaultResolution.scaling;
+		Player& wizard2_player = registry.players.get(player2_wizard);
+		if (!wizard2_player.isDead) {
+			if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_LEFT) {
+				if (registry.mouseDestinations.has(player2_wizard))
+					registry.mouseDestinations.remove(player2_wizard);
+				Motion& wizard2_motion = registry.motions.get(player2_wizard);
+				PlayerStat& playerTwoStat = registry.playerStats.get(wizard2_player.playerStat);
+				double x, y;
+				glfwGetCursorPos(window, &x, &y);
+				if (registry.inShops.has(player2_wizard)) {
+					y += DEFAULT_HEIGHT * defaultResolution.scaling;
+				}
+				float dx = (float)x - wizard2_motion.position.x;
+				float dy = (float)y - wizard2_motion.position.y;
+				float h = sqrtf(powf(dx, 2) + powf(dy, 2));
+				float scale = playerTwoStat.movementSpeed / h;
+				wizard2_motion.velocity = vec2(dx * scale, dy * scale);
+				registry.mouseDestinations.emplace(player2_wizard, vec2(x, y));
 			}
-			float dx = (float)x - wizard2_motion.position.x;
-			float dy = (float)y - wizard2_motion.position.y;
-			float h = sqrtf(powf(dx, 2) + powf(dy, 2));
-			float scale = wizard2_player.PLAYER_SPEED / h;
-			wizard2_motion.velocity = vec2(dx * scale, dy * scale);
-			registry.mouseDestinations.emplace(player2_wizard, vec2(x, y));
-		}
 
-		if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_RIGHT) {
-			Motion& wizard2_motion = registry.motions.get(player2_wizard);
-			Player& player = registry.players.get(player2_wizard);
-			player.isFiringProjectile = true;
-		}
+			if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_RIGHT) {
+				wizard2_player.isFiringProjectile = true;
+			}
 
-		if (action == GLFW_RELEASE && button == GLFW_MOUSE_BUTTON_RIGHT) {
-			Player& player = registry.players.get(player2_wizard);
-			player.isFiringProjectile = false;
+			if (action == GLFW_RELEASE && button == GLFW_MOUSE_BUTTON_RIGHT) {
+				wizard2_player.isFiringProjectile = false;
+			}
 		}
-
 	}
 }
 
@@ -667,3 +699,17 @@ void WorldSystem::setResolution() {
 	}
 }
 
+void WorldSystem::setPlayerStats() {
+	auto entity = Entity();
+	registry.playerStats.emplace(entity);
+	player_stat = entity;
+	PlayerStat& playerOneStat = registry.playerStats.get(player_stat);
+	playerOneStat.movementSpeed = playerOneStat.movementSpeed * defaultResolution.scaling;
+	if (twoPlayer.inTwoPlayerMode) {
+		auto entity2 = Entity();
+		registry.playerStats.emplace(entity2);
+		player2_stat = entity2;
+		PlayerStat& playerTwoStat = registry.playerStats.get(player2_stat);
+		playerTwoStat.movementSpeed = playerTwoStat.movementSpeed * defaultResolution.scaling;
+	}
+}
