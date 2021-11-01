@@ -252,7 +252,7 @@ Entity createEnemyBacteria(RenderSystem* renderer, vec2 position) {
 	enemyCom.damage = 1;
 	enemyCom.hp = 5;
 	enemyCom.loot = 4;
-	enemyCom.speed = 100.f * defaultResolution.scaling;
+	enemyCom.speed = 200.f * defaultResolution.scaling;
 	auto& bacteria = registry.enemyBacterias.get(entity);
 
 	registry.renderRequests.insert(
