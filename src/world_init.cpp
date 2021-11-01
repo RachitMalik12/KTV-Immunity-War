@@ -303,3 +303,29 @@ Entity createLine(vec2 position, vec2 scale)
 	registry.debugComponents.emplace(entity);
 	return entity;
 }
+
+Entity createHelp() {
+	Entity entity = Entity();
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::HELPPANEL,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	// Create motion
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = { defaultResolution.width / 2, defaultResolution.height / 2 };
+	if (defaultResolution.scaling == 2) {
+		motion.scale = vec2({ HELP_BB_WIDTH * 0.7, HELP_BB_HEIGHT*0.7 });
+	}
+	else {
+		motion.scale = vec2({ HELP_BB_WIDTH * defaultResolution.scaling, HELP_BB_HEIGHT * defaultResolution.scaling });
+	}
+
+	registry.helpModes.emplace(entity);
+
+	return entity;
+}

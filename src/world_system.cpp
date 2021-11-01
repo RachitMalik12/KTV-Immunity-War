@@ -367,6 +367,9 @@ void WorldSystem::restart_game() {
 	// Reset the game speed
 	current_speed = 1.f;
 
+	// set help mode to false again
+	helpMode.inHelpMode = false;
+
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all fish, turtles, ... but that would be more cumbersome
 	while (registry.motions.entities.size() > 0)
@@ -533,6 +536,21 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 		restart_game();
 	}
+
+	// Control if in help mode or not
+	if (action == GLFW_RELEASE && key == GLFW_KEY_0) {
+		if (helpMode.inHelpMode) {
+			helpMode.inHelpMode = false;
+			for (Entity entity : registry.helpModes.entities) {
+				registry.remove_all_components_of(entity);
+			}
+		}
+		else {
+			helpMode.inHelpMode = true;
+			createHelp();
+		}
+	}
+
 
 	// Control the current speed with `<` `>`
 	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA) {
