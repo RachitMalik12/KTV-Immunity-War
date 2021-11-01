@@ -506,7 +506,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 	// load level 3
 	if (action == GLFW_PRESS && key == GLFW_KEY_3) {
-		setupLevel(initial_level_load, true, 3);
+		setupLevel(3);
 	}
 	
 	if (action == GLFW_RELEASE && (key == GLFW_KEY_F || key == GLFW_KEY_H || key == GLFW_KEY_G || key == GLFW_KEY_T)) {
