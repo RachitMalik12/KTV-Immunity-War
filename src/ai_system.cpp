@@ -46,19 +46,12 @@ void AISystem::stepEnemyHunter(float elapsed_ms) {
 
 // separate map into an 8x8 "grid"
 void AISystem::createAdj(const float width, const float height) {
-	int i = 0;
-	int j = 0;
-
-	int iCounter = 0;
-	int jCounter = 0;
-	for (i; i < 8; i++) {
-		for (j; j < 8; j++) {
+	for (int i = 0; i < 8; i++) {
+		for (int j = 0; j < 8; j++) {
 			visited[i][j] = false;
 			pred[i][j] = { -1, -1 };
 			adj[i][j] = { i, j };
 		}
-		j = 0;
-		jCounter = 0;
 	}
 	blocksInitialized = true;
 }
@@ -77,114 +70,113 @@ void AISystem::stepEnemyBacteria(float elapsed_ms, float width, float height) {
 			if (bacteria.huntingMode) {
 				bacteria.huntingMode = false;
 
-				// initialize "grid"
-				if (!blocksInitialized) {
-					createAdj(width, height);
-				};
+				createAdj(width, height);
 
 				// twoPlayerMode ? select random player to follow
 				if (twoPlayer.inTwoPlayerMode) {
+					next_bacteria_BFS_calculation = bacteria.bfsUpdateTime;
 					Motion player2Motion = motions_registry.get(registry.players.entities[1]);
 					float pickPlayer = rand() % 2 + 1;
 
 					if (pickPlayer != 1) {
-						handlePath(player2Motion.position.x, player2Motion.position.y, bacteriaMotion, width, height, bacteriaEntity);
+						handlePath(player2Motion.position.x, player2Motion.position.y, width, height, bacteriaEntity);
 					}
 					else {
-						handlePath(player1Motion.position.x, player1Motion.position.y, bacteriaMotion, width, height, bacteriaEntity);
+						handlePath(player1Motion.position.x, player1Motion.position.y, width, height, bacteriaEntity);
 					}
 				}
 				else {
 					next_bacteria_BFS_calculation = bacteria.bfsUpdateTime;
-					handlePath(player1Motion.position.x, player1Motion.position.y, bacteriaMotion, width, height, bacteriaEntity);
+					handlePath(player1Motion.position.x, player1Motion.position.y, width, height, bacteriaEntity);
 				}
 			}
 		}
 	}
 }
 
-bool AISystem::handlePath(int positionX, int positionY, Motion& bacteriaMotion, float width, float height, Entity& bacteriaEntity) {
-		Motion playerMotion = registry.motions.get(registry.players.entities[0]);
+bool AISystem::handlePath(int positionX, int positionY, float width, float height, Entity& bacteriaEntity) {
+	Motion playerMotion = registry.motions.get(registry.players.entities[0]);
+	Motion bacteriaMotion = registry.motions.get(bacteriaEntity);
 
-		// bacteria initial position (with respect to 8x8 grid)
-		int resIndexX = bacteriaMotion.position.x / (width / 8);
-		int resIndexY = bacteriaMotion.position.y / (height / 8);
+	// bacteria initial position (with respect to 8x8 grid)
+	int resIndexX = bacteriaMotion.position.x / (width / 8);
+	int resIndexY = bacteriaMotion.position.y / (height / 8);
 
-		// final position (player position, with respect to 8x8 grid)
-		int finXPosition = positionX / (width / 8);
-		int finYPosition = positionY / (height / 8);
+	// final position (player position, with respect to 8x8 grid)
+	int finXPosition = positionX / (width / 8);
+	int finYPosition = positionY / (height / 8);
 
-		// initialize first position, it will be visited later, add it to the queue
-		visited[resIndexX][resIndexY] = false;
-		adjacentsQueue.push({ resIndexX, resIndexY });
-		std::pair<int, int> currPosition = adjacentsQueue.front();
+	// initialize first position, it will be visited later, add it to the queue
+	visited[resIndexX][resIndexY] = false;
+	adjacentsQueue.push({ resIndexX, resIndexY });
+	std::pair<int, int> currPosition = adjacentsQueue.front();
 
-		while (!adjacentsQueue.empty()) {
-			// get first element in queue
-			currPosition = adjacentsQueue.front();
-			adjacentsQueue.pop();
+	while (!adjacentsQueue.empty()) {
+		// get first element in queue
+		currPosition = adjacentsQueue.front();
+		adjacentsQueue.pop();
 
-			// check if it's out of bounds or has been visited. if so, skip
-			if (currPosition.first <= 8 && currPosition.second <= 8 && visited[currPosition.first][currPosition.second] == false && currPosition.first <= 8 && currPosition.second <= 8 && currPosition.first >= 0 && currPosition.second >= 0) {
-				
-				// visited
-				visited[currPosition.first][currPosition.second] = true;
+		// check if it's out of bounds or has been visited. if so, skip
+		if (currPosition.first < 8 && currPosition.second < 8 && visited[currPosition.first][currPosition.second] == false && currPosition.first >= 0 && currPosition.second >= 0) {
+
+			// visited
+			visited[currPosition.first][currPosition.second] = true;
 
 
-				// We stop BFS when we find destination.
-				if (currPosition.first == finXPosition && currPosition.second == finYPosition) {
-					bfsSearchPath(resIndexX, resIndexY, finXPosition, finYPosition, bacteriaMotion, bacteriaEntity, width, height);
-					registry.enemyBacterias.get(bacteriaEntity).huntingMode = true;
-					return true;
+			// We stop BFS when we find destination.
+			if (currPosition.first == finXPosition && currPosition.second == finYPosition) {
+				bfsSearchPath(resIndexX, resIndexY, finXPosition, finYPosition, bacteriaEntity, width, height);
+				registry.enemyBacterias.get(bacteriaEntity).huntingMode = true;
+				return true;
+			}
+
+			// add adjacent "grid" block above to queue
+			if (currPosition.second - 1 >= 0) {
+				if (visited[currPosition.first][currPosition.second - 1] == false) {
+					adjacentsQueue.push({ currPosition.first, currPosition.second - 1 });
 				}
-
-				// add adjacent "grid" block above to queue
-				if (currPosition.second - 1 >= 0) {
-					if (visited[currPosition.first][currPosition.second - 1] == false) {
-						adjacentsQueue.push({ currPosition.first, currPosition.second - 1 });
-					}
-					if (pred[currPosition.first][currPosition.second - 1].first == -1 && pred[currPosition.first][currPosition.second - 1].second == -1) {
-						pred[currPosition.first][currPosition.second - 1] = { currPosition.first, currPosition.second };
-					}
-				}
-
-				// add adjacent "grid" block below to queue
-				if (currPosition.second + 1 <= 20) {
-					if (visited[currPosition.first][currPosition.second + 1] == false) {
-						adjacentsQueue.push({ currPosition.first, currPosition.second + 1 });
-					}
-					if (pred[currPosition.first][currPosition.second + 1].first == -1 && pred[currPosition.first][currPosition.second + 1].second == -1) {
-						pred[currPosition.first][currPosition.second + 1] = { currPosition.first, currPosition.second };
-					}
-				}
-
-				// add adjacent "grid" block left to queue
-				if (currPosition.first - 1 >= 0) {
-					if (visited[currPosition.first - 1][currPosition.second] == false) {
-						adjacentsQueue.push({ currPosition.first - 1, currPosition.second });
-					}
-					if (pred[currPosition.first - 1][currPosition.second].first == -1 && pred[currPosition.first - 1][currPosition.second].second == -1) {
-						pred[currPosition.first - 1][currPosition.second] = { currPosition.first, currPosition.second };
-					}
-				}
-
-				// add adjacent "grid" block right to queue
-				if (currPosition.first + 1 <= 20) {
-					if (visited[currPosition.first + 1][currPosition.second] == false) {
-						adjacentsQueue.push({ currPosition.first + 1, currPosition.second });
-					}
-					if (pred[currPosition.first + 1][currPosition.second].first == -1 && pred[currPosition.first + 1][currPosition.second].second == -1) {
-						pred[currPosition.first + 1][currPosition.second] = { currPosition.first, currPosition.second };
-					}
+				if (pred[currPosition.first][currPosition.second - 1].first == -1 && pred[currPosition.first][currPosition.second - 1].second == -1) {
+					pred[currPosition.first][currPosition.second - 1] = { currPosition.first, currPosition.second };
 				}
 			}
 
+			// add adjacent "grid" block below to queue
+			if (currPosition.second + 1 < 8) {
+				if (visited[currPosition.first][currPosition.second + 1] == false) {
+					adjacentsQueue.push({ currPosition.first, currPosition.second + 1 });
+				}
+				if (pred[currPosition.first][currPosition.second + 1].first == -1 && pred[currPosition.first][currPosition.second + 1].second == -1) {
+					pred[currPosition.first][currPosition.second + 1] = { currPosition.first, currPosition.second };
+				}
+			}
+
+			// add adjacent "grid" block left to queue
+			if (currPosition.first - 1 >= 0) {
+				if (visited[currPosition.first - 1][currPosition.second] == false) {
+					adjacentsQueue.push({ currPosition.first - 1, currPosition.second });
+				}
+				if (pred[currPosition.first - 1][currPosition.second].first == -1 && pred[currPosition.first - 1][currPosition.second].second == -1) {
+					pred[currPosition.first - 1][currPosition.second] = { currPosition.first, currPosition.second };
+				}
+			}
+
+			// add adjacent "grid" block right to queue
+			if (currPosition.first + 1 < 8) {
+				if (visited[currPosition.first + 1][currPosition.second] == false) {
+					adjacentsQueue.push({ currPosition.first + 1, currPosition.second });
+				}
+				if (pred[currPosition.first + 1][currPosition.second].first == -1 && pred[currPosition.first + 1][currPosition.second].second == -1) {
+					pred[currPosition.first + 1][currPosition.second] = { currPosition.first, currPosition.second };
+				}
+			}
 		}
+
+	}
 	return false;
 
 }
 
-void AISystem::bfsSearchPath(float initX, float initY, float finX, float finY, Motion& bacteriaMotion, Entity& bacteriaEntity, float width, float height) {
+void AISystem::bfsSearchPath(float initX, float initY, float finX, float finY, Entity& bacteriaEntity, float width, float height) {
 	std::pair<int, int> currPosition = { finX , finY };
 
 	// traverse from the final destination "grid" block
@@ -196,58 +188,29 @@ void AISystem::bfsSearchPath(float initX, float initY, float finX, float finY, M
 		currPosition = pred[currPosition.first][currPosition.second];
 	}
 
-	std::cout << "SIZE TRAVERSAL Q: " << traversalStack.size() << "\n";
 	// go through traversal stack. it should have the path now.
 	// if it's empty, stop.
 	while (!traversalStack.empty()) {
 		// get current position of traversal stack
 		currPosition = traversalStack.top();
 		traversalStack.pop();
-		int bacteriaPositionX = bacteriaMotion.position.x;
-		int bacteriaPositionY = bacteriaMotion.position.y;
-		std::cout << "X: " << currPosition.first << "== " << bacteriaPositionX << "\n";
-		std::cout << "Y: " << currPosition.second << "== " << bacteriaPositionY << "\n";
+		int bacteriaPositionX = registry.motions.get(bacteriaEntity).position.x;
+		int bacteriaPositionY = registry.motions.get(bacteriaEntity).position.y;
 
 		// from the current bacteria position, go to 
-		moveToSpot(bacteriaPositionX, bacteriaPositionY, currPosition.first, currPosition.second, bacteriaMotion, bacteriaEntity, width, height);
+		moveToSpot(bacteriaPositionX, bacteriaPositionY, currPosition.first, currPosition.second, bacteriaEntity);
+	}
+	while (!adjacentsQueue.empty())
+	{
+		adjacentsQueue.pop();
 	}
 }
 
-void AISystem::moveToSpot(float initX, float initY, float finalX, float finalY, Motion& bacteriaMotion, Entity& bacteriaEntity, float width, float height) {
-	// find distance between each (x and y) between the next point on the map we are going to and the bacteria
-	float distX = abs(finalX - initX);
-	float distY = abs(finalY - initY);
-
-	// find distance between each (x and y) between the next point on the map we are going to and the bacteria
-	// change the velocity accordingly
-	if (abs(distX) > 50){
-		if (distX > 0) {
-			std::cout << "RES > FINX \n";
-			bacteriaMotion.velocity.x = -distX *10.f;
-			initX = bacteriaMotion.position.x;
-		}
-		else {
-			std::cout << "RES < FINX \n";
-			bacteriaMotion.velocity.x = distX * 10.f;
-			initX = bacteriaMotion.position.x;
-		}
-	}
-
-	if (abs(distY) > 50) {
-		if (distY > 0) {
-			std::cout << "RES > FINY \n";
-			bacteriaMotion.velocity.y = -distY * 10.f;
-			initY = bacteriaMotion.position.y;
-		}
-		else {
-			std::cout << "RES < FINY \n";
-			bacteriaMotion.velocity.y = distY * 10.f;
-			initY = bacteriaMotion.position.y;
-		}
-	}
-
-	std::cout << "XVelocity " << bacteriaMotion.velocity.x << " \n" << "YVelocity " << bacteriaMotion.velocity.y << "\n";
-	std::cout << "XVelocity " << bacteriaMotion.velocity.x << " \n" << "YVelocity " << bacteriaMotion.velocity.y << "\n";
+void AISystem::moveToSpot(float initX, float initY, float finalX, float finalY, Entity& bacteriaEntity) {
+	Enemy& bacStatus = registry.enemies.get(bacteriaEntity);
+	vec2 diff = vec2(finalX, finalY) - vec2(initX, initY);
+	float angle = atan2(diff.y, diff.x);
+	registry.motions.get(bacteriaEntity).velocity = vec2(cos(angle) * 200, sin(angle) * 200);
 }
 
 bool AISystem::isHunterInRangeOfThePlayers(Entity hunterEntity) {
@@ -292,7 +255,8 @@ void AISystem::setHunterChasingThePlayer(Entity hunterEntity) {
 	Entity playerToChase;
 	if (twoPlayer.inTwoPlayerMode) {
 		playerToChase = determineWhichPlayerToChase(hunterEntity);
-	} else {
+	}
+	else {
 		playerToChase = registry.players.entities.front();
 	}
 	Motion& playerMotion = registry.motions.get(playerToChase);

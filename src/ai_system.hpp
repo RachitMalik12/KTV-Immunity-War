@@ -35,8 +35,8 @@ private:
 	Entity determineWhichPlayerToChase(Entity hunterEntity);
 	void stepEnemyHunter(float elapsed_ms);
 	void stepEnemyBacteria(float elapsed_ms, const float width, const float height);
-	bool handlePath(int positionX, int positionY, Motion& enemyMotion, float width, float height, Entity& bacteriaEntity);
-	void bfsSearchPath(float initX, float initY, float finX, float finY, Motion& enemyMotion, Entity& bacteriaEntity, float width, float height);
-	void moveToSpot(float initX, float initY, float finalX, float finalY, Motion& bacteriaMotion, Entity& bacteriaEntity, float width, float height);
+	bool handlePath(int positionX, int positionY, float width, float height, Entity& bacteriaEntity);
+	void bfsSearchPath(float initX, float initY, float finX, float finY, Entity& bacteriaEntity, float width, float height);
+	void moveToSpot(float initX, float initY, float finalX, float finalY, Entity& bacteriaEntity);
 	void createAdj(const float width, const float height);
 };

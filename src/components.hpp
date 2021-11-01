@@ -70,7 +70,7 @@ struct EnemyHunter
 struct EnemyBacteria
 {
 	bool huntingMode = true;
-	float bfsUpdateTime = 500.f;
+	float bfsUpdateTime = 1500.f;
 };
 
 struct Powerup 
