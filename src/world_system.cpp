@@ -332,13 +332,13 @@ void WorldSystem::deathHandling() {
 		Player& player2 = registry.players.get(player2_wizard);
 		if (player1.isDead) {
 			Motion& player1Motion = registry.motions.get(player_wizard);
-			player1Motion.position = vec2(-200, 0);
 			player1Motion.velocity = vec2(0, 0);
+			registry.renderRequests.remove(player_wizard);
 		}
 		if (player2.isDead) {
 			Motion& player2Motion = registry.motions.get(player2_wizard);
-			player2Motion.position = vec2(-200, 0);
 			player2Motion.velocity = vec2(0, 0);
+			registry.renderRequests.remove(player2_wizard);
 		}
 		if (player1.isDead && player2.isDead) {
 			setupLevel(level_number);
