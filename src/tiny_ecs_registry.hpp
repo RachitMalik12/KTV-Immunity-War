@@ -16,6 +16,7 @@ public:
 	ComponentContainer<Motion> motions;
 	ComponentContainer<Collision> collisions;
 	ComponentContainer<Player> players;
+	ComponentContainer<PlayerStat> playerStats;
 	ComponentContainer<Mesh*> meshPtrs;
 	ComponentContainer<RenderRequest> renderRequests;
 	ComponentContainer<ScreenState> screenStates;
@@ -35,6 +36,7 @@ public:
 	ComponentContainer<Flip> flips;
 	ComponentContainer<InShop> inShops;
 	ComponentContainer<Mesh*> hitboxes;
+	ComponentContainer<HelpMode> helpModes;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -45,6 +47,7 @@ public:
 		registry_list.push_back(&motions);
 		registry_list.push_back(&collisions);
 		registry_list.push_back(&players);
+		registry_list.push_back(&playerStats);
 		registry_list.push_back(&meshPtrs);
 		registry_list.push_back(&renderRequests);
 		registry_list.push_back(&screenStates);
@@ -64,6 +67,7 @@ public:
 		registry_list.push_back(&flips);
 		registry_list.push_back(&inShops);
 		registry_list.push_back(&hitboxes);
+		registry_list.push_back(&helpModes);
 	}
 
 	void clear_all_components() {

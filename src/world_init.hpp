@@ -21,6 +21,8 @@ const float ENEMYHUNTER_BB_HEIGHT = 0.11f * 691.f;
 const float ENEMYHUNTER_BB_WIDTH = 0.11f * 582.f;
 const float ENEMYBACTERIA_BB_HEIGHT = 0.11f * 691.f;
 const float ENEMYBACTERIA_BB_WIDTH = 0.11f * 800.f;
+const float HELP_BB_WIDTH = 1000.f;
+const float HELP_BB_HEIGHT = 641.f;
 
 // the player
 Entity createWizard(RenderSystem* renderer, vec2 pos);
@@ -55,3 +57,6 @@ Entity createPowerup(RenderSystem* render, vec2 pos);
 
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);
+
+// help popup
+Entity createHelp();

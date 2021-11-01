@@ -84,6 +84,8 @@ Entity createBlock(RenderSystem* renderer, vec2 pos, std::string color) {
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
+	Mesh& hitbox = renderer->getMesh(GEOMETRY_BUFFER_ID::TREE);
+	registry.hitboxes.emplace(entity, &hitbox);
 
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
@@ -134,7 +136,6 @@ Entity createEnemyBlob(RenderSystem* renderer, vec2 position)
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = vec2(0.f, 200.f * defaultResolution.scaling);
 	motion.position = position;
 
 	motion.scale = vec2({ ENEMYBLOB_BB_WIDTH * defaultResolution.scaling, ENEMYBLOB_BB_HEIGHT * defaultResolution.scaling });
@@ -146,7 +147,8 @@ Entity createEnemyBlob(RenderSystem* renderer, vec2 position)
 	enemyCom.damage = 1;
 	enemyCom.hp = 3;
 	enemyCom.loot = 1;
-	enemyCom.speed = 200 * defaultResolution.scaling;
+	enemyCom.speed = 200.f * defaultResolution.scaling;
+	motion.velocity = vec2(0.f, enemyCom.speed);
 
 	registry.renderRequests.insert(
 		entity,
@@ -171,7 +173,6 @@ Entity createEnemyRun(RenderSystem* renderer, vec2 position)
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = vec2(uniform_dist(rng) * 200.f * defaultResolution.scaling, uniform_dist(rng) * 200.f * defaultResolution.scaling);;
 	motion.position = position;
 
 	motion.scale = vec2({ ENEMYRUN_BB_WIDTH * defaultResolution.scaling, ENEMYRUN_BB_HEIGHT * defaultResolution.scaling });
@@ -184,6 +185,7 @@ Entity createEnemyRun(RenderSystem* renderer, vec2 position)
 	enemyCom.hp = 2;
 	enemyCom.loot = 1;
 	enemyCom.speed = 200.f * defaultResolution.scaling;
+	motion.velocity = vec2(uniform_dist(rng) * enemyCom.speed, uniform_dist(rng) * enemyCom.speed);;
 
 	registry.renderRequests.insert(
 		entity,
@@ -334,5 +336,31 @@ Entity createLine(vec2 position, vec2 scale)
 	motion.scale = scale;
 
 	registry.debugComponents.emplace(entity);
+	return entity;
+}
+
+Entity createHelp() {
+	Entity entity = Entity();
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::HELPPANEL,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	// Create motion
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = { defaultResolution.width / 2, defaultResolution.height / 2 };
+	if (defaultResolution.scaling == 2) {
+		motion.scale = vec2({ HELP_BB_WIDTH * 0.7, HELP_BB_HEIGHT*0.7 });
+	}
+	else {
+		motion.scale = vec2({ HELP_BB_WIDTH * defaultResolution.scaling, HELP_BB_HEIGHT * defaultResolution.scaling });
+	}
+
+	registry.helpModes.emplace(entity);
+
 	return entity;
 }

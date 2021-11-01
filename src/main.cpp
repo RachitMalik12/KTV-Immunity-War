@@ -14,6 +14,7 @@
 using Clock = std::chrono::high_resolution_clock;
 DefaultResolution defaultResolution;
 TwoPlayer twoPlayer;
+HelpMode helpMode;
 
 // Entry point
 int main()
@@ -57,10 +58,12 @@ int main()
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
 
-		world.step(elapsed_ms);
-		ai.step(elapsed_ms, (float)width, (float)height);
-		physics.step(elapsed_ms, (float)width, (float)height);
-		physics.handle_collision();
+		if (!helpMode.inHelpMode) {
+			world.step(elapsed_ms);
+			ai.step(elapsed_ms);
+			physics.step(elapsed_ms, (float)width, (float)height);
+			physics.handle_collision();
+		}
 
 		renderer.draw();
 	}

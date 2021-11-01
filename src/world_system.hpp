@@ -50,7 +50,7 @@ private:
 	// restart level
 	void restart_game();
 
-	void setupLevel(bool firstTime, bool restart, int levelNum); 
+	void setupLevel(int levelNum); 
 
 	// OpenGL window handle
 	GLFWwindow* window;
@@ -67,9 +67,10 @@ private:
 	float current_speed;
 	float next_projectile_fire_player1;
 	float next_projectile_fire_player2;
-	Entity player_salmon;
 	Entity player_wizard;
 	Entity player2_wizard;
+	Entity player_stat;
+	Entity player2_stat;
 
 	// music references
 	Mix_Music* background_music;
@@ -90,4 +91,8 @@ private:
 	// create and remove walls and doors
 	void createWalls(int screenWidth, int screenHeight);
 	void createADoor(int screenWidth, int screenHeight);
+
+	void deathHandling();
+
+	void setPlayerStats();
 }; 

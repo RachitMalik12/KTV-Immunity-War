@@ -7,17 +7,24 @@
 // Player component
 struct Player
 {
-	int hp = 3;
-	int money = 0;
-	int damage = 1;
+	int hp = 0;
 	float invinFrame = 2000.f;
 	float invinTimerInMs = 0;
 	bool isInvin = false;
 	bool isFiringProjectile = false;
 	int firingDirection = 0;
-	float PROJECTILE_SPEED = 300;
-	float PROJECTILE_FIRE_RATE = 500;
-	float PLAYER_SPEED = 150.f;
+	bool isDead = false;
+	Entity playerStat;
+};
+
+struct PlayerStat
+{
+	float projectileSpeed = 300.f;
+	float projectileFireRate = 500.f;
+	float movementSpeed = 150.f;
+	int maxHp = 3;
+	int money = 0;
+	int damage = 1;
 };
 
 // The projectile shot by the wizard character.
@@ -115,6 +122,11 @@ struct TwoPlayer {
 	bool inTwoPlayerMode = false;
 };
 extern TwoPlayer twoPlayer;
+
+struct HelpMode {
+	bool inHelpMode = false;
+};
+extern HelpMode helpMode;
 
 struct DefaultResolution {
 	int width = 1200;
@@ -236,7 +248,9 @@ enum class TEXTURE_ASSET_ID {
 	POWERUP = ENEMY + 1,
 	ENEMYRUN = POWERUP + 1,
 	ENEMYHUNTER = ENEMYRUN + 1,
-	ENEMYBACTERIA = ENEMYHUNTER + 1,
+	HELPPANEL = ENEMYHUNTER + 1,
+	TEXTURE_COUNT = HELPPANEL + 1
+	ENEMYBACTERIA = TEXTURE_COUNT + 1,
 	TEXTURE_COUNT = ENEMYBACTERIA + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
@@ -264,7 +278,9 @@ enum class GEOMETRY_BUFFER_ID {
 	BLOBBER = HUNTER + 1,
 	RUNNER = BLOBBER + 1,
 	FIREBALL = RUNNER + 1,
-	BACTERIA = FIREBALL + 1,
+	TREE = FIREBALL + 1,
+	GEOMETRY_COUNT = TREE + 1
+	BACTERIA = GEOMETRY_COUNT + 1,
 	GEOMETRY_COUNT = BACTERIA + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
