@@ -45,14 +45,16 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		gl_has_errors();
 		assert(in_texcoord_loc >= 0);
 
+		int vertexSize = 3;
 		glEnableVertexAttribArray(in_position_loc);
-		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+		glVertexAttribPointer(in_position_loc, vertexSize, GL_FLOAT, GL_FALSE,
 							  sizeof(TexturedVertex), (void *)0);
 		gl_has_errors();
 
+		int texCoordSize = 2;
 		glEnableVertexAttribArray(in_texcoord_loc);
 		glVertexAttribPointer(
-			in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
+			in_texcoord_loc, texCoordSize, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
 			(void *)sizeof(
 				vec3)); // note the stride to skip the preceeding vertex position
 		// Enabling and binding texture to slot 0
@@ -72,13 +74,14 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		GLint in_color_loc = glGetAttribLocation(program, "in_color");
 		gl_has_errors();
 
+		int size = 3;
 		glEnableVertexAttribArray(in_position_loc);
-		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+		glVertexAttribPointer(in_position_loc, size, GL_FLOAT, GL_FALSE,
 							  sizeof(ColoredVertex), (void *)0);
 		gl_has_errors();
 
 		glEnableVertexAttribArray(in_color_loc);
-		glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE,
+		glVertexAttribPointer(in_color_loc, size, GL_FLOAT, GL_FALSE,
 							  sizeof(ColoredVertex), (void *)sizeof(vec3));
 		gl_has_errors();
 
@@ -92,6 +95,41 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			// similar to the glUniform1f call below. The 1f or 1i specified the type, here a single int.
 			gl_has_errors();
 		}
+	}
+	else if (render_request.used_effect == EFFECT_ASSET_ID::KNIGHT)
+	{
+		GLint in_position_loc = glGetAttribLocation(program, "in_position");
+		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
+		gl_has_errors();
+		assert(in_texcoord_loc >= 0);
+
+		glEnableVertexAttribArray(in_position_loc);
+		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+			sizeof(TexturedVertex), (void *)0);
+		gl_has_errors();
+
+		glEnableVertexAttribArray(in_texcoord_loc);
+		glVertexAttribPointer(
+			in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
+			(void *)sizeof(
+				vec3)); // note the stride to skip the preceeding vertex position
+		// Enabling and binding texture to slot 0
+		glActiveTexture(GL_TEXTURE0);
+		gl_has_errors();
+
+		assert(registry.renderRequests.has(entity));
+		GLuint texture_id =
+			texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];
+
+		glBindTexture(GL_TEXTURE_2D, texture_id);
+
+		Animation& playerOneAnimation = registry.animations.get(registry.animations.entities.front());
+
+		GLint xFrame = glGetUniformLocation(program, "xFrame");
+		GLint yFrame = glGetUniformLocation(program, "yFrame");
+		glUniform1i(xFrame, playerOneAnimation.xFrame);
+		glUniform1i(yFrame, playerOneAnimation.yFrame);
+		gl_has_errors();
 	}
 	else
 	{

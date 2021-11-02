@@ -54,7 +54,8 @@ class RenderSystem {
 			textures_path("hunter1.png"),
 			textures_path("help.png"),
 			textures_path("yellow-bacteria.png"),
-			textures_path("enemychase.png")
+			textures_path("enemychase.png"),
+			textures_path("knight.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -64,7 +65,8 @@ class RenderSystem {
 		shader_path("pebble"),
 		shader_path("salmon"),
 		shader_path("textured"),
-		shader_path("water") };
+		shader_path("water"),
+		shader_path("knight")};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;

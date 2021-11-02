@@ -7,6 +7,8 @@
 // These are hard coded to the dimensions of the entity texture
 const float WIZARD_BB_WIDTH = 0.1f * 1231.f;
 const float WIZARD_BB_HEIGHT = 0.1f * 1767.f;
+const float KNIGHT_BB_WIDTH = 3.1f * 64.f;
+const float KNIGHT_BB_HEIGHT = 3.1f * 64.f;
 const float BLOCK_BB_WIDTH = 0.1f * 871.f;
 const float BLOCK_BB_HEIGHT = 0.1f * 1549.f;
 const float FIREBALL_BB_WIDTH = 0.04f * 1954.f;
@@ -28,6 +30,8 @@ const float HELP_BB_HEIGHT = 641.f;
 
 // the player
 Entity createWizard(RenderSystem* renderer, vec2 pos);
+
+Entity createKnight(RenderSystem* renderer, vec2 pos);
 
 // the projectile  
 Entity createProjectile(RenderSystem* render, vec2 pos, vec2 velocity, Entity playerEntity); 
