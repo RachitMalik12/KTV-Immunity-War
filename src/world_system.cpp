@@ -13,8 +13,6 @@ const size_t DEFAULT_HEIGHT = 800;
 const int WALL_THICKNESS = 40;
 const int SHOP_WALL_THICKNESS = 100;
 
-
-
 // Create the fish world
 WorldSystem::WorldSystem()
 	: spawnPowerup(true), 
@@ -187,7 +185,6 @@ void WorldSystem::setupLevel(int levelNum) {
 	isLevelOver = false;
 }
 
-
 void WorldSystem::init(RenderSystem* renderer_arg) {
 	this->renderer = renderer_arg;
 	// Playing background music indefinitely
@@ -205,7 +202,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	//animate
 	if (playerOneAnimation.pressed) {
 		
-		playerOneAnimation.xFrame = frame_counter(elapsed_ms_since_last_update, 5, 20, playerOneAnimation.xFrame, 9);
+		playerOneAnimation.xFrame = 
+			frame_counter(elapsed_ms_since_last_update, playerOneAnimation.animationSpeed, playerOneAnimation.xFrame, playerOneAnimation.numOfFrames);
 		registry.renderRequests.remove(player_wizard);
 		registry.renderRequests.insert(
 			player_wizard,
@@ -420,11 +418,13 @@ bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
 }
 
-int WorldSystem::frame_counter(float elapsed_ms, float ms, float speed, int frame, int num_frames) 
+int WorldSystem::frame_counter(float elapsed_ms, float animationSpeed, int frame, int num_frames)
 {
-	elapsed_ms += ms;
-	if (elapsed_ms > speed) {
+	Animation& playerOneAnimation = registry.animations.get(registry.animations.entities.front());
+	playerOneAnimation.animationTimer += elapsed_ms;
+	if (playerOneAnimation.animationTimer > animationSpeed) {
 		frame = (frame + 1) % num_frames;
+		playerOneAnimation.animationTimer = 0;
 	}
 	return frame;
 }

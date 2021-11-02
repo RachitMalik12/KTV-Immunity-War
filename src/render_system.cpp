@@ -44,14 +44,16 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		gl_has_errors();
 		assert(in_texcoord_loc >= 0);
 
+		int vertexSize = 3;
 		glEnableVertexAttribArray(in_position_loc);
-		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+		glVertexAttribPointer(in_position_loc, vertexSize, GL_FLOAT, GL_FALSE,
 							  sizeof(TexturedVertex), (void *)0);
 		gl_has_errors();
 
+		int texCoordSize = 2;
 		glEnableVertexAttribArray(in_texcoord_loc);
 		glVertexAttribPointer(
-			in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
+			in_texcoord_loc, texCoordSize, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
 			(void *)sizeof(
 				vec3)); // note the stride to skip the preceeding vertex position
 		// Enabling and binding texture to slot 0
@@ -71,13 +73,14 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		GLint in_color_loc = glGetAttribLocation(program, "in_color");
 		gl_has_errors();
 
+		int size = 3;
 		glEnableVertexAttribArray(in_position_loc);
-		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+		glVertexAttribPointer(in_position_loc, size, GL_FLOAT, GL_FALSE,
 							  sizeof(ColoredVertex), (void *)0);
 		gl_has_errors();
 
 		glEnableVertexAttribArray(in_color_loc);
-		glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE,
+		glVertexAttribPointer(in_color_loc, size, GL_FLOAT, GL_FALSE,
 							  sizeof(ColoredVertex), (void *)sizeof(vec3));
 		gl_has_errors();
 
