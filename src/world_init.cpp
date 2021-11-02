@@ -40,8 +40,6 @@ Entity createKnight(RenderSystem* renderer, vec2 position) {
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
-	Mesh& hitbox = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.hitboxes.emplace(entity, &hitbox);
 
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
@@ -302,15 +300,12 @@ Entity createEnemyChase(RenderSystem* renderer, vec2 position)
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
-	//Mesh& hitbox = renderer->getMesh(GEOMETRY_BUFFER_ID::BLOBBER);
-	//registry.hitboxes.emplace(entity, &hitbox);
 
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
 	motion.position = position;
 
-	//motion.scale = vec2({ ENEMYBLOB_BB_WIDTH * defaultResolution.scaling, ENEMYBLOB_BB_HEIGHT * defaultResolution.scaling });
 	motion.scale = vec2({ ENEMYCHASE_BB_WIDTH * defaultResolution.scaling, ENEMYCHASE_BB_HEIGHT * defaultResolution.scaling });
 
 	registry.enemies.emplace(entity);
@@ -322,7 +317,6 @@ Entity createEnemyChase(RenderSystem* renderer, vec2 position)
 	enemyCom.loot = 1;
 	enemyCom.speed = 200.f * defaultResolution.scaling;
 	motion.velocity = vec2(uniform_dist(rng) * enemyCom.speed, uniform_dist(rng) * enemyCom.speed);
-
 	
 	Motion& player_motion = motion;
 	for (Entity player : registry.players.entities) {
@@ -332,9 +326,6 @@ Entity createEnemyChase(RenderSystem* renderer, vec2 position)
 
 	vec2 enemy_to_player = vec2(player_motion.position.x - motion.position.x, player_motion.position.y - motion.position.y);
 	float radians = atan2f(enemy_to_player.y, -enemy_to_player.x);
-	//motion.angle = radians;
-	// scale direction to between -1, 1
-	//motion.velocity = vec2(-200.f, 200.f * uniform_dist(rng));
 
 	registry.renderRequests.insert(
 		entity,

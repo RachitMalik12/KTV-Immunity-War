@@ -2,10 +2,7 @@
 #include "physics_system.hpp"
 #include "world_init.hpp"
 
-const int MAX_DIST_WZ_EN = 50*50;
 const int ENEMY_AVOID_DIST = 100;
-const int ENEMY_DAMAGE = 1;
-const int ENEMY_CHASE_MAX_DIST_SQ = 200 * 200;
 
 void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_height_px)
 {
@@ -93,7 +90,7 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 				Motion& motion_wz = motion_registry.get(registry.players.entities[k]);
 				vec2 dp = motion_en.position - motion_wz.position;
 				float dist_squared = dot(dp, dp);
-				if (dist_squared < MAX_DIST_WZ_EN) {
+				if (dist_squared < registry.enemiesrun.get(entity).max_dist_wz_en_run) {
 					if (motion_en.velocity.x > 0) {
 						if (motion_en.velocity.y > 0) {
 							motion_en.velocity.x = -1 * enemyCom.speed;
@@ -118,58 +115,6 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 			}
 			
 			
-		}
-
-		// update enemy chase so it chases the player
-		if (registry.enemyChase.has(entity)) {
-			Motion& motion_wz = *new Motion();
-			for (uint k = 0; k < registry.players.size(); k++) {
-				if (!registry.players.get(registry.players.entities[k]).isDead) {
-					motion_wz = motion_registry.get(registry.players.entities[k]);
-					break;
-				}
-			}
-			// check if it is close to any other enemyChase
-			// if yes, make it move in opposite direction for a certain time
-			for (Entity other_enemy_chase : registry.enemyChase.entities) {
-				if (other_enemy_chase != entity) {
-					Motion& motion_other_en_chase = registry.motions.get(other_enemy_chase);
-					vec2 dp = motion_other_en_chase.position - motion.position;
-					float dist_squared = dot(dp, dp);
-					if (dist_squared < ENEMY_CHASE_MAX_DIST_SQ) {
-						// set encounter to true
-						registry.enemyChase.get(entity).encounter = 1;
-						motion.velocity = vec2{ dp.x * -1.f, dp.y * -1.f };
-					}
-					if (registry.enemyChase.get(entity).encounter == 1) {
-						registry.enemyChase.get(entity).counter_ms -= elapsed_ms;
-						if (registry.enemyChase.get(entity).counter_ms < 0) {
-							vec2 chase_to_wz = vec2(motion_wz.position.x - motion.position.x, motion_wz.position.y - motion.position.y);
-							float radians_for_angle = atan2f(-chase_to_wz.y, -chase_to_wz.x);
-							float radians = atan2f(chase_to_wz.y, chase_to_wz.x);
-							motion.angle = radians_for_angle;
-							motion.velocity = vec2(50.f * cos(-radians), 50.f * sin(radians));
-							registry.enemyChase.get(entity).encounter == 0;
-							registry.enemyChase.get(entity).counter_otherenchase_ms = 800;
-						}
-					}
-				}
-				else {
-					registry.enemyChase.get(entity).counter_ms -= elapsed_ms;
-					// reset timer and encounter variable when timer expires and
-					// recalculate direction turtle is facing
-					if (registry.enemyChase.get(entity).counter_ms < 0) {
-						registry.enemyChase.get(entity).counter_ms = 2000;
-						vec2 chase_to_wz = vec2(motion_wz.position.x - motion.position.x, motion_wz.position.y - motion.position.y);
-						float radians_for_angle = atan2f(-chase_to_wz.y, -chase_to_wz.x);
-						float radians = atan2f(chase_to_wz.y, chase_to_wz.x);
-						motion.angle = radians_for_angle;
-						motion.velocity = vec2(50.f * cos(-radians), 50.f * sin(radians));
-					}
-				}
-				
-			}
-
 		}
 	}
 	

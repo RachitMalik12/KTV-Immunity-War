@@ -34,6 +34,7 @@ private:
 	void setHunterChasingThePlayer(Entity hunterEntity);
 	Entity determineWhichPlayerToChase(Entity hunterEntity);
 	void stepEnemyHunter(float elapsed_ms);
+	void stepEnemyChase(float elapsed_ms);
 	void stepEnemyBacteria(float elapsed_ms, const float width, const float height);
 	bool handlePath(int positionX, int positionY, float width, float height, Entity& bacteriaEntity);
 	void bfsSearchPath(float initX, float initY, float finX, float finY, Entity& bacteriaEntity, float width, float height);

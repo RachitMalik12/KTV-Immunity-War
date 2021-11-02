@@ -5,6 +5,7 @@
 void AISystem::step(float elapsed_ms, float width, float height) {
 	stepEnemyHunter(elapsed_ms);
 	stepEnemyBacteria(elapsed_ms, width, height);
+	stepEnemyChase(elapsed_ms);
 }
 
 void AISystem::stepEnemyHunter(float elapsed_ms) {
@@ -89,6 +90,61 @@ void AISystem::stepEnemyBacteria(float elapsed_ms, float width, float height) {
 				}
 			}
 		}
+	}
+}
+
+void AISystem::stepEnemyChase(float elapsed_ms) {
+	// update enemy chase so it chases the player
+	for (Entity entity : registry.enemyChase.entities) {
+		Motion& motion = registry.motions.get(entity);
+		Motion& motion_wz = *new Motion();
+		for (uint k = 0; k < registry.players.size(); k++) {
+			if (!registry.players.get(registry.players.entities[k]).isDead) {
+				motion_wz = registry.motions.get(registry.players.entities[k]);
+				break;
+			}
+		}
+		// check if it is close to any other enemyChase
+		// if yes, make it move in opposite direction for a certain time
+		for (Entity other_enemy_chase : registry.enemyChase.entities) {
+			if (other_enemy_chase != entity) {
+				Motion& motion_other_en_chase = registry.motions.get(other_enemy_chase);
+				vec2 dp = motion_other_en_chase.position - motion.position;
+				float dist_squared = dot(dp, dp);
+				if (dist_squared < registry.enemyChase.get(entity).enemy_chase_max_dist_sq) {
+					// set encounter to true
+					registry.enemyChase.get(entity).encounter = 1;
+					motion.velocity = vec2{ dp.x * -1.f, dp.y * -1.f };
+				}
+				if (registry.enemyChase.get(entity).encounter == 1) {
+					registry.enemyChase.get(entity).counter_ms -= elapsed_ms;
+					if (registry.enemyChase.get(entity).counter_ms < 0) {
+						vec2 chase_to_wz = vec2(motion_wz.position.x - motion.position.x, motion_wz.position.y - motion.position.y);
+						float radians_for_angle = atan2f(-chase_to_wz.y, -chase_to_wz.x);
+						float radians = atan2f(chase_to_wz.y, chase_to_wz.x);
+						motion.angle = radians_for_angle;
+						motion.velocity = vec2(50.f * cos(-radians), 50.f * sin(radians));
+						registry.enemyChase.get(entity).encounter == 0;
+						registry.enemyChase.get(entity).counter_otherenchase_ms = 800;
+					}
+				}
+			}
+			else {
+				registry.enemyChase.get(entity).counter_ms -= elapsed_ms;
+				// reset timer and encounter variable when timer expires and
+				// recalculate direction turtle is facing
+				if (registry.enemyChase.get(entity).counter_ms < 0) {
+					registry.enemyChase.get(entity).counter_ms = 2000;
+					vec2 chase_to_wz = vec2(motion_wz.position.x - motion.position.x, motion_wz.position.y - motion.position.y);
+					float radians_for_angle = atan2f(-chase_to_wz.y, -chase_to_wz.x);
+					float radians = atan2f(chase_to_wz.y, chase_to_wz.x);
+					motion.angle = radians_for_angle;
+					motion.velocity = vec2(50.f * cos(-radians), 50.f * sin(radians));
+				}
+			}
+
+		}
+
 	}
 }
 

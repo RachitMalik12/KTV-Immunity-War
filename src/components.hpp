@@ -61,12 +61,13 @@ struct EnemyChase
 	// mark encounter with other enemies and counter for changing direction
 	uint encounter = 0;
 	float counter_otherenchase_ms = 800;
+	uint enemy_chase_max_dist_sq = 200 * 200;
 };
 
 // Enemy that will be attacked by wizard using projectile and tries to run away from wizard
 struct EnemyRun
 {
-
+	int max_dist_wz_en_run = 50 * 50;
 };
 
 // State machine feature
