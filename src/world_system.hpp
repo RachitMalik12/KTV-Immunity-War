@@ -37,6 +37,8 @@ public:
 	// Should the game be over ?
 	bool is_over()const;
 
+	int frame_counter(float elapsed_ms, float animationSpeed, int frame, int num_frames);
+
 	void setPlayerMode();
 
 	void setResolution();

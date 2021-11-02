@@ -12,6 +12,8 @@ Precise Collision (BS): Implemented precise collision detection by means of a co
 
 Simple Path Finding (FC): Implemented a BFS enemy "bacteria". The enemy updates it's path to what the current player (or one of the players, if there are two players) position is. It calculates it's path using BFS with a queue, where the map is separated into an 8x8 grid as "nodes", using it's predecessor nodes to find a path to the player it is hunting. 
 
+Animation (BZ & JK): Created sprite animations for player 1. The player has an idle phase when it's not moving (stays still) and moves when a direction is given. Also has 4 directions of idle and walking phases.
+
 External library integration (RM): Integrated the library https://github.com/open-source-parsers/jsoncpp to parse json files. Modified the cmake and made sure 
 it runs on all devices of our team. 
 

@@ -23,6 +23,8 @@ WorldSystem::WorldSystem()
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
 	setupWindowScaling();
+	auto entity = Entity();
+	registry.animations.emplace(entity);
 }
 
 WorldSystem::~WorldSystem() {
@@ -159,7 +161,7 @@ void WorldSystem::setupLevel(int levelNum) {
 		createBlock(renderer, block_pos_i * defaultResolution.scaling, block_color_i);
 	}
 
-	player_wizard = createWizard(renderer, level.player_position * defaultResolution.scaling);
+	player_wizard = createKnight(renderer, level.player_position * defaultResolution.scaling);
 	Player& player1 = registry.players.get(player_wizard);
 	player1.playerStat = player_stat;
 	PlayerStat& playerOneStat = registry.playerStats.get(player_stat);
@@ -183,7 +185,6 @@ void WorldSystem::setupLevel(int levelNum) {
 	isLevelOver = false;
 }
 
-
 void WorldSystem::init(RenderSystem* renderer_arg) {
 	this->renderer = renderer_arg;
 	// Playing background music indefinitely
@@ -196,6 +197,19 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Get the screen dimensions
 	int screen_width, screen_height;
 	glfwGetFramebufferSize(window, &screen_width, &screen_height);
+	Animation& playerOneAnimation = registry.animations.get(registry.animations.entities.front());
+	//animate
+	if (playerOneAnimation.pressed) {
+		playerOneAnimation.xFrame = 
+			frame_counter(elapsed_ms_since_last_update, playerOneAnimation.animationSpeed, playerOneAnimation.xFrame, playerOneAnimation.numOfFrames);
+		registry.renderRequests.remove(player_wizard);
+		registry.renderRequests.insert(
+			player_wizard,
+			{ TEXTURE_ASSET_ID::KNIGHT,
+				EFFECT_ASSET_ID::KNIGHT,
+				GEOMETRY_BUFFER_ID::SPRITE }, false);
+	}
+	
 
 	// Updating window title with money
 	std::stringstream title_ss;
@@ -402,6 +416,17 @@ bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
 }
 
+int WorldSystem::frame_counter(float elapsed_ms, float animationSpeed, int frame, int num_frames)
+{
+	Animation& playerOneAnimation = registry.animations.get(registry.animations.entities.front());
+	playerOneAnimation.animationTimer += elapsed_ms;
+	if (playerOneAnimation.animationTimer > animationSpeed) {
+		frame = (frame + 1) % num_frames;
+		playerOneAnimation.animationTimer = 0;
+	}
+	return frame;
+}
+
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
 	int w, h;
@@ -421,50 +446,78 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	Motion& player1motion = registry.motions.get(player_wizard);
 	Player& player = registry.players.get(player_wizard);
 	PlayerStat& playerOneStat = registry.playerStats.get(player.playerStat);
+	Animation& playerOneAnimation = registry.animations.get(registry.animations.entities.front());
 
 	if (!player.isDead) {
 		vec2 currentVelocity = vec2(player1motion.velocity.x, player1motion.velocity.y);
 		if (action == GLFW_PRESS && key == GLFW_KEY_W) {
+			playerOneAnimation.pressed = true;
 			player1motion.velocity = vec2(currentVelocity.x, currentVelocity.y - playerOneStat.movementSpeed);
+			playerOneAnimation.xFrame = 0;
+			playerOneAnimation.yFrame = 0;
+			registry.renderRequests.remove(player_wizard);
+			registry.renderRequests.insert(
+				player_wizard,
+				{ TEXTURE_ASSET_ID::KNIGHT,
+					EFFECT_ASSET_ID::KNIGHT,
+					GEOMETRY_BUFFER_ID::SPRITE }, false);
 		}
 		if (action == GLFW_RELEASE && key == GLFW_KEY_W) {
+			playerOneAnimation.pressed = false;
 			player1motion.velocity = vec2(currentVelocity.x, 0);
 		}
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_S) {
+			playerOneAnimation.pressed = true;
 			player1motion.velocity = vec2(currentVelocity.x, currentVelocity.y + playerOneStat.movementSpeed);
+			int counter = 0;
+			playerOneAnimation.xFrame = 0;
+			playerOneAnimation.yFrame = 2;
+			registry.renderRequests.remove(player_wizard);
+			registry.renderRequests.insert(
+				player_wizard,
+				{ TEXTURE_ASSET_ID::KNIGHT,
+					EFFECT_ASSET_ID::KNIGHT,
+					GEOMETRY_BUFFER_ID::SPRITE }, false);
 		}
 		if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
+			playerOneAnimation.pressed = false;
 			player1motion.velocity = vec2(currentVelocity.x, 0);
 		}
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_A) {
-			if (!registry.flips.has(player_wizard)) {
-				registry.flips.emplace(player_wizard);
-				Flip& flipped = registry.flips.get(player_wizard);
-				flipped.left = true;
-				player1motion.scale = vec2({ -WIZARD_BB_WIDTH * defaultResolution.scaling, WIZARD_BB_HEIGHT * defaultResolution.scaling });
-			}
-
+			playerOneAnimation.pressed = true;
 			player1motion.velocity = vec2(currentVelocity.x - playerOneStat.movementSpeed, currentVelocity.y);
+			playerOneAnimation.xFrame = 0;
+			playerOneAnimation.yFrame = 1;
+			registry.renderRequests.remove(player_wizard);
+			registry.renderRequests.insert(
+				player_wizard,
+				{ TEXTURE_ASSET_ID::KNIGHT,
+					EFFECT_ASSET_ID::KNIGHT,
+					GEOMETRY_BUFFER_ID::SPRITE }, false);
 		}
 		if (action == GLFW_RELEASE && key == GLFW_KEY_A) {
+			playerOneAnimation.pressed = false;
 			player1motion.velocity = vec2(0, currentVelocity.y);
 
 		}
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_D) {
-			if (registry.flips.has(player_wizard))
-			{
-				Flip& flipped = registry.flips.get(player_wizard);
-				flipped.left = false;
-				registry.flips.remove(player_wizard);
-				player1motion.scale = vec2({ WIZARD_BB_WIDTH * defaultResolution.scaling, WIZARD_BB_HEIGHT * defaultResolution.scaling });
-			}
+			playerOneAnimation.pressed = true;
 			player1motion.velocity = vec2(currentVelocity.x + playerOneStat.movementSpeed, currentVelocity.y);
+			playerOneAnimation.xFrame = 0;
+			playerOneAnimation.yFrame = 3;
+			registry.renderRequests.remove(player_wizard);
+			registry.renderRequests.insert(
+				player_wizard,
+				{ TEXTURE_ASSET_ID::KNIGHT,
+					EFFECT_ASSET_ID::KNIGHT,
+					GEOMETRY_BUFFER_ID::SPRITE }, false);
 		}
 
 		if (action == GLFW_RELEASE && key == GLFW_KEY_D) {
+			playerOneAnimation.pressed = false;
 			player1motion.velocity = vec2(0, currentVelocity.y);
 		}
 
