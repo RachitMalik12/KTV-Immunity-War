@@ -12,21 +12,24 @@
 #include "world_system.hpp"
 
 using Clock = std::chrono::high_resolution_clock;
-
-const int window_width_px = 1200;
-const int window_height_px = 800;
+DefaultResolution defaultResolution;
+TwoPlayer twoPlayer;
+HelpMode helpMode;
 
 // Entry point
 int main()
 {
 	// Global systems
 	WorldSystem world;
+	world.setPlayerMode();
+	world.setResolution();
+
 	RenderSystem renderer;
 	PhysicsSystem physics;
 	AISystem ai;
 
 	// Initializing window
-	GLFWwindow* window = world.create_window(window_width_px, window_height_px);
+	GLFWwindow* window = world.create_window(defaultResolution.width, defaultResolution.height);
 	if (!window) {
 		// Time to read the error message
 		printf("Press any key to exit");
@@ -35,12 +38,16 @@ int main()
 	}
 
 	// initialize the main systems
-	renderer.init(window_width_px, window_height_px, window);
+	int w, h;
+	glfwGetWindowSize(window, &w, &h);
+	renderer.init(w, h, window);
 	world.init(&renderer);
-
 	// variable timestep loop
 	auto t = Clock::now();
 	while (!world.is_over()) {
+		// Get new screen dimensions
+		int width, height;
+		glfwGetWindowSize(window, &width, &height);
 		// Processes system messages, if this wasn't present the window would become
 		// unresponsive
 		glfwPollEvents();
@@ -51,13 +58,16 @@ int main()
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
 
-		world.step(elapsed_ms);
-		ai.step(elapsed_ms);
-		physics.step(elapsed_ms, window_width_px, window_height_px);
-		world.handle_collisions();
+		if (!helpMode.inHelpMode) {
+			world.step(elapsed_ms);
+			ai.step(elapsed_ms, (float)width, (float)height);
+			physics.step(elapsed_ms, (float)width, (float)height);
+			physics.handle_collision();
+		}
 
 		renderer.draw();
 	}
 
 	return EXIT_SUCCESS;
 }
+

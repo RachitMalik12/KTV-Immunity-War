@@ -1,12 +1,11 @@
 // internal
 #include "render_system.hpp"
+#include "world_system.hpp"
 #include <SDL.h>
 
 #include "tiny_ecs_registry.hpp"
 
 const int SHOP_BUFFER_ZONE = 50;
-const int WINDOW_WIDTH = 1200;
-const int WINDOW_HEIGHT = 800;
 
 void RenderSystem::drawTexturedMesh(Entity entity,
 									const mat3 &projection)
@@ -15,6 +14,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 	Transform transform;
 	transform.translate(motion.position);
+	transform.rotate(motion.angle);
 	transform.scale(motion.scale);
 
 	assert(registry.renderRequests.has(entity));
@@ -45,14 +45,16 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		gl_has_errors();
 		assert(in_texcoord_loc >= 0);
 
+		int vertexSize = 3;
 		glEnableVertexAttribArray(in_position_loc);
-		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+		glVertexAttribPointer(in_position_loc, vertexSize, GL_FLOAT, GL_FALSE,
 							  sizeof(TexturedVertex), (void *)0);
 		gl_has_errors();
 
+		int texCoordSize = 2;
 		glEnableVertexAttribArray(in_texcoord_loc);
 		glVertexAttribPointer(
-			in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
+			in_texcoord_loc, texCoordSize, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
 			(void *)sizeof(
 				vec3)); // note the stride to skip the preceeding vertex position
 		// Enabling and binding texture to slot 0
@@ -72,13 +74,14 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		GLint in_color_loc = glGetAttribLocation(program, "in_color");
 		gl_has_errors();
 
+		int size = 3;
 		glEnableVertexAttribArray(in_position_loc);
-		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+		glVertexAttribPointer(in_position_loc, size, GL_FLOAT, GL_FALSE,
 							  sizeof(ColoredVertex), (void *)0);
 		gl_has_errors();
 
 		glEnableVertexAttribArray(in_color_loc);
-		glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE,
+		glVertexAttribPointer(in_color_loc, size, GL_FLOAT, GL_FALSE,
 							  sizeof(ColoredVertex), (void *)sizeof(vec3));
 		gl_has_errors();
 
@@ -92,6 +95,41 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			// similar to the glUniform1f call below. The 1f or 1i specified the type, here a single int.
 			gl_has_errors();
 		}
+	}
+	else if (render_request.used_effect == EFFECT_ASSET_ID::KNIGHT)
+	{
+		GLint in_position_loc = glGetAttribLocation(program, "in_position");
+		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
+		gl_has_errors();
+		assert(in_texcoord_loc >= 0);
+
+		glEnableVertexAttribArray(in_position_loc);
+		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+			sizeof(TexturedVertex), (void *)0);
+		gl_has_errors();
+
+		glEnableVertexAttribArray(in_texcoord_loc);
+		glVertexAttribPointer(
+			in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
+			(void *)sizeof(
+				vec3)); // note the stride to skip the preceeding vertex position
+		// Enabling and binding texture to slot 0
+		glActiveTexture(GL_TEXTURE0);
+		gl_has_errors();
+
+		assert(registry.renderRequests.has(entity));
+		GLuint texture_id =
+			texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];
+
+		glBindTexture(GL_TEXTURE_2D, texture_id);
+
+		Animation& playerOneAnimation = registry.animations.get(registry.animations.entities.front());
+
+		GLint xFrame = glGetUniformLocation(program, "xFrame");
+		GLint yFrame = glGetUniformLocation(program, "yFrame");
+		glUniform1i(xFrame, playerOneAnimation.xFrame);
+		glUniform1i(yFrame, playerOneAnimation.yFrame);
+		gl_has_errors();
 	}
 	else
 	{
@@ -228,6 +266,8 @@ void RenderSystem::draw()
 }
 
 void RenderSystem::playerOneTransition(bool leaveShop) {
+	int screenWidth, screenHeight;
+	glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
 	vec2 player2Pos = registry.motions.get(registry.players.entities[1]).position;
 	Entity player2Entity = registry.players.entities[1];
 	if (leaveShop) {
@@ -239,13 +279,15 @@ void RenderSystem::playerOneTransition(bool leaveShop) {
 	if (registry.mouseDestinations.has(player2Entity))
 		registry.mouseDestinations.get(player2Entity).position = player2Pos;
 	if (leaveShop) {
-		registry.motions.get(player2Entity).position = vec2(WINDOW_WIDTH + SHOP_BUFFER_ZONE, WINDOW_HEIGHT - SHOP_BUFFER_ZONE * 3);
+		registry.motions.get(player2Entity).position = vec2(screenWidth + SHOP_BUFFER_ZONE, screenHeight - SHOP_BUFFER_ZONE * 3);
 	} else {
-		registry.motions.get(player2Entity).position = vec2(WINDOW_WIDTH + SHOP_BUFFER_ZONE, WINDOW_HEIGHT + SHOP_BUFFER_ZONE * 3);
+		registry.motions.get(player2Entity).position = vec2(screenWidth + SHOP_BUFFER_ZONE, screenHeight + SHOP_BUFFER_ZONE * 3);
 	}
 }
 
 void RenderSystem::playerTwoTransition(bool leaveShop, vec2 player2Pos) {
+	int w, h;
+	glfwGetFramebufferSize(window, &w, &h);
 	Entity player1Entity = registry.players.entities[0];
 	Entity player2Entity = registry.players.entities[1];
 	if (leaveShop) {
@@ -260,11 +302,11 @@ void RenderSystem::playerTwoTransition(bool leaveShop, vec2 player2Pos) {
 		registry.mouseDestinations.get(player2Entity).position = player2Pos;
 	}
 	if (leaveShop) {
-		registry.motions.get(player1Entity).position = vec2((WINDOW_WIDTH / 2) - SHOP_BUFFER_ZONE, player2Pos.y - SHOP_BUFFER_ZONE * 3);
+		registry.motions.get(player1Entity).position = vec2((w / 2) - SHOP_BUFFER_ZONE, player2Pos.y - SHOP_BUFFER_ZONE * 3);
 	} else {
-		registry.motions.get(player1Entity).position = vec2((WINDOW_WIDTH / 2) - SHOP_BUFFER_ZONE, player2Pos.y + SHOP_BUFFER_ZONE * 3);
+		registry.motions.get(player1Entity).position = vec2((w / 2) - SHOP_BUFFER_ZONE, player2Pos.y + SHOP_BUFFER_ZONE * 3);
 	}
-	registry.motions.get(player2Entity).position.x = (WINDOW_WIDTH / 2) + SHOP_BUFFER_ZONE;
+	registry.motions.get(player2Entity).position.x = ((float)w / 2) + SHOP_BUFFER_ZONE;
 }
 
 mat3 RenderSystem::createProjectionMatrix(float left, float top)
@@ -281,50 +323,59 @@ mat3 RenderSystem::createProjectionMatrix(float left, float top)
 	float sy = 2.f / (top - bottom);
 	float tx = -(right + left) / (right - left);
 	float ty = -(top + bottom) / (top - bottom);
-	mat3 projMat;
+	mat3 projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f} };;
 
-	int playerCount = registry.players.entities.size();
-	vec2 player1Pos = registry.motions.get(registry.players.entities[0]).position;
-	if (playerCount == 2) {
-		vec2 player2Pos = registry.motions.get(registry.players.entities[1]).position;
-		if (player1Pos.y - h < SHOP_BUFFER_ZONE) { // player1 is leaves the shop
-			if (registry.inShops.has(registry.players.entities[1])) {
-				playerOneTransition(true);
-			}
-			projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f} };
-		} else if (player1Pos.y - h > -SHOP_BUFFER_ZONE) { // player 1 enters the shop
-			if (!registry.inShops.has(registry.players.entities[1])) {
-				playerOneTransition(false);
-			}
-			projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty + 2, 1.f} };
-		} else {
-			projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f} };
-		}
-	
-		if (registry.inShops.has(registry.players.entities[1])) { // player 2 is in the shop
-			if (player2Pos.y - h < SHOP_BUFFER_ZONE) { // player 2 leaves the shop
-				playerTwoTransition(true, player2Pos);
-				projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f} };
-			} else {
-				projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty + 2, 1.f} };
-			}
-		} else { // player 2 is not in the shop
-			if (player2Pos.y - h > -SHOP_BUFFER_ZONE) { // player 2 enters the shop
-				playerTwoTransition(false, player2Pos);
-				projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty + 2, 1.f} };
-			} else {
+	size_t playerCount = registry.players.entities.size();
+	if (playerCount > 0) {
+		vec2 player1Pos = registry.motions.get(registry.players.entities[0]).position;
+		if (playerCount == 2) {
+			vec2 player2Pos = registry.motions.get(registry.players.entities[1]).position;
+			if (player1Pos.y - h < SHOP_BUFFER_ZONE) { // player1 is leaves the shop
+				if (registry.inShops.has(registry.players.entities[1])) {
+					playerOneTransition(true);
+				}
 				projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f} };
 			}
+			else if (player1Pos.y - h > -SHOP_BUFFER_ZONE) { // player 1 enters the shop
+				if (!registry.inShops.has(registry.players.entities[1])) {
+					playerOneTransition(false);
+				}
+				projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty + 2, 1.f} };
+			}
+			else {
+				projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f} };
+			}
+
+			if (registry.inShops.has(registry.players.entities[1])) { // player 2 is in the shop
+				if (player2Pos.y - h < SHOP_BUFFER_ZONE) { // player 2 leaves the shop
+					playerTwoTransition(true, player2Pos);
+					projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f} };
+				}
+				else {
+					projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty + 2, 1.f} };
+				}
+			}
+			else { // player 2 is not in the shop
+				if (player2Pos.y - h > -SHOP_BUFFER_ZONE) { // player 2 enters the shop
+					playerTwoTransition(false, player2Pos);
+					projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty + 2, 1.f} };
+				}
+				else {
+					projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f} };
+				}
+			}
 		}
-	} else {
-		if (player1Pos.y - h > -SHOP_BUFFER_ZONE) {
-			projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty + 2, 1.f} };
-		} else if (player1Pos.y - h < SHOP_BUFFER_ZONE) {
-			projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f} };
-		} else {
-			projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f} };
+		else {
+			if (player1Pos.y - h > -SHOP_BUFFER_ZONE) {
+				projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty + 2, 1.f} };
+			}
+			else if (player1Pos.y - h < SHOP_BUFFER_ZONE) {
+				projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f} };
+			}
+			else {
+				projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f} };
+			}
 		}
 	}
-
 	return projMat;
 }
