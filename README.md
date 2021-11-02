@@ -27,7 +27,7 @@ movement. Collision detection is using the same as A1 template for now for block
 Collision Resolution (LT): Projectiles hitting the wall will disappear. Projectile hitting the enemy will kill the enemy and make the projectile
 disappear. Enemy hitting player will bounce both of them back (related to observer pattern).
 
-Graphics assets (JK): JK is drawing our assets and she will continue to do so throughout the semester.
+Graphics assets (JK): JK is drawing our assets and she will continue to do so throughout the semester. Added animation for three states (in gif format, will be in spritesheet format), background level art, and power up art.
 
 Lag mitgation (ALL): We tested playing the game with zoom screen share and the lag is around half a second. For now we see this as acceptable.
 
