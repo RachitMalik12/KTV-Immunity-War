@@ -25,6 +25,8 @@ There is also a dev mode where you can reload a level or change to a specific le
 
 Help Menu (LT): Implemented ability to toggle "P" to display help menu and pause game while in help menu. Once exits help menu, the game will resume as normal. Designed help menu with features needed for game play.
 
+Graphics assets (JK): JK is drawing our assets and she will continue to do so throughout the semester. 
+
 Additional Enemy (LT): Added additional enemy that chases player 1 by default. If player 1 dies, all of these enemies will switch to chase player 2. 
 This group of enemies will also avoid each other (if it is within a certain distance, it will move in the opposite direction as the direction from it to another enemy of its type for a set number of seconds (this is changeable by the user)).
 
