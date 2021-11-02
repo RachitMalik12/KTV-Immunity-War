@@ -25,7 +25,7 @@ There is also a dev mode where you can reload a level or change to a specific le
 
 Help Menu (LT): Implemented ability to toggle "P" to display help menu and pause game while in help menu. Once exits help menu, the game will resume as normal. Designed help menu with features needed for game play.
 
-Graphics assets (JK): JK is drawing our assets and she will continue to do so throughout the semester. Added animation for three states (in gif format, will be in spritesheet format), background level art, and power up art for health and speed. Also converted existing assets to black SVGs for future use with precise collisions.
+Graphics assets (JK): JK is drawing our assets and she will continue to do so throughout the semester. Added animation for three states (in gif format, will be in spritesheet format), background level art, and power up art for health and speed. Also converted existing assets to black SVGs for future use with precise collisions. Drive of svgs here (not uploading to gothub until we confirm the svgs we need for collision https://drive.google.com/drive/folders/1RMY-Er0lNkpCaKGdewZKahAb429XdHNp?usp=sharing)
 
 Additional Enemy (LT): Added additional enemy that chases player 1 by default. If player 1 dies, all of these enemies will switch to chase player 2. 
 This group of enemies will also avoid each other (if it is within a certain distance, it will move in the opposite direction as the direction from it to another enemy of its type for a set number of seconds (this is changeable by the user)).
