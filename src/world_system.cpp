@@ -194,14 +194,12 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
-	
 	// Get the screen dimensions
 	int screen_width, screen_height;
 	glfwGetFramebufferSize(window, &screen_width, &screen_height);
 	Animation& playerOneAnimation = registry.animations.get(registry.animations.entities.front());
 	//animate
 	if (playerOneAnimation.pressed) {
-		
 		playerOneAnimation.xFrame = 
 			frame_counter(elapsed_ms_since_last_update, playerOneAnimation.animationSpeed, playerOneAnimation.xFrame, playerOneAnimation.numOfFrames);
 		registry.renderRequests.remove(player_wizard);
