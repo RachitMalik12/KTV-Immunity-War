@@ -11,43 +11,65 @@ class ECSRegistry
 
 public:
 	// Manually created list of all components this game has
-	// TODO: A1 add a LightUp component
 	ComponentContainer<DeathTimer> deathTimers;
+	ComponentContainer<StuckTimer> stuckTimers;
 	ComponentContainer<Motion> motions;
 	ComponentContainer<Collision> collisions;
 	ComponentContainer<Player> players;
+	ComponentContainer<PlayerStat> playerStats;
 	ComponentContainer<Mesh*> meshPtrs;
 	ComponentContainer<RenderRequest> renderRequests;
 	ComponentContainer<ScreenState> screenStates;
 	ComponentContainer<DebugComponent> debugComponents;
-	ComponentContainer<DebugComponent> grayboxComponents;
-	ComponentContainer<Destination> destinations;
+	ComponentContainer<MouseDestination> mouseDestinations;
 	ComponentContainer<Projectile> projectiles;
 	ComponentContainer<Block> blocks;
 	ComponentContainer<Wall> walls;
+	ComponentContainer<Door> doors;
 	ComponentContainer<vec3> colors;
 	ComponentContainer<Enemy> enemies;
+	ComponentContainer<EnemyBlob> enemyBlobs;
+	ComponentContainer<EnemyRun> enemiesrun;
+	ComponentContainer<EnemyHunter> enemyHunters;
+	ComponentContainer<EnemyBacteria> enemyBacterias;
+	ComponentContainer<Powerup> powerups; 
+	ComponentContainer<Flip> flips;
+	ComponentContainer<InShop> inShops;
+	ComponentContainer<Mesh*> hitboxes;
+	ComponentContainer<HelpMode> helpModes;
+	ComponentContainer<Animation> animations;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
 	ECSRegistry()
 	{
-		// TODO: A1 add a LightUp component
 		registry_list.push_back(&deathTimers);
+		registry_list.push_back(&stuckTimers);
 		registry_list.push_back(&motions);
 		registry_list.push_back(&collisions);
 		registry_list.push_back(&players);
+		registry_list.push_back(&playerStats);
 		registry_list.push_back(&meshPtrs);
 		registry_list.push_back(&renderRequests);
 		registry_list.push_back(&screenStates);
 		registry_list.push_back(&debugComponents);
-		registry_list.push_back(&grayboxComponents);
-		registry_list.push_back(&destinations);
+		registry_list.push_back(&mouseDestinations);
 		registry_list.push_back(&projectiles);
 		registry_list.push_back(&blocks);
 		registry_list.push_back(&walls);
+		registry_list.push_back(&doors);
 		registry_list.push_back(&colors);
 		registry_list.push_back(&enemies);
+		registry_list.push_back(&enemyBlobs);
+		registry_list.push_back(&enemiesrun);
+		registry_list.push_back(&enemyHunters);
+		registry_list.push_back(&enemyBacterias);
+		registry_list.push_back(&powerups);
+		registry_list.push_back(&flips);
+		registry_list.push_back(&inShops);
+		registry_list.push_back(&hitboxes);
+		registry_list.push_back(&helpModes);
+		registry_list.push_back(&animations);
 	}
 
 	void clear_all_components() {

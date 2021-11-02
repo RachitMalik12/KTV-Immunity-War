@@ -7,13 +7,30 @@
 // Player component
 struct Player
 {
-	
+	int hp = 0;
+	float invinFrame = 2000.f;
+	float invinTimerInMs = 0;
+	bool isInvin = false;
+	bool isFiringProjectile = false;
+	int firingDirection = 0;
+	bool isDead = false;
+	Entity playerStat;
+};
+
+struct PlayerStat
+{
+	float projectileSpeed = 300.f;
+	float projectileFireRate = 500.f;
+	float movementSpeed = 150.f;
+	int maxHp = 3;
+	int money = 0;
+	int damage = 1;
 };
 
 // The projectile shot by the wizard character.
 struct Projectile
 {
-
+	Entity belongToPlayer;
 };
 
 struct Block
@@ -25,12 +42,56 @@ struct Block
 // Enemy that will be attacked by wizard using projectile
 struct Enemy
 {
+	int hp;
+	int damage;
+	int loot;
+	float speed;
+};
+
+struct EnemyBlob
+{
+
+};
+
+// Enemy that will be attacked by wizard using projectile and tries to run away from wizard
+struct EnemyRun
+{
+
+};
+
+// State machine feature
+struct EnemyHunter
+{
+	int currentState;
+	int searchingMode = 0;
+	int huntingMode = 1;
+	int fleeingMode = 2;
+	float aiUpdateTime = 1000.f;
+	float aiUpdateTimer = 0;
+	bool timeToUpdateAi = true;
+	bool isFleeing = false;
+	float huntingRange = 500.f;
+};
+
+// BFS Enemy
+struct EnemyBacteria
+{
+	bool huntingMode = true;
+	float bfsUpdateTime = 2000.f;
+};
+
+struct Powerup 
+{
 
 };
 
 struct Wall
 {
-	bool vertical = false;
+
+};
+
+struct Door
+{
 
 };
 
@@ -53,10 +114,26 @@ struct Collision
 // Data structure for toggling debug mode
 struct Debug {
 	bool in_debug_mode = 0;
-	bool in_graybox_mode = 0;
 	bool in_freeze_mode = 0;
 };
 extern Debug debugging;
+
+struct TwoPlayer {
+	bool inTwoPlayerMode = false;
+};
+extern TwoPlayer twoPlayer;
+
+struct HelpMode {
+	bool inHelpMode = false;
+};
+extern HelpMode helpMode;
+
+struct DefaultResolution {
+	int width = 1200;
+	int height = 800;
+	float scaling;
+};
+extern DefaultResolution defaultResolution;
 
 // Sets the brightness of the screen
 struct ScreenState
@@ -76,11 +153,24 @@ struct DeathTimer
 	float counter_ms = 3000;
 };
 
+// A timer that will be associated to enemies/enemies run being stuck
+struct StuckTimer
+{
+	float counter_ms = 3000;
+	vec2 stuck_pos = { 0, 0 };
+};
+
+// An entity that is currently in the item shop. For mouse-controlled characters.
+struct InShop 
+{
+
+};
+
 // An entity in motion that will stop at a certain point
-struct Destination
+struct MouseDestination
 {
 	vec2 position = { 0,0 };
-	Destination(const vec2 pos) : position(pos) {};
+	MouseDestination(const vec2 pos) : position(pos) {};
 };
 
 // Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & salmon.vs.glsl)
@@ -104,6 +194,31 @@ struct Mesh
 	vec2 original_size = {1,1};
 	std::vector<ColoredVertex> vertices;
 	std::vector<uint16_t> vertex_indices;
+};
+
+struct Flip {
+	bool left = false;
+};
+
+struct Level {
+	std::vector<int> enemies; 
+	std::vector<std::vector<vec2>> enemyPositions;
+	int num_blocks = 0; 
+	std::vector<vec2> block_positions; 
+	std::vector<int> enemy_types; 
+	// 0 means spawn all enemies at once, 1 time based, 2 waves. 
+	int level_type = 0; 
+	vec2 player_position = vec2(50, 200); 
+	vec2 player2_position = vec2(50, 200);
+};
+
+struct Animation {
+	int xFrame = 0;
+	int yFrame = 0;
+	bool pressed = 0;
+	int numOfFrames = 9;
+	int animationSpeed = 100;
+	int animationTimer = 0;
 };
 
 /**
@@ -136,9 +251,16 @@ enum class TEXTURE_ASSET_ID {
 	TREE_YELLOW = TREE_ORANGE + 1,
 	FIREBALL = TREE_YELLOW + 1,
 	WIZARD = FIREBALL + 1,
-	BLACK_BAR = WIZARD + 1,
+	WIZARD_LEFT = WIZARD + 1,
+	BLACK_BAR = WIZARD_LEFT + 1,
 	ENEMY = BLACK_BAR + 1,
-	TEXTURE_COUNT = ENEMY + 1
+	POWERUP = ENEMY + 1,
+	ENEMYRUN = POWERUP + 1,
+	ENEMYHUNTER = ENEMYRUN + 1,
+	HELPPANEL = ENEMYHUNTER + 1,
+	ENEMYBACTERIA = HELPPANEL + 1,
+	KNIGHT = ENEMYBACTERIA +1,
+	TEXTURE_COUNT = KNIGHT + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -148,7 +270,8 @@ enum class EFFECT_ASSET_ID {
 	SALMON = PEBBLE + 1,
 	TEXTURED = SALMON + 1,
 	WATER = TEXTURED + 1,
-	EFFECT_COUNT = WATER + 1
+	KNIGHT = WATER + 1,
+	EFFECT_COUNT = KNIGHT + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
@@ -157,10 +280,17 @@ enum class GEOMETRY_BUFFER_ID {
 	SPRITE = SALMON + 1,
 	PEBBLE = SPRITE + 1,
 	DEBUG_LINE = PEBBLE + 1,
-	GRAYBOX = DEBUG_LINE + 1,
-	SCREEN_TRIANGLE = GRAYBOX + 1,
+	SCREEN_TRIANGLE = DEBUG_LINE + 1,
 	WALLS = SCREEN_TRIANGLE + 1,
-	GEOMETRY_COUNT = WALLS + 1
+	DOOR = WALLS + 1,
+	WIZARD = DOOR + 1,
+	HUNTER = WIZARD + 1,
+	BLOBBER = HUNTER + 1,
+	RUNNER = BLOBBER + 1,
+	FIREBALL = RUNNER + 1,
+	TREE = FIREBALL + 1,
+	BACTERIA = TREE + 1,
+	GEOMETRY_COUNT = BACTERIA + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
@@ -169,4 +299,14 @@ struct RenderRequest {
 	EFFECT_ASSET_ID used_effect = EFFECT_ASSET_ID::EFFECT_COUNT;
 	GEOMETRY_BUFFER_ID used_geometry = GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 };
+
+class LevelFileLoader {
+private: 
+	std::vector<Level> levels; 
+public:
+	void readFile();
+	std::vector<Level> getLevels(); 
+};
+
+extern LevelFileLoader levelFileLoader; 
 

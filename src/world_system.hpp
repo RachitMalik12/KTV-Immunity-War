@@ -22,12 +22,6 @@ public:
 
 	std::vector<std::function<void(Entity entity)>>  callbackFns;
 
-	void attach(std::function<void(Entity entity)>);
-	
-	void staminaListener(Entity entity);
-	// Observer Pattern listener
-	void staminaCallBack(Entity entity);
-
 	// Creates a window
 	GLFWwindow* create_window(int width, int height);
 
@@ -40,12 +34,14 @@ public:
 	// Steps the game ahead by ms milliseconds
 	bool step(float elapsed_ms);
 
-	// Check for collisions
-	void handle_collisions();
-
 	// Should the game be over ?
 	bool is_over()const;
 
+	int frame_counter(float elapsed_ms, float animationSpeed, int frame, int num_frames);
+
+	void setPlayerMode();
+
+	void setResolution();
 
 private:
 	// Input callback functions
@@ -56,28 +52,49 @@ private:
 	// restart level
 	void restart_game();
 
+	void setupLevel(int levelNum); 
+
 	// OpenGL window handle
 	GLFWwindow* window;
 
-	// Number of fish eaten by the salmon, displayed in the window title
-	unsigned int points;
-	unsigned int stamina;
+	bool spawnPowerup;
+	int level_number;
+	bool initial_level_load; 
+	std::vector<Level> levels; 
+	// to start with true. 
+	bool isLevelOver;
+
 	// Game state
 	RenderSystem* renderer;
 	float current_speed;
-	float next_enemy_spawn;
-	Entity player_salmon;
+	float next_projectile_fire_player1;
+	float next_projectile_fire_player2;
 	Entity player_wizard;
 	Entity player2_wizard;
+	Entity player_stat;
+	Entity player2_stat;
 
 	// music references
 	Mix_Music* background_music;
 	Mix_Chunk* salmon_dead_sound;
 	Mix_Chunk* salmon_eat_sound;
 
-
-
 	// C++ random number generator
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
-};
+
+	// window scaling variables setup
+	void setupWindowScaling();
+
+	// window scaling variables
+	float gameHeightScale;
+	float doorWidthScale;
+
+	// create and remove walls and doors
+	void createWalls(int screenWidth, int screenHeight);
+	void createADoor(int screenWidth, int screenHeight);
+
+	void deathHandling();
+
+	void setPlayerStats();
+}; 

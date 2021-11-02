@@ -3,12 +3,14 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "../ext/stb_image/stb_image.h"
+#include "../ext/json/dist/json/json.h" 
 
 // stlib
 #include <iostream>
 #include <sstream>
 
 Debug debugging;
+LevelFileLoader levelFileLoader; 
 float death_timer_counter_ms = 3000;
 
 
@@ -106,3 +108,65 @@ bool Mesh::loadFromOBJFile(std::string obj_path, std::vector<ColoredVertex>& out
 
 	return true;
 }
+
+void LevelFileLoader::readFile() {
+	// Source: https://stackoverflow.com/questions/4273056/jsoncpp-not-reading-files-correctly
+	Json::Value root;   // will contain the root value after parsing.
+	Json::CharReaderBuilder builder;
+	std::ifstream file(data_path() + "/levels/level_design.json",std::ifstream::binary);
+	std::string errs;
+	bool parsedSuccessfully = Json::parseFromStream(builder, file, &root, &errs);
+	if (!parsedSuccessfully)
+	{   // Print error
+		std::cout << errs << "\n";
+	}
+	auto jsonLevel = root.get("levels", -1); 
+
+    // Help from: https://stackoverflow.com/questions/44442932/iterate-over-an-array-of-json-objects-with-jsoncpp
+	for (Json::Value::ArrayIndex i = 0; i != jsonLevel.size(); i++) {
+		auto enemy_types = jsonLevel[i]["enemy_types"];
+		Level output_level; 
+		auto current_file_level = jsonLevel[i]; 
+		// enemies
+		auto enemies = current_file_level["enemies"];
+		for (Json::Value::ArrayIndex i = 0; i != enemies.size(); i++) {
+			output_level.enemies.push_back(enemies[i].asInt()); 
+		}
+		auto num_enemy_types = jsonLevel[i]["num_enemy_types"];
+		for (Json::Value::ArrayIndex i = 0; i != enemy_types.size(); i++) {
+			output_level.enemy_types.push_back(enemy_types[i].asInt());
+		}
+		auto enemyPositions = current_file_level["enemy_positions"];
+		int size = enemyPositions.size();
+		for (Json::Value::ArrayIndex i = 0; i < size; i++) {
+			std::vector<vec2> curEnemyPosition;
+			int curSize = enemyPositions[i].size();
+			for (Json::Value::ArrayIndex j = 0; j < curSize ; j++) {
+				vec2 curPosition = vec2(enemyPositions[i][j]["x"].asFloat(), enemyPositions[i][j]["y"].asFloat());
+				curEnemyPosition.push_back(curPosition);
+			}
+			output_level.enemyPositions.push_back(curEnemyPosition);
+		}
+
+		//blocks
+		output_level.num_blocks = current_file_level["blocks"].asInt(); 
+		auto block_positions = jsonLevel[i]["block_positions"]; 
+		for (Json::Value::ArrayIndex i = 0; i != block_positions.size(); i++) {
+			vec2 position_i = vec2(block_positions[i]["x"].asFloat(), block_positions[i]["y"].asFloat()); 
+			output_level.block_positions.push_back(position_i);
+		}
+
+		// player positions
+		auto player_position = jsonLevel[i]["player_position"]; 
+		output_level.player_position = vec2(player_position["x"].asFloat(), player_position["y"].asFloat()); 
+		auto player2_position = jsonLevel[i]["player2_position"];
+		output_level.player2_position = vec2(player2_position["x"].asFloat(), player2_position["y"].asFloat());
+
+		levels.push_back(output_level); 
+	}
+}
+
+std::vector<Level> LevelFileLoader::getLevels() {
+	return levels;
+}
+

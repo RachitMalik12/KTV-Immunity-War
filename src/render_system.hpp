@@ -24,19 +24,35 @@ class RenderSystem {
 	// Associated id with .obj path
 	const std::vector < std::pair<GEOMETRY_BUFFER_ID, std::string>> mesh_paths =
 	{
-		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::SALMON, mesh_path("salmon.obj"))
+		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::SALMON, mesh_path("salmon.obj")),
+		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::WIZARD, mesh_path("wizard_hitbox.obj")),
+		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::HUNTER, mesh_path("hunter_hitbox.obj")),
+		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::BLOBBER, mesh_path("blob_hitbox.obj")),
+		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::RUNNER, mesh_path("runner_hitbox.obj")),
+		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::FIREBALL, mesh_path("fireball_hitbox.obj")),
+		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::TREE, mesh_path("TREE_hitbox.obj")),
+		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::FIREBALL, mesh_path("yellow-bacteria_hitbox.obj"))
 		  // specify meshes of other assets here
 	};
 
 	// Make sure these paths remain in sync with the associated enumerators.
+	// SOURCE for enemyrun.png: https://store.line.me/stickershop/product/1014536/en
+	// SOURCE for enemy.png: https://www.klipartz.com/ru/search?q=%D0%B2%D0%B8%D1%80%D1%83%D1%81
 	const std::array<std::string, texture_count> texture_paths = {
 			textures_path("tree_red.png"),
 			textures_path("tree_orange.png"),
 			textures_path("tree_yellow.png"),
 			textures_path("fireball.png"),
 			textures_path("wizard.png"),
+			textures_path("wizard_left.png"),
 			textures_path("black_bar.png"),
-			textures_path("enemy.png")
+			textures_path("enemy.png"),
+			textures_path("powerup.png"),
+			textures_path("enemyrun.png"),
+			textures_path("hunter1.png"),
+			textures_path("help.png"),
+			textures_path("yellow-bacteria.png"),
+			textures_path("knight.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -46,7 +62,8 @@ class RenderSystem {
 		shader_path("pebble"),
 		shader_path("salmon"),
 		shader_path("textured"),
-		shader_path("water") };
+		shader_path("water"),
+		shader_path("knight")};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;
@@ -84,6 +101,8 @@ private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& projection);
 	void drawToScreen();
+	void playerOneTransition(bool leaveShop);
+	void playerTwoTransition(bool leaveShop, vec2 player2Pos);
 
 	// Window handle
 	GLFWwindow* window;

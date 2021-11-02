@@ -209,39 +209,19 @@ void RenderSystem::initializeGlGeometryBuffers()
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::DEBUG_LINE, line_vertices, line_indices);
 
 	//////////////////////////////////
-	// Initialize grayboxes
-	std::vector<ColoredVertex> box_vertices;
-	std::vector<uint16_t> box_indices;
-
-	constexpr float box_depth = 0.5f;
-	constexpr vec3 gray = { 0.5,0.5,0.5 };
-
-	box_vertices = {
-		{{-0.5,-0.5, box_depth}, gray},
-		{{-0.5, 0.5, box_depth}, gray},
-		{{ 0.5, 0.5, box_depth}, gray},
-		{{ 0.5,-0.5, box_depth}, gray},
-	};
-
-	box_indices = { 0, 1, 3, 1, 2, 3 };
-	meshes[geom_index].vertices = box_vertices;
-	meshes[geom_index].vertex_indices = box_indices;
-	bindVBOandIBO(GEOMETRY_BUFFER_ID::GRAYBOX, box_vertices, box_indices);
-
-	//////////////////////////////////
 	// Initialize walls
 	std::vector<ColoredVertex> wall_line_vertices;
 	std::vector<uint16_t> wall_line_indices;
 
 	constexpr float wall_depth = 0.5f;
-	constexpr vec3 green = { 0.0, 0.4, 0.33 };
+	constexpr vec3 black = { 0.0, 0.0, 0.0 };
 
 	// Corner points
 	wall_line_vertices = {
-		{{-0.5,-0.5, wall_depth}, green},
-		{{-0.5, 0.5, wall_depth}, green},
-		{{ 0.5, 0.5, wall_depth}, green},
-		{{ 0.5,-0.5, wall_depth}, green},
+		{{-0.5,-0.5, wall_depth}, black},
+		{{-0.5, 0.5, wall_depth}, black},
+		{{ 0.5, 0.5, wall_depth}, black},
+		{{ 0.5,-0.5, wall_depth}, black},
 	};
 
 	// Two triangles
@@ -251,6 +231,30 @@ void RenderSystem::initializeGlGeometryBuffers()
 	meshes[geom_index].vertices = wall_line_vertices;
 	meshes[geom_index].vertex_indices = wall_line_indices;
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::WALLS, wall_line_vertices, wall_line_indices);
+
+	//////////////////////////////////
+	// Initialize door
+	std::vector<ColoredVertex> door_line_vertices;
+	std::vector<uint16_t> door_line_indices;
+
+	constexpr float door_depth = 0.5f;
+	constexpr vec3 brown = { 0.3, 0.0, 0.1 };
+
+	// Corner points
+	wall_line_vertices = {
+		{{-0.5,-0.5, wall_depth}, brown},
+		{{-0.5, 0.5, wall_depth}, brown},
+		{{ 0.5, 0.5, wall_depth}, brown},
+		{{ 0.5,-0.5, wall_depth}, brown},
+	};
+
+	// Two triangles
+	wall_line_indices = { 0, 1, 3, 1, 2, 3 };
+
+	geom_index = (int)GEOMETRY_BUFFER_ID::DOOR;
+	meshes[geom_index].vertices = wall_line_vertices;
+	meshes[geom_index].vertex_indices = wall_line_indices;
+	bindVBOandIBO(GEOMETRY_BUFFER_ID::DOOR, wall_line_vertices, wall_line_indices);
 
 
 	///////////////////////////////////////////////////////
@@ -417,4 +421,5 @@ bool loadEffectFromFile(
 
 	return true;
 }
+
 

@@ -1,59 +1,28 @@
-Milestone 1 Team 6 KTV
+Milestone 2 Team 6 KTV
+Grace Days Used: 1
 
 Milestone Feature Descriptions:
-Random/coded action (LT): Enemies will move at a set pattern. For one enemy type, once the player character move closer to this enemy, it 
-will try to move away from the player character, thus changing its movement pattern.
+Gameplay 1 (ALL): We load the map and spawn all the enemies on screen and the players have to kill them all to advance to the next level. The stats of players and enemies are implemented. Stats are damage, max hp, movement speed and projectile speed/firing speed.
 
-Textured geometry (JK): Custom sprites drawn by JK is loaded in as various tree blocks and the player character. The player character will
-face the correct direction when moving, which means loading the correct sprite or doing the correct transformation, in this case reflection.
+Adaptive Resolution (BZ): We offer player a choice between 3 resolution when the game is launched. 2400 x 1600, 1200 x 800 and 600 x 400. Everything in game that involve position and velocity is scaled accordingly. 
 
-Debugging graphics (BS): A another debug mode that draws a rectangle around the sprites is implemented. We can combine this with the original
-red cross for a better visualization of sprites.
+State Machine (BZ): Implemented a state machine enemy "hunter". Hunter has three states: wondering mode, hunting mode and fleeing mode. In wondering mode, hunter wonders randomly until it gets close enough to a player. Then in hunting mode it chases after the player. Then finally, after its HP gets low, it gets into fleeing mode, which runs horizontally across the map at a high speed.
 
-Observer pattern (FC): For one enemy type, once it collides with a player, both the player and the enemy will bounce back a short distance.
+Precise Collision (BS): Implemented precise collision detection by means of a coarse mesh "hitbox" overlayed on a sprite. Current detection works by checking if one entity's hitbox collides with another entity's bounding box. Currently, the player, all enemies, the projectile and trees have mesh hitboxes.
 
-Keyboard control for player 1 (RM): WSAD for movement and TFGH for 4 directional projectile firing.
+Simple Path Finding (FC): Implemented a BFS enemy "bacteria". The enemy updates it's path to what the current player (or one of the players, if there are two players) position is. It calculates it's path using BFS with a queue, where the map is separated into an 8x8 grid as "nodes", using it's predecessor nodes to find a path to the player it is hunting. 
 
-Camera control (FC): Camera follows the player when the player moves from battle arena to shop.
+Animation (BZ & JK): Created sprite animations for player 1. The player has an idle phase when it's not moving (stays still) and moves when a direction is given. Also has 4 directions of idle and walking phases.
 
-Basic collision detection (BZ): Implemented walls and blocks on map that will detect objects in motion moving into them thus stopping the objects'
-movement. Collision detection is using the same as A1 template for now for blocks and wall, although they work slightly differently.
+External library integration (RM): Integrated the library https://github.com/open-source-parsers/jsoncpp to parse json files. Modified the cmake and made sure 
+it runs on all devices of our team. 
 
-Collision Resolution (LT): Projectiles hitting the wall will disappear. Projectile hitting the enemy will kill the enemy and make the projectile
-disappear. Enemy hitting player will bounce both of them back (related to observer pattern).
-
-Graphics assets (JK): JK is drawing our assets and she will continue to do so throughout the semester.
-
-Lag mitgation (ALL): We tested playing the game with zoom screen share and the lag is around half a second. For now we see this as acceptable.
-
-Crash free (ALL): We encountered a few build problem with one local project_path.hpp unintentionally uploaded to github. Problem was fixed with
-paired debugging by BZ and RM. We made sure other members don't have the same problems during our zoom meetings. We also make sure a build works
-before we merge a pull request into dev branch.
-
-Simple currency System (RM): Killing enemies grants the player money which then can be spent to buy power ups in the shop. The shop will be expanded
-in future milestones.
-
-Co-op second player (BS): The second player is controlled with mouse to not conflict with GLFW keyboard control. One mouse click to move the character
-and the other mouse click to fire projectiles at the direction the mouse is at.
-
-Organization (ALL): Organization of the group was done very early into the course. Our group of 6 was formed almost immediately and we have been 
-communicating on slack and messenger ever since. Activities such as game pitch, proposal and milestones planning were done together in zoom meetings. 
-We have a scheduled weekly meeting every Sunday at 8PM and extra meetings when we have a deadline. We have good github practices such as having a dev
-branch and having people doing their individual work on their own branches. We must have at least one approval before a pull request is merged and we
-do group review during our zoom meetings. We also assign task by using github issues which clearly indicates who does what. We are flexible with our 
-tasks assignments because our effective communications. Constant daily communications are done on slack and messenger combined with the frequent zoom
-meetings means that whenever one person wants to change their task, whether to ask for help or ask for more work he or she can do with ease.
+Level loading (RM): Implemented level loading mechanism that loads an arbitrary number of levels from data/levels json file (level_design.json). 
+The level has information for the number, kind of enemies, positions of enemies, the player positions and the barrier/block positions that is all customizable. 
+JSON parsing is done through the library JSONcpp integrated in the external lib. feature. There are 3 levels in the game with varying levels of difficulty 
+and the player progresses to the next level when they kill all enemies on screen and if they stay alive.
+There is also a dev mode where you can reload a level or change to a specific level using the keys 1, 2 or 3.
 
 Revised Project Proposal:
-Regarding TA feedback:
--GLFW conflict: We were told that having two players both using the keyboard would have problem with GLFW. Our solution is to have one player controlled
-with the keyboard and the other player with the mouse.
--Particle System: We highly underestimated the particle system and we decided that we won't implement it in our game, thus dropping it from M4.
--Keyboard rebind and controller support: We were told these two features are were too simple to do to get points, thus we are dropping them from M4.
--To account for the extra 10 points from organization we are dropping parallax scrolling background from our game entirely.
-
 Feature changes:
-We discovered that precise collision is too difficult and beyond our knowledge currently. We are moving precise collision from M1 to M2. We are instead
-doing co-op second player in M1, moved from M3. We are moving save and reload from M2 to M3.
-
-For revised milestones, please see MilestoneSubmissionFormM1.pdf.
+-Swarm behaviour was pushed to milestone 3 in favour of library integration for this milestone
