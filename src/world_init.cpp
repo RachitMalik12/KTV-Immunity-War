@@ -40,8 +40,6 @@ Entity createKnight(RenderSystem* renderer, vec2 position) {
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
-	Mesh& hitbox = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.hitboxes.emplace(entity, &hitbox);
 
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
@@ -144,6 +142,9 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, int enemyType) {
 		curEnemy = createEnemyHunter(renderer, position);
 	} else if (enemyType == 3) {
 		curEnemy = createEnemyBacteria(renderer, position);
+	}
+	else if (enemyType == 4) {
+		curEnemy = createEnemyChase(renderer, position);
 	}
 	return curEnemy;
 }
@@ -284,6 +285,51 @@ Entity createEnemyBacteria(RenderSystem* renderer, vec2 position) {
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ENEMYBACTERIA,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
+// Enemy that chases the player
+Entity createEnemyChase(RenderSystem* renderer, vec2 position)
+{
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.position = position;
+
+	motion.scale = vec2({ ENEMYCHASE_BB_WIDTH * defaultResolution.scaling, ENEMYCHASE_BB_HEIGHT * defaultResolution.scaling });
+
+	registry.enemies.emplace(entity);
+	registry.enemyChase.emplace(entity);
+	// Set enemy attributes
+	auto& enemyCom = registry.enemies.get(entity);
+	enemyCom.damage = 1;
+	enemyCom.hp = 3;
+	enemyCom.loot = 1;
+	enemyCom.speed = 50.f * defaultResolution.scaling;
+	motion.velocity = vec2(uniform_dist(rng) * enemyCom.speed, uniform_dist(rng) * enemyCom.speed);
+	
+	Motion& player_motion = motion;
+	for (Entity player : registry.players.entities) {
+		player_motion = registry.motions.get(entity);
+		break;
+	}
+
+	vec2 enemy_to_player = vec2(player_motion.position.x - motion.position.x, player_motion.position.y - motion.position.y);
+	float radians = atan2f(enemy_to_player.y, -enemy_to_player.x);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ENEMYCHASE,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
 

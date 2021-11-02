@@ -596,7 +596,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	// Control if in help mode or not
-	if (action == GLFW_RELEASE && key == GLFW_KEY_0) {
+	if (action == GLFW_RELEASE && key == GLFW_KEY_P) {
 		if (helpMode.inHelpMode) {
 			helpMode.inHelpMode = false;
 			for (Entity entity : registry.helpModes.entities) {

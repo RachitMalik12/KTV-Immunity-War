@@ -53,10 +53,23 @@ struct EnemyBlob
 
 };
 
+// Enemy that will chase the wizard but not using BFS
+struct EnemyChase
+{
+	// counter for enemy chase 
+	float counter_ms = 2000;
+	// mark encounter with other enemies and counter for changing direction
+	uint encounter = 0;
+	float counter_other_en_chase_ms = 800;
+	uint enemy_chase_max_dist_sq = 200 * 200;
+	int counter_value = 2000;
+	int counter_other_en_chase_value = 800;
+};
+
 // Enemy that will be attacked by wizard using projectile and tries to run away from wizard
 struct EnemyRun
 {
-
+	int max_dist_wz_en_run = 50 * 50;
 };
 
 // State machine feature
@@ -259,7 +272,8 @@ enum class TEXTURE_ASSET_ID {
 	ENEMYHUNTER = ENEMYRUN + 1,
 	HELPPANEL = ENEMYHUNTER + 1,
 	ENEMYBACTERIA = HELPPANEL + 1,
-	KNIGHT = ENEMYBACTERIA +1,
+	ENEMYCHASE = ENEMYBACTERIA + 1,
+	KNIGHT = ENEMYCHASE +1,
 	TEXTURE_COUNT = KNIGHT + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;

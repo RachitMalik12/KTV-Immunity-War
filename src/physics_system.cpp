@@ -2,9 +2,7 @@
 #include "physics_system.hpp"
 #include "world_init.hpp"
 
-const int MAX_DIST_WZ_EN = 50*50;
 const int ENEMY_AVOID_DIST = 100;
-const int ENEMY_DAMAGE = 1;
 
 void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_height_px)
 {
@@ -48,7 +46,7 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 				Motion& enemyMotion = motion_registry.get(entity);
 				enemyMotion.velocity.y *= -1;
 			}
-			else if (registry.enemiesrun.has(entity)) {
+			else if (registry.enemiesrun.has(entity) || registry.enemyChase.has(entity)) {
 				Motion& enemyRunMotion = motion_registry.get(entity);
 				Enemy& enemyCom = registry.enemies.get(entity);
 				if (enemyRunMotion.velocity.x > 0) {
@@ -92,7 +90,7 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 				Motion& motion_wz = motion_registry.get(registry.players.entities[k]);
 				vec2 dp = motion_en.position - motion_wz.position;
 				float dist_squared = dot(dp, dp);
-				if (dist_squared < MAX_DIST_WZ_EN) {
+				if (dist_squared < registry.enemiesrun.get(entity).max_dist_wz_en_run) {
 					if (motion_en.velocity.x > 0) {
 						if (motion_en.velocity.y > 0) {
 							motion_en.velocity.x = -1 * enemyCom.speed;
@@ -119,6 +117,7 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 			
 		}
 	}
+	
 
 	// Check for collisions between all moving entities
     ComponentContainer<Motion> &motion_container = registry.motions;

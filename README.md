@@ -2,7 +2,7 @@ Milestone 2 Team 6 KTV
 Grace Days Used: 1
 
 Milestone Feature Descriptions:
-Gameplay 1 (ALL): We load the map and spawn all the enemies on screen and the players have to kill them all to advance to the next level. The stats of players and enemies are implemented. Stats are damage, max hp, movement speed and projectile speed/firing speed.
+Gameplay 1 (BZ, FC, LT): We load the map and spawn all the enemies on screen and the players have to kill them all to advance to the next level. The stats of players and enemies are implemented. Stats are damage, max hp, movement speed and projectile speed/firing speed.
 
 Adaptive Resolution (BZ): We offer player a choice between 3 resolution when the game is launched. 2400 x 1600, 1200 x 800 and 600 x 400. Everything in game that involve position and velocity is scaled accordingly. 
 
@@ -22,6 +22,11 @@ The level has information for the number, kind of enemies, positions of enemies,
 JSON parsing is done through the library JSONcpp integrated in the external lib. feature. There are 3 levels in the game with varying levels of difficulty 
 and the player progresses to the next level when they kill all enemies on screen and if they stay alive.
 There is also a dev mode where you can reload a level or change to a specific level using the keys 1, 2 or 3.
+
+Help Menu (LT): Implemented ability to toggle "P" to display help menu and pause game while in help menu. Once exits help menu, the game will resume as normal. Designed help menu with features needed for game play.
+
+Additional Enemy (LT): Added additional enemy that chases player 1 by default. If player 1 dies, all of these enemies will switch to chase player 2. 
+This group of enemies will also avoid each other (if it is within a certain distance, it will move in the opposite direction as the direction from it to another enemy of its type for a set number of seconds (this is changeable by the user)).
 
 Revised Project Proposal:
 Feature changes:

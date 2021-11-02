@@ -23,6 +23,8 @@ const float ENEMYHUNTER_BB_HEIGHT = 0.11f * 691.f;
 const float ENEMYHUNTER_BB_WIDTH = 0.11f * 582.f;
 const float ENEMYBACTERIA_BB_HEIGHT = 0.11f * 691.f;
 const float ENEMYBACTERIA_BB_WIDTH = 0.11f * 800.f;
+const float ENEMYCHASE_BB_HEIGHT = 0.05f * 1024.f;
+const float ENEMYCHASE_BB_WIDTH = 0.05f * 1258.f;
 const float HELP_BB_WIDTH = 1000.f;
 const float HELP_BB_HEIGHT = 641.f;
 
@@ -55,6 +57,9 @@ Entity createEnemyHunter(RenderSystem* renderer, vec2 position);
 
 // BFS enemy
 Entity createEnemyBacteria(RenderSystem* renderer, vec2 position);
+
+// BFS enemy
+Entity createEnemyChase(RenderSystem* renderer, vec2 position);
 
 // The powerup 
 Entity createPowerup(RenderSystem* render, vec2 pos); 
