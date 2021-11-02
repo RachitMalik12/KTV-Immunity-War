@@ -96,6 +96,7 @@ void AISystem::stepEnemyBacteria(float elapsed_ms, float width, float height) {
 void AISystem::stepEnemyChase(float elapsed_ms) {
 	// update enemy chase so it chases the player
 	for (Entity entity : registry.enemyChase.entities) {
+		auto& enemyCom = registry.enemies.get(entity);
 		Motion& motion = registry.motions.get(entity);
 		Motion& motion_wz = *new Motion();
 		for (uint k = 0; k < registry.players.size(); k++) {
@@ -123,9 +124,9 @@ void AISystem::stepEnemyChase(float elapsed_ms) {
 						float radians_for_angle = atan2f(-chase_to_wz.y, -chase_to_wz.x);
 						float radians = atan2f(chase_to_wz.y, chase_to_wz.x);
 						motion.angle = radians_for_angle;
-						motion.velocity = vec2(50.f * cos(-radians), 50.f * sin(radians));
+						motion.velocity = vec2(enemyCom.speed * cos(-radians), enemyCom.speed * sin(radians));
 						registry.enemyChase.get(entity).encounter == 0;
-						registry.enemyChase.get(entity).counter_otherenchase_ms = 800;
+						registry.enemyChase.get(entity).counter_other_en_chase_ms = registry.enemyChase.get(entity).counter_other_en_chase_value;
 					}
 				}
 			}
@@ -134,12 +135,12 @@ void AISystem::stepEnemyChase(float elapsed_ms) {
 				// reset timer and encounter variable when timer expires and
 				// recalculate direction turtle is facing
 				if (registry.enemyChase.get(entity).counter_ms < 0) {
-					registry.enemyChase.get(entity).counter_ms = 2000;
+					registry.enemyChase.get(entity).counter_ms = registry.enemyChase.get(entity).counter_value;
 					vec2 chase_to_wz = vec2(motion_wz.position.x - motion.position.x, motion_wz.position.y - motion.position.y);
 					float radians_for_angle = atan2f(-chase_to_wz.y, -chase_to_wz.x);
 					float radians = atan2f(chase_to_wz.y, chase_to_wz.x);
 					motion.angle = radians_for_angle;
-					motion.velocity = vec2(50.f * cos(-radians), 50.f * sin(radians));
+					motion.velocity = vec2(enemyCom.speed * cos(-radians), enemyCom.speed * sin(radians));
 				}
 			}
 

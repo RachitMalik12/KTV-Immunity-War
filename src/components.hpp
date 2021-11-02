@@ -60,8 +60,10 @@ struct EnemyChase
 	float counter_ms = 2000;
 	// mark encounter with other enemies and counter for changing direction
 	uint encounter = 0;
-	float counter_otherenchase_ms = 800;
+	float counter_other_en_chase_ms = 800;
 	uint enemy_chase_max_dist_sq = 200 * 200;
+	int counter_value = 2000;
+	int counter_other_en_chase_value = 800;
 };
 
 // Enemy that will be attacked by wizard using projectile and tries to run away from wizard

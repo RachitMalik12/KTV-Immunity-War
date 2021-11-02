@@ -315,7 +315,7 @@ Entity createEnemyChase(RenderSystem* renderer, vec2 position)
 	enemyCom.damage = 1;
 	enemyCom.hp = 3;
 	enemyCom.loot = 1;
-	enemyCom.speed = 200.f * defaultResolution.scaling;
+	enemyCom.speed = 50.f * defaultResolution.scaling;
 	motion.velocity = vec2(uniform_dist(rng) * enemyCom.speed, uniform_dist(rng) * enemyCom.speed);
 	
 	Motion& player_motion = motion;
