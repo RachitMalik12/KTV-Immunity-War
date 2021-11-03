@@ -194,90 +194,19 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
+	// Remove debug info from the last step
+	while (registry.debugComponents.entities.size() > 0)
+		registry.remove_all_components_of(registry.debugComponents.entities.back());
+
 	// Get the screen dimensions
 	int screen_width, screen_height;
 	glfwGetFramebufferSize(window, &screen_width, &screen_height);
-	Animation& playerOneAnimation = registry.animations.get(registry.animations.entities.front());
-	//animate
-	if (playerOneAnimation.pressed) {
-		playerOneAnimation.xFrame = 
-			frame_counter(elapsed_ms_since_last_update, playerOneAnimation.animationSpeed, playerOneAnimation.xFrame, playerOneAnimation.numOfFrames);
-		registry.renderRequests.remove(player_wizard);
-		registry.renderRequests.insert(
-			player_wizard,
-			{ TEXTURE_ASSET_ID::KNIGHT,
-				EFFECT_ASSET_ID::KNIGHT,
-				GEOMETRY_BUFFER_ID::SPRITE }, false);
-	}
-	
 
-	// Updating window title with money
-	std::stringstream title_ss;
-	// Get hp of player 1 and player 2 
-	int hp_p1 = 0; 
-	int hp_p2 = 0;
-	title_ss << "Level: " << level_number; 
-	hp_p1 = registry.players.get(player_wizard).hp; 
-	if (twoPlayer.inTwoPlayerMode) {
-		hp_p2 = registry.players.get(player2_wizard).hp; 
-	}
-	if (twoPlayer.inTwoPlayerMode) {
-		title_ss << " P1 Money: " << registry.playerStats.get(registry.players.get(player_wizard).playerStat).money << " Health: " << hp_p1
-			     << " & P2 Money: " << registry.playerStats.get(registry.players.get(player2_wizard).playerStat).money  << " Health: " << hp_p2;
-	} else {
-		title_ss << " Money: " << registry.playerStats.get(registry.players.get(player_wizard).playerStat).money << " & Health P1 " << hp_p1;
-	}
-	glfwSetWindowTitle(window, title_ss.str().c_str());
-
-	// Remove debug info from the last step
-	while (registry.debugComponents.entities.size() > 0)
-	    registry.remove_all_components_of(registry.debugComponents.entities.back());
-
-	// Removing out of screen entities
-	auto& motions_registry = registry.motions;
-	auto& destinations_registry = registry.mouseDestinations;
-	int nextLevel = level_number + 1; 
-	if (isLevelOver && nextLevel <= levels.size()) {
-		// Only if we have levels left we need to change level 
-		initial_level_load = false; 
-		level_number = nextLevel;
-		setupLevel(level_number);
-	}
-
-	// Check level completion 
-	if (registry.enemies.size() == 0) {
-		isLevelOver = true; 
-	}
-
-	if (twoPlayer.inTwoPlayerMode && destinations_registry.has(player2_wizard)) {
-		Motion& motion = motions_registry.get(player2_wizard);
-		MouseDestination& mouseDestination = destinations_registry.get(player2_wizard);
-
-		if (abs(motion.position.x - mouseDestination.position.x) < 1.f && abs(motion.position.y - mouseDestination.position.y) < 1.f) {
-			destinations_registry.remove(player2_wizard);
-			motion.velocity = vec2(0,0);
-		}
-	}
-
-	// update Stuck timers and remove if time drops below zero, similar to the death counter
-	for (Entity entity : registry.stuckTimers.entities) {
-		StuckTimer& counter = registry.stuckTimers.get(entity);
-		// remove timer if current position is the different from "stuck" position
-		if (registry.motions.get(entity).position != counter.stuck_pos) {
-			registry.stuckTimers.remove(entity);
-		}
-		// else if entity is "stuck" in same position, progress timer
-		else {
-			// progress timer
-			counter.counter_ms -= elapsed_ms_since_last_update;
-			// remove entity (enemies/enemies run) when timer expires
-			if (counter.counter_ms < 0) {
-				registry.motions.get(entity).position = vec2(screen_width / 2.f, screen_height / 2.f);
-			}
-		}
-	}
-
-
+	animateKnight(elapsed_ms_since_last_update);
+	updateWindowTitle();
+	levelCompletionCheck();
+	resolveMouseControl();
+	stuckTimer(elapsed_ms_since_last_update, screen_width, screen_height);
 	invincibilityTimer(elapsed_ms_since_last_update);
 	handlePlayerOneProjectile(elapsed_ms_since_last_update);
 	handlePlayerTwoProjectile(elapsed_ms_since_last_update);
@@ -762,5 +691,87 @@ void WorldSystem::invincibilityTimer(float elapsed_ms_since_last_update) {
 			}
 
 		}
+	}
+}
+
+void WorldSystem::stuckTimer(float elapsed_ms_since_last_update, int screen_width, int screen_height) {
+	// update Stuck timers and remove if time drops below zero, similar to the death counter
+	for (Entity entity : registry.stuckTimers.entities) {
+		StuckTimer& counter = registry.stuckTimers.get(entity);
+		// remove timer if current position is the different from "stuck" position
+		if (registry.motions.get(entity).position != counter.stuck_pos) {
+			registry.stuckTimers.remove(entity);
+		}
+		// else if entity is "stuck" in same position, progress timer
+		else {
+			// progress timer
+			counter.counter_ms -= elapsed_ms_since_last_update;
+			// remove entity (enemies/enemies run) when timer expires
+			if (counter.counter_ms < 0) {
+				registry.motions.get(entity).position = vec2(screen_width / 2.f, screen_height / 2.f);
+			}
+		}
+	}
+}
+
+void WorldSystem::resolveMouseControl() {
+	if (twoPlayer.inTwoPlayerMode && registry.mouseDestinations.has(player2_wizard)) {
+		Motion& motion = registry.motions.get(player2_wizard);
+		MouseDestination& mouseDestination = registry.mouseDestinations.get(player2_wizard);
+
+		if (abs(motion.position.x - mouseDestination.position.x) < 1.f && abs(motion.position.y - mouseDestination.position.y) < 1.f) {
+			registry.mouseDestinations.remove(player2_wizard);
+			motion.velocity = vec2(0, 0);
+		}
+	}
+}
+
+void WorldSystem::levelCompletionCheck() {
+	// Check level completion 
+	if (registry.enemies.size() == 0) {
+		isLevelOver = true;
+	}
+	int nextLevel = level_number + 1;
+	if (isLevelOver && nextLevel <= levels.size()) {
+		// Only if we have levels left we need to change level 
+		initial_level_load = false;
+		level_number = nextLevel;
+		setupLevel(level_number);
+	}
+}
+
+void WorldSystem::updateWindowTitle() {
+	// Updating window title with money
+	std::stringstream title_ss;
+	// Get hp of player 1 and player 2 
+	int hp_p1 = 0;
+	int hp_p2 = 0;
+	title_ss << "Level: " << level_number;
+	hp_p1 = registry.players.get(player_wizard).hp;
+	if (twoPlayer.inTwoPlayerMode) {
+		hp_p2 = registry.players.get(player2_wizard).hp;
+	}
+	if (twoPlayer.inTwoPlayerMode) {
+		title_ss << " P1 Money: " << registry.playerStats.get(registry.players.get(player_wizard).playerStat).money << " Health: " << hp_p1
+			<< " & P2 Money: " << registry.playerStats.get(registry.players.get(player2_wizard).playerStat).money << " Health: " << hp_p2;
+	}
+	else {
+		title_ss << " Money: " << registry.playerStats.get(registry.players.get(player_wizard).playerStat).money << " & Health P1 " << hp_p1;
+	}
+	glfwSetWindowTitle(window, title_ss.str().c_str());
+}
+
+void WorldSystem::animateKnight(float elapsed_ms_since_last_update) {
+	Animation& playerOneAnimation = registry.animations.get(registry.animations.entities.front());
+	//animate
+	if (playerOneAnimation.pressed) {
+		playerOneAnimation.xFrame =
+			frame_counter(elapsed_ms_since_last_update, playerOneAnimation.animationSpeed, playerOneAnimation.xFrame, playerOneAnimation.numOfFrames);
+		registry.renderRequests.remove(player_wizard);
+		registry.renderRequests.insert(
+			player_wizard,
+			{ TEXTURE_ASSET_ID::KNIGHT,
+				EFFECT_ASSET_ID::KNIGHT,
+				GEOMETRY_BUFFER_ID::SPRITE }, false);
 	}
 }
