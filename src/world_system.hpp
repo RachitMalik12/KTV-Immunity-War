@@ -20,7 +20,7 @@ class WorldSystem
 public:
 	WorldSystem();
 
-	std::vector<std::function<void(Entity entity)>>  callbackFns;
+	std::vector<std::function<void(Entity entity)>> callbackFns;
 
 	// Creates a window
 	GLFWwindow* create_window(int width, int height);
@@ -48,53 +48,47 @@ private:
 	void on_key(int key, int, int action, int mod);
 	void on_mouse_move(vec2 pos);
 	void on_mouse_click(int button, int action, int mods);
-
 	// restart level
 	void restart_game();
-
 	void setupLevel(int levelNum); 
-
+	void setPlayerStats();
 	// OpenGL window handle
 	GLFWwindow* window;
-
-	bool spawnPowerup;
 	int level_number;
-	bool initial_level_load; 
 	std::vector<Level> levels; 
 	// to start with true. 
 	bool isLevelOver;
-
 	// Game state
 	RenderSystem* renderer;
-	float current_speed;
 	float next_projectile_fire_player1;
 	float next_projectile_fire_player2;
 	Entity player_wizard;
 	Entity player2_wizard;
 	Entity player_stat;
 	Entity player2_stat;
-
 	// music references
 	Mix_Music* background_music;
 	Mix_Chunk* salmon_dead_sound;
 	Mix_Chunk* salmon_eat_sound;
-
 	// C++ random number generator
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
-
 	// window scaling variables setup
 	void setupWindowScaling();
-
 	// window scaling variables
 	float gameHeightScale;
 	float doorWidthScale;
-
 	// create and remove walls and doors
 	void createWalls(int screenWidth, int screenHeight);
 	void createADoor(int screenWidth, int screenHeight);
-
+	// world.step
 	void deathHandling();
-
-	void setPlayerStats();
+	void handlePlayerOneProjectile(float elapsed_ms_since_last_update);
+	void handlePlayerTwoProjectile(float elapsed_ms_since_last_update);
+	void invincibilityTimer(float elapsed_ms_since_last_update);
+	void stuckTimer(float elapsed_ms_since_last_update, int screen_width, int screen_height);
+	void resolveMouseControl();
+	void levelCompletionCheck();
+	void updateWindowTitle();
+	void animateKnight(float elapsed_ms_since_last_update);
 }; 

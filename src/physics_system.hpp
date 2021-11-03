@@ -33,4 +33,10 @@ private:
 	bool wallCollides(vec2 nextPosition, Entity wall, const Motion& motion);
 	void drawMeshDebug(const Entity entity);
 	void drawBoundingBoxDebug(const Motion& motion);
+	void bounceEnemyRun(Entity curEntity);
+	void bounceEnemies(Entity curEntity, bool hitABlock);
+	bool hitBlockOrWall(vec2 nextPosition, Motion& motion);
+	void moveEntities(float elapsed_ms);
+	void drawDebugMode();
+	void checkForCollision();
 };

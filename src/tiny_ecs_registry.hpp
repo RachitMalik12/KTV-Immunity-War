@@ -11,7 +11,6 @@ class ECSRegistry
 
 public:
 	// Manually created list of all components this game has
-	ComponentContainer<DeathTimer> deathTimers;
 	ComponentContainer<StuckTimer> stuckTimers;
 	ComponentContainer<Motion> motions;
 	ComponentContainer<Collision> collisions;
@@ -44,7 +43,6 @@ public:
 	// IMPORTANT: Don't forget to add any newly added containers!
 	ECSRegistry()
 	{
-		registry_list.push_back(&deathTimers);
 		registry_list.push_back(&stuckTimers);
 		registry_list.push_back(&motions);
 		registry_list.push_back(&collisions);
