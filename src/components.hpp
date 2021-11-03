@@ -160,12 +160,6 @@ struct DebugComponent
 	// Note, an empty struct has size 1
 };
 
-// A timer that will be associated to dying salmon
-struct DeathTimer
-{
-	float counter_ms = 3000;
-};
-
 // A timer that will be associated to enemies/enemies run being stuck
 struct StuckTimer
 {
@@ -264,11 +258,8 @@ enum class TEXTURE_ASSET_ID {
 	TREE_YELLOW = TREE_ORANGE + 1,
 	FIREBALL = TREE_YELLOW + 1,
 	WIZARD = FIREBALL + 1,
-	WIZARD_LEFT = WIZARD + 1,
-	BLACK_BAR = WIZARD_LEFT + 1,
-	ENEMY = BLACK_BAR + 1,
-	POWERUP = ENEMY + 1,
-	ENEMYRUN = POWERUP + 1,
+	ENEMY = WIZARD + 1,
+	ENEMYRUN = ENEMY + 1,
 	ENEMYHUNTER = ENEMYRUN + 1,
 	HELPPANEL = ENEMYHUNTER + 1,
 	ENEMYBACTERIA = HELPPANEL + 1,
@@ -280,9 +271,8 @@ const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
 enum class EFFECT_ASSET_ID {
 	COLOURED = 0,
-	PEBBLE = COLOURED + 1,
-	SALMON = PEBBLE + 1,
-	TEXTURED = SALMON + 1,
+	LINE = COLOURED + 1,
+	TEXTURED = LINE + 1,
 	WATER = TEXTURED + 1,
 	KNIGHT = WATER + 1,
 	EFFECT_COUNT = KNIGHT + 1
@@ -290,8 +280,7 @@ enum class EFFECT_ASSET_ID {
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
 enum class GEOMETRY_BUFFER_ID {
-	SALMON = 0,
-	SPRITE = SALMON + 1,
+	SPRITE = 0,
 	PEBBLE = SPRITE + 1,
 	DEBUG_LINE = PEBBLE + 1,
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,

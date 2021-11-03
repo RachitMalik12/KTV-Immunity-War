@@ -66,7 +66,7 @@ Entity createWall(vec2 position, vec2 scale) {
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
-			EFFECT_ASSET_ID::PEBBLE,
+			EFFECT_ASSET_ID::LINE,
 			GEOMETRY_BUFFER_ID::WALLS });
 
 	// Create motion
@@ -87,7 +87,7 @@ Entity createDoor(vec2 position, vec2 scale) {
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
-			EFFECT_ASSET_ID::PEBBLE,
+			EFFECT_ASSET_ID::LINE,
 			GEOMETRY_BUFFER_ID::DOOR });
 
 	// Create motion
@@ -367,27 +367,6 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, vec2 velocity, Entity 
 	return entity;
 }
 
-Entity createPowerup(RenderSystem* renderer, vec2 position)
-{   // Reserve an entity
-	auto entity = Entity();
-
-	// Initialize the position, scale, and physics components
-	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
-	motion.position = position;
-
-	motion.scale = vec2({ POWERUP_BB_WIDTH * defaultResolution.scaling, POWERUP_BB_HEIGHT * defaultResolution.scaling });
-
-	registry.powerups.emplace(entity);
-	registry.renderRequests.insert(
-		entity,
-		{  TEXTURE_ASSET_ID::POWERUP,
-			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE });
-
-	return entity;
-}
 
 Entity createLine(vec2 position, vec2 scale)
 {
@@ -397,7 +376,7 @@ Entity createLine(vec2 position, vec2 scale)
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
-		 EFFECT_ASSET_ID::PEBBLE,
+		 EFFECT_ASSET_ID::LINE,
 		 GEOMETRY_BUFFER_ID::DEBUG_LINE });
 
 	// Create motion

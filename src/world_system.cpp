@@ -217,10 +217,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	int hp_p1 = 0; 
 	int hp_p2 = 0;
 	title_ss << "Level: " << level_number; 
-	if (!registry.deathTimers.has(player_wizard) && registry.players.has(player_wizard)) {
-		hp_p1 = registry.players.get(player_wizard).hp; 
-	}
-	if (twoPlayer.inTwoPlayerMode && !registry.deathTimers.has(player2_wizard)) {
+	hp_p1 = registry.players.get(player_wizard).hp; 
+	if (twoPlayer.inTwoPlayerMode) {
 		hp_p2 = registry.players.get(player2_wizard).hp; 
 	}
 	if (twoPlayer.inTwoPlayerMode) {
@@ -291,7 +289,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// handle player1 projectiles
-	next_projectile_fire_player1 -= elapsed_ms_since_last_update * current_speed;
+	next_projectile_fire_player1 -= elapsed_ms_since_last_update;
 	Player& player1 = registry.players.get(player_wizard);
 	PlayerStat& playerOneStat = registry.playerStats.get(player1.playerStat);
 	Motion playerMotion = motions_registry.get(player_wizard);
@@ -315,7 +313,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// handle player2 projectile
 	if (twoPlayer.inTwoPlayerMode) {
-		next_projectile_fire_player2 -= elapsed_ms_since_last_update * current_speed;
+		next_projectile_fire_player2 -= elapsed_ms_since_last_update;
 		Motion player2Motion = motions_registry.get(player2_wizard);
 		Player& player2 = registry.players.get(player2_wizard);
 		PlayerStat& playerTwoStat = registry.playerStats.get(player2.playerStat);
@@ -378,8 +376,6 @@ void WorldSystem::restart_game() {
 	level_number = 1; 
 	spawnPowerup = true; 
 	// Set all states to default
-	// Reset the game speed
-	current_speed = 1.f;
 
 	// set help mode to false again
 	helpMode.inHelpMode = false;
@@ -608,18 +604,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			createHelp();
 		}
 	}
-
-
-	// Control the current speed with `<` `>`
-	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA) {
-		current_speed -= 0.1f;
-		printf("Current speed = %f\n", current_speed);
-	}
-	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_PERIOD) {
-		current_speed += 0.1f;
-		printf("Current speed = %f\n", current_speed);
-	}
-	current_speed = fmax(0.f, current_speed);
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
