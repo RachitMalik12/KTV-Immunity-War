@@ -20,7 +20,7 @@ class WorldSystem
 public:
 	WorldSystem();
 
-	std::vector<std::function<void(Entity entity)>>  callbackFns;
+	std::vector<std::function<void(Entity entity)>> callbackFns;
 
 	// Creates a window
 	GLFWwindow* create_window(int width, int height);
