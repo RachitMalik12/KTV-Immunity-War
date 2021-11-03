@@ -277,62 +277,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	for (Entity playerEntity : registry.players.entities) {
-		Player& player = registry.players.get(playerEntity);
-		if (player.isInvin) {
-			player.invinTimerInMs -= elapsed_ms_since_last_update;
-			if (player.invinTimerInMs < 0) {
-				player.isInvin = false;
-			}
 
-		}
-	}
-
-	// handle player1 projectiles
-	next_projectile_fire_player1 -= elapsed_ms_since_last_update;
-	Player& player1 = registry.players.get(player_wizard);
-	PlayerStat& playerOneStat = registry.playerStats.get(player1.playerStat);
-	Motion playerMotion = motions_registry.get(player_wizard);
-	if (player1.isFiringProjectile && next_projectile_fire_player1 < 0.f) {
-		next_projectile_fire_player1 = playerOneStat.projectileFireRate;
-		switch (player1.firingDirection) {
-			case 0: // up
-				createProjectile(renderer, playerMotion.position, { 0, -1.f * playerOneStat.projectileSpeed * defaultResolution.scaling }, player_wizard);
-				break;
-			case 1: // right
-				createProjectile(renderer, playerMotion.position, { playerOneStat.projectileSpeed * defaultResolution.scaling, 0 }, player_wizard);
-				break;
-			case 2: // down
-				createProjectile(renderer, playerMotion.position, { 0, playerOneStat.projectileSpeed * defaultResolution.scaling }, player_wizard);
-				break;
-			case 3: // left
-				createProjectile(renderer, playerMotion.position, { -1.f * playerOneStat.projectileSpeed * defaultResolution.scaling, 0 }, player_wizard);
-				break;
-		}
-	}
-
-	// handle player2 projectile
-	if (twoPlayer.inTwoPlayerMode) {
-		next_projectile_fire_player2 -= elapsed_ms_since_last_update;
-		Motion player2Motion = motions_registry.get(player2_wizard);
-		Player& player2 = registry.players.get(player2_wizard);
-		PlayerStat& playerTwoStat = registry.playerStats.get(player2.playerStat);
-		if (player2.isFiringProjectile && next_projectile_fire_player2 < 0.f) {
-			next_projectile_fire_player2 = playerTwoStat.projectileFireRate;
-			double x, y;
-			glfwGetCursorPos(window, &x, &y);
-			if (registry.inShops.has(player2_wizard)) {
-				y += DEFAULT_HEIGHT * defaultResolution.scaling;
-			}
-			float dx = (float)x - player2Motion.position.x;
-			float dy = (float)y - player2Motion.position.y;
-			float h = sqrtf(powf(dx, 2) + powf(dy, 2));
-			float scale = playerTwoStat.projectileSpeed * defaultResolution.scaling / h;
-			createProjectile(renderer, player2Motion.position, { dx * scale, dy * scale }, player2_wizard);
-		}
-	}
-
-	// handle death
+	invincibilityTimer(elapsed_ms_since_last_update);
+	handlePlayerOneProjectile(elapsed_ms_since_last_update);
+	handlePlayerTwoProjectile(elapsed_ms_since_last_update);
 	deathHandling();
 
 	return true;
@@ -753,5 +701,66 @@ void WorldSystem::setPlayerStats() {
 		player2_stat = entity2;
 		PlayerStat& playerTwoStat = registry.playerStats.get(player2_stat);
 		playerTwoStat.movementSpeed = playerTwoStat.movementSpeed * defaultResolution.scaling;
+	}
+}
+
+void WorldSystem::handlePlayerTwoProjectile(float elapsed_ms_since_last_update) {
+	// handle player2 projectile
+	if (twoPlayer.inTwoPlayerMode) {
+		next_projectile_fire_player2 -= elapsed_ms_since_last_update;
+		Motion player2Motion = registry.motions.get(player2_wizard);
+		Player& player2 = registry.players.get(player2_wizard);
+		PlayerStat& playerTwoStat = registry.playerStats.get(player2.playerStat);
+		if (player2.isFiringProjectile && next_projectile_fire_player2 < 0.f) {
+			next_projectile_fire_player2 = playerTwoStat.projectileFireRate;
+			double x, y;
+			glfwGetCursorPos(window, &x, &y);
+			if (registry.inShops.has(player2_wizard)) {
+				y += DEFAULT_HEIGHT * defaultResolution.scaling;
+			}
+			float dx = (float)x - player2Motion.position.x;
+			float dy = (float)y - player2Motion.position.y;
+			float h = sqrtf(powf(dx, 2) + powf(dy, 2));
+			float scale = playerTwoStat.projectileSpeed * defaultResolution.scaling / h;
+			createProjectile(renderer, player2Motion.position, { dx * scale, dy * scale }, player2_wizard);
+		}
+	}
+}
+
+void WorldSystem::handlePlayerOneProjectile(float elapsed_ms_since_last_update) {
+	// handle player1 projectiles
+	next_projectile_fire_player1 -= elapsed_ms_since_last_update;
+	Player& player1 = registry.players.get(player_wizard);
+	PlayerStat& playerOneStat = registry.playerStats.get(player1.playerStat);
+	Motion playerMotion = registry.motions.get(player_wizard);
+	if (player1.isFiringProjectile && next_projectile_fire_player1 < 0.f) {
+		next_projectile_fire_player1 = playerOneStat.projectileFireRate;
+		switch (player1.firingDirection) {
+		case 0: // up
+			createProjectile(renderer, playerMotion.position, { 0, -1.f * playerOneStat.projectileSpeed * defaultResolution.scaling }, player_wizard);
+			break;
+		case 1: // right
+			createProjectile(renderer, playerMotion.position, { playerOneStat.projectileSpeed * defaultResolution.scaling, 0 }, player_wizard);
+			break;
+		case 2: // down
+			createProjectile(renderer, playerMotion.position, { 0, playerOneStat.projectileSpeed * defaultResolution.scaling }, player_wizard);
+			break;
+		case 3: // left
+			createProjectile(renderer, playerMotion.position, { -1.f * playerOneStat.projectileSpeed * defaultResolution.scaling, 0 }, player_wizard);
+			break;
+		}
+	}
+}
+
+void WorldSystem::invincibilityTimer(float elapsed_ms_since_last_update) {
+	for (Entity playerEntity : registry.players.entities) {
+		Player& player = registry.players.get(playerEntity);
+		if (player.isInvin) {
+			player.invinTimerInMs -= elapsed_ms_since_last_update;
+			if (player.invinTimerInMs < 0) {
+				player.isInvin = false;
+			}
+
+		}
 	}
 }

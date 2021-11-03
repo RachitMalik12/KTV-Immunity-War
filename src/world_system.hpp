@@ -96,4 +96,8 @@ private:
 	void deathHandling();
 
 	void setPlayerStats();
+
+	void handlePlayerOneProjectile(float elapsed_ms_since_last_update);
+	void handlePlayerTwoProjectile(float elapsed_ms_since_last_update);
+	void invincibilityTimer(float elapsed_ms_since_last_update);
 }; 
