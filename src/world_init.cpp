@@ -353,7 +353,7 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, vec2 velocity, Entity 
 	motion.position = pos;
 
 	// Setting initial values
-	motion.scale = vec2({ FIREBALL_BB_WIDTH * defaultResolution.scaling, FIREBALL_BB_HEIGHT * defaultResolution.scaling });
+	motion.scale = vec2({ WATERBALL_BB_WIDTH * defaultResolution.scaling, WATERBALL_BB_HEIGHT * defaultResolution.scaling });
 
 	// fireball stuff
 	registry.projectiles.emplace(entity);
