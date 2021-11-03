@@ -37,4 +37,6 @@ private:
 	void bounceEnemies(Entity curEntity, bool hitABlock);
 	bool hitBlockOrWall(vec2 nextPosition, Motion& motion);
 	void moveEntities(float elapsed_ms);
+	void drawDebugMode();
+	void checkForCollision();
 };

@@ -2,51 +2,11 @@
 #include "physics_system.hpp"
 #include "world_init.hpp"
 
-const int ENEMY_AVOID_DIST = 100;
-
 void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_height_px)
 {
 	moveEntities(elapsed_ms);
-
-	// Check for collisions between all moving entities
-    ComponentContainer<Motion> &motion_container = registry.motions;
-	for(uint i = 0; i<motion_container.components.size(); i++)
-	{
-		Motion& motion = motion_container.components[i];
-		Entity entity = motion_container.entities[i];
-		for(uint j = 0; j<motion_container.components.size(); j++) // i+1
-		{
-			if (i == j)
-				continue;
-			Entity other_entity = motion_container.entities[j];
-			Motion& other_motion = motion_container.components[j];
-			if (collides(entity, other_entity))
-			{
-				// Create a collisions event
-				// We are abusing the ECS system a bit in that we potentially insert muliple collisions for the same entity
-				registry.collisions.emplace_with_duplicates(entity, other_entity);
-				registry.collisions.emplace_with_duplicates(other_entity, entity);
-			}
-		}
-	}
-
-	// debugging of bounding boxes
-	if (debugging.in_debug_mode)
-	{
-		uint size_before_adding_new = (uint)motion_container.components.size();
-		for (uint i = 0; i < size_before_adding_new; i++)
-		{
-			Motion& motion_i = motion_container.components[i];
-			Entity entity_i = motion_container.entities[i];
-			
-			if (registry.hitboxes.has(entity_i)) {
-				drawMeshDebug(entity_i);
-			} 
-			if (!registry.walls.has(entity_i)) {
-				drawBoundingBoxDebug(motion_i);
-			}
-		}
-	}
+	checkForCollision();
+	drawDebugMode();
 }
 
 void PhysicsSystem::handle_collision() {
@@ -369,5 +329,49 @@ void PhysicsSystem::moveEntities(float elapsed_ms) {
 		}
 		bounceEnemies(entity, hitABlock);
 		bounceEnemyRun(entity);
+	}
+}
+
+void PhysicsSystem::drawDebugMode() {
+	// debugging of bounding boxes
+	if (debugging.in_debug_mode)
+	{
+		uint size_before_adding_new = (uint)registry.motions.components.size();
+		for (uint i = 0; i < size_before_adding_new; i++)
+		{
+			Motion& motion_i = registry.motions.components[i];
+			Entity entity_i = registry.motions.entities[i];
+
+			if (registry.hitboxes.has(entity_i)) {
+				drawMeshDebug(entity_i);
+			}
+			if (!registry.walls.has(entity_i)) {
+				drawBoundingBoxDebug(motion_i);
+			}
+		}
+	}
+}
+
+void PhysicsSystem::checkForCollision() {
+	// Check for collisions between all moving entities
+	ComponentContainer<Motion> &motion_container = registry.motions;
+	for (uint i = 0; i < motion_container.components.size(); i++)
+	{
+		Motion& motion = motion_container.components[i];
+		Entity entity = motion_container.entities[i];
+		for (uint j = 0; j < motion_container.components.size(); j++) // i+1
+		{
+			if (i == j)
+				continue;
+			Entity other_entity = motion_container.entities[j];
+			Motion& other_motion = motion_container.components[j];
+			if (collides(entity, other_entity))
+			{
+				// Create a collisions event
+				// We are abusing the ECS system a bit in that we potentially insert muliple collisions for the same entity
+				registry.collisions.emplace_with_duplicates(entity, other_entity);
+				registry.collisions.emplace_with_duplicates(other_entity, entity);
+			}
+		}
 	}
 }
