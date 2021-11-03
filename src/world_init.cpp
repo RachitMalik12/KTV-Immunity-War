@@ -343,7 +343,7 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, vec2 velocity, Entity 
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
-	Mesh& hitbox = renderer->getMesh(GEOMETRY_BUFFER_ID::FIREBALL);
+	Mesh& hitbox = renderer->getMesh(GEOMETRY_BUFFER_ID::WATERBALL);
 	registry.hitboxes.emplace(entity, &hitbox);
 
 	// Initialize the position, scale, and physics components
@@ -360,7 +360,7 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, vec2 velocity, Entity 
 	registry.projectiles.get(entity).belongToPlayer = playerEntity;
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::FIREBALL,
+		{ TEXTURE_ASSET_ID::WATERBALL,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
