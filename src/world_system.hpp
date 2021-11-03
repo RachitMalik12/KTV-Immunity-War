@@ -48,22 +48,16 @@ private:
 	void on_key(int key, int, int action, int mod);
 	void on_mouse_move(vec2 pos);
 	void on_mouse_click(int button, int action, int mods);
-
 	// restart level
 	void restart_game();
-
 	void setupLevel(int levelNum); 
-
+	void setPlayerStats();
 	// OpenGL window handle
 	GLFWwindow* window;
-
-	bool spawnPowerup;
 	int level_number;
-	bool initial_level_load; 
 	std::vector<Level> levels; 
 	// to start with true. 
 	bool isLevelOver;
-
 	// Game state
 	RenderSystem* renderer;
 	float next_projectile_fire_player1;
@@ -72,31 +66,23 @@ private:
 	Entity player2_wizard;
 	Entity player_stat;
 	Entity player2_stat;
-
 	// music references
 	Mix_Music* background_music;
 	Mix_Chunk* salmon_dead_sound;
 	Mix_Chunk* salmon_eat_sound;
-
 	// C++ random number generator
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
-
 	// window scaling variables setup
 	void setupWindowScaling();
-
 	// window scaling variables
 	float gameHeightScale;
 	float doorWidthScale;
-
 	// create and remove walls and doors
 	void createWalls(int screenWidth, int screenHeight);
 	void createADoor(int screenWidth, int screenHeight);
-
+	// world.step
 	void deathHandling();
-
-	void setPlayerStats();
-
 	void handlePlayerOneProjectile(float elapsed_ms_since_last_update);
 	void handlePlayerTwoProjectile(float elapsed_ms_since_last_update);
 	void invincibilityTimer(float elapsed_ms_since_last_update);

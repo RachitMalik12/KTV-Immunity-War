@@ -15,9 +15,7 @@ const int SHOP_WALL_THICKNESS = 100;
 
 // Create the fish world
 WorldSystem::WorldSystem()
-	: spawnPowerup(true), 
-	  isLevelOver(false),
-	  initial_level_load(true), 
+	: isLevelOver(false),
 	  level_number(1)
 {
 	// Seeding rng with random device
@@ -123,68 +121,6 @@ GLFWwindow* WorldSystem::create_window(int width, int height) {
 	return window;
 }
 
-void WorldSystem::setupLevel(int levelNum) {
-	int screen_width, screen_height;
-	glfwGetFramebufferSize(window, &screen_width, &screen_height);
-
-	while (registry.players.entities.size() > 0)
-		registry.remove_all_components_of(registry.players.entities.back());
-	while (registry.projectiles.entities.size() > 0)
-		registry.remove_all_components_of(registry.projectiles.entities.back()); 
-	while (registry.enemies.entities.size() > 0)
-		registry.remove_all_components_of(registry.enemies.entities.back());
-	while (registry.blocks.entities.size() > 0)
-		registry.remove_all_components_of(registry.blocks.entities.back());
-
-	int index = levelNum - 1; 
-	Level level = levels[index];
-	auto enemies = level.enemies;
-	auto enemy_types = level.enemy_types;
-	auto enemyPositions = level.enemyPositions;
-	for (int i = 0; i < enemyPositions.size(); i++) {
-		for (int j = 0; j < enemyPositions[i].size(); j++) {
-			createEnemy(renderer, enemyPositions[i][j] * defaultResolution.scaling, enemy_types[i]);
-		}
-	}
-
-	// Blocks 
-	for (int b = 0; b < level.block_positions.size(); b++) {
-		vec2 block_pos_i = level.block_positions[b];
-		std::string block_color_i;
-		if (uniform_dist(rng) < 0.33) {
-			block_color_i = "red";
-		} else if (uniform_dist(rng) >= 0.33 && uniform_dist(rng) < 0.66) {
-			block_color_i = "orange";
-		} else {
-			block_color_i = "yellow";
-		}
-		createBlock(renderer, block_pos_i * defaultResolution.scaling, block_color_i);
-	}
-
-	player_wizard = createKnight(renderer, level.player_position * defaultResolution.scaling);
-	Player& player1 = registry.players.get(player_wizard);
-	player1.playerStat = player_stat;
-	PlayerStat& playerOneStat = registry.playerStats.get(player_stat);
-	player1.hp = playerOneStat.maxHp;
-	if (twoPlayer.inTwoPlayerMode) {
-		player2_wizard = createWizard(renderer, level.player2_position * defaultResolution.scaling);
-		Player& player2 = registry.players.get(player2_wizard);
-		player2.playerStat = player2_stat;
-		PlayerStat& playerTwoStat = registry.playerStats.get(player2_stat);
-		player2.hp = playerTwoStat.maxHp;
-	}
-
-	// Reset player position on level transition
-	Motion& player1Motion = registry.motions.get(player_wizard);
-	player1Motion.position = level.player_position * defaultResolution.scaling;
-	if (twoPlayer.inTwoPlayerMode) {
-		Motion& player2Motion = registry.motions.get(player2_wizard);
-		player2Motion.position = level.player2_position * defaultResolution.scaling;
-	}
-	// Update state 
-	isLevelOver = false;
-}
-
 void WorldSystem::init(RenderSystem* renderer_arg) {
 	this->renderer = renderer_arg;
 	// Playing background music indefinitely
@@ -249,10 +185,7 @@ void WorldSystem::restart_game() {
 
 	registry.list_all_components();
 	// Restart game starts from level 1 always 
-	initial_level_load = true; 
 	level_number = 1; 
-	spawnPowerup = true; 
-	// Set all states to default
 
 	// set help mode to false again
 	helpMode.inHelpMode = false;
@@ -274,7 +207,6 @@ void WorldSystem::restart_game() {
 	createWalls(screenWidth, screenHeight);
 	createADoor(screenWidth, screenHeight);
 	setupLevel(level_number); 
-	initial_level_load = false; 
 }
 
 void WorldSystem::createADoor(int screenWidth, int screenHeight) {
@@ -734,7 +666,6 @@ void WorldSystem::levelCompletionCheck() {
 	int nextLevel = level_number + 1;
 	if (isLevelOver && nextLevel <= levels.size()) {
 		// Only if we have levels left we need to change level 
-		initial_level_load = false;
 		level_number = nextLevel;
 		setupLevel(level_number);
 	}
@@ -774,4 +705,68 @@ void WorldSystem::animateKnight(float elapsed_ms_since_last_update) {
 				EFFECT_ASSET_ID::KNIGHT,
 				GEOMETRY_BUFFER_ID::SPRITE }, false);
 	}
+}
+
+void WorldSystem::setupLevel(int levelNum) {
+	int screen_width, screen_height;
+	glfwGetFramebufferSize(window, &screen_width, &screen_height);
+
+	while (registry.players.entities.size() > 0)
+		registry.remove_all_components_of(registry.players.entities.back());
+	while (registry.projectiles.entities.size() > 0)
+		registry.remove_all_components_of(registry.projectiles.entities.back());
+	while (registry.enemies.entities.size() > 0)
+		registry.remove_all_components_of(registry.enemies.entities.back());
+	while (registry.blocks.entities.size() > 0)
+		registry.remove_all_components_of(registry.blocks.entities.back());
+
+	int index = levelNum - 1;
+	Level level = levels[index];
+	auto enemies = level.enemies;
+	auto enemy_types = level.enemy_types;
+	auto enemyPositions = level.enemyPositions;
+	for (int i = 0; i < enemyPositions.size(); i++) {
+		for (int j = 0; j < enemyPositions[i].size(); j++) {
+			createEnemy(renderer, enemyPositions[i][j] * defaultResolution.scaling, enemy_types[i]);
+		}
+	}
+
+	// Blocks 
+	for (int b = 0; b < level.block_positions.size(); b++) {
+		vec2 block_pos_i = level.block_positions[b];
+		std::string block_color_i;
+		if (uniform_dist(rng) < 0.33) {
+			block_color_i = "red";
+		}
+		else if (uniform_dist(rng) >= 0.33 && uniform_dist(rng) < 0.66) {
+			block_color_i = "orange";
+		}
+		else {
+			block_color_i = "yellow";
+		}
+		createBlock(renderer, block_pos_i * defaultResolution.scaling, block_color_i);
+	}
+
+	player_wizard = createKnight(renderer, level.player_position * defaultResolution.scaling);
+	Player& player1 = registry.players.get(player_wizard);
+	player1.playerStat = player_stat;
+	PlayerStat& playerOneStat = registry.playerStats.get(player_stat);
+	player1.hp = playerOneStat.maxHp;
+	if (twoPlayer.inTwoPlayerMode) {
+		player2_wizard = createWizard(renderer, level.player2_position * defaultResolution.scaling);
+		Player& player2 = registry.players.get(player2_wizard);
+		player2.playerStat = player2_stat;
+		PlayerStat& playerTwoStat = registry.playerStats.get(player2_stat);
+		player2.hp = playerTwoStat.maxHp;
+	}
+
+	// Reset player position on level transition
+	Motion& player1Motion = registry.motions.get(player_wizard);
+	player1Motion.position = level.player_position * defaultResolution.scaling;
+	if (twoPlayer.inTwoPlayerMode) {
+		Motion& player2Motion = registry.motions.get(player2_wizard);
+		player2Motion.position = level.player2_position * defaultResolution.scaling;
+	}
+	// Update state 
+	isLevelOver = false;
 }
