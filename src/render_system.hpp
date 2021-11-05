@@ -51,7 +51,9 @@ class RenderSystem {
 			textures_path("help.png"),
 			textures_path("yellow-bacteria.png"),
 			textures_path("enemychase.png"),
-			textures_path("knight.png")
+			textures_path("swarm1.png"),
+			textures_path("knight.png"),
+			textures_path("fireball.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

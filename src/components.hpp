@@ -33,6 +33,10 @@ struct Projectile
 	Entity belongToPlayer;
 };
 
+struct EnemyProjectile {
+
+};
+
 struct Block
 {
 
@@ -91,6 +95,10 @@ struct EnemyBacteria
 {
 	bool huntingMode = true;
 	float bfsUpdateTime = 2000.f;
+};
+
+struct EnemySwarm {
+
 };
 
 struct Powerup 
@@ -264,8 +272,10 @@ enum class TEXTURE_ASSET_ID {
 	HELPPANEL = ENEMYHUNTER + 1,
 	ENEMYBACTERIA = HELPPANEL + 1,
 	ENEMYCHASE = ENEMYBACTERIA + 1,
-	KNIGHT = ENEMYCHASE +1,
-	TEXTURE_COUNT = KNIGHT + 1
+	ENEMYSWARM = ENEMYCHASE + 1,
+	KNIGHT = ENEMYSWARM +1,
+	FIREBALL = KNIGHT + 1,
+	TEXTURE_COUNT = FIREBALL + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

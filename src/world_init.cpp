@@ -306,6 +306,49 @@ Entity createEnemyChase(RenderSystem* renderer, vec2 position)
 	motion.angle = 0.f;
 	motion.position = position;
 
+	motion.scale = vec2({ ENEMYSWARM_BB_WIDTH * defaultResolution.scaling, ENEMYSWARM_BB_HEIGHT * defaultResolution.scaling });
+
+	Enemy& enemyCom = registry.enemies.emplace(entity);
+	registry.enemySwarms.emplace(entity);
+	// Set enemy attributes
+	enemyCom.damage = 1;
+	enemyCom.hp = 3;
+	enemyCom.loot = 1;
+	enemyCom.speed = 50.f * defaultResolution.scaling;
+	motion.velocity = vec2(uniform_dist(rng) * enemyCom.speed, uniform_dist(rng) * enemyCom.speed);
+	
+	Motion& player_motion = motion;
+	for (Entity player : registry.players.entities) {
+		player_motion = registry.motions.get(entity);
+		break;
+	}
+
+	vec2 enemy_to_player = vec2(player_motion.position.x - motion.position.x, player_motion.position.y - motion.position.y);
+	float radians = atan2f(enemy_to_player.y, -enemy_to_player.x);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ENEMYSWARM,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
+Entity createEnemySwarm(RenderSystem* renderer, vec2 position)
+{
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.position = position;
+
 	motion.scale = vec2({ ENEMYCHASE_BB_WIDTH * defaultResolution.scaling, ENEMYCHASE_BB_HEIGHT * defaultResolution.scaling });
 
 	registry.enemies.emplace(entity);
@@ -317,7 +360,7 @@ Entity createEnemyChase(RenderSystem* renderer, vec2 position)
 	enemyCom.loot = 1;
 	enemyCom.speed = 50.f * defaultResolution.scaling;
 	motion.velocity = vec2(uniform_dist(rng) * enemyCom.speed, uniform_dist(rng) * enemyCom.speed);
-	
+
 	Motion& player_motion = motion;
 	for (Entity player : registry.players.entities) {
 		player_motion = registry.motions.get(entity);
@@ -355,7 +398,6 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, vec2 velocity, Entity 
 	// Setting initial values
 	motion.scale = vec2({ WATERBALL_BB_WIDTH * defaultResolution.scaling, WATERBALL_BB_HEIGHT * defaultResolution.scaling });
 
-	// fireball stuff
 	registry.projectiles.emplace(entity);
 	registry.projectiles.get(entity).belongToPlayer = playerEntity;
 	registry.renderRequests.insert(
@@ -367,6 +409,32 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, vec2 velocity, Entity 
 	return entity;
 }
 
+Entity createEnemyProjectile(RenderSystem* renderer, vec2 pos, vec2 velocity, float angle) {
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = angle;
+	motion.velocity = velocity;
+	motion.position = pos;
+
+	// Setting initial values
+	motion.scale = vec2({ FIREBALL_BB_WIDTH * defaultResolution.scaling, FIREBALL_BB_HEIGHT * defaultResolution.scaling });
+
+	registry.enemyProjectiles.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::FIREBALL,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
 
 Entity createLine(vec2 position, vec2 scale)
 {

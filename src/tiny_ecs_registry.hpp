@@ -22,6 +22,7 @@ public:
 	ComponentContainer<DebugComponent> debugComponents;
 	ComponentContainer<MouseDestination> mouseDestinations;
 	ComponentContainer<Projectile> projectiles;
+	ComponentContainer<EnemyProjectile> enemyProjectiles;
 	ComponentContainer<Block> blocks;
 	ComponentContainer<Wall> walls;
 	ComponentContainer<Door> doors;
@@ -32,6 +33,7 @@ public:
 	ComponentContainer<EnemyHunter> enemyHunters;
 	ComponentContainer<EnemyBacteria> enemyBacterias;
 	ComponentContainer<EnemyChase> enemyChase;
+	ComponentContainer<EnemySwarm> enemySwarms;
 	ComponentContainer<Powerup> powerups; 
 	ComponentContainer<Flip> flips;
 	ComponentContainer<InShop> inShops;
@@ -54,6 +56,7 @@ public:
 		registry_list.push_back(&debugComponents);
 		registry_list.push_back(&mouseDestinations);
 		registry_list.push_back(&projectiles);
+		registry_list.push_back(&enemyProjectiles);
 		registry_list.push_back(&blocks);
 		registry_list.push_back(&walls);
 		registry_list.push_back(&doors);
@@ -64,6 +67,7 @@ public:
 		registry_list.push_back(&enemyHunters);
 		registry_list.push_back(&enemyBacterias);
 		registry_list.push_back(&enemyChase);
+		registry_list.push_back(&enemySwarms);
 		registry_list.push_back(&powerups);
 		registry_list.push_back(&flips);
 		registry_list.push_back(&inShops);
