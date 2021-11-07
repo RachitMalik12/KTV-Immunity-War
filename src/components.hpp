@@ -141,6 +141,11 @@ struct HelpMode {
 };
 extern HelpMode helpMode;
 
+struct StoryMode {
+	int inStoryMode = 0;
+};
+extern StoryMode storyMode;
+
 struct DefaultResolution {
 	int width = 1200;
 	int height = 800;
@@ -265,7 +270,13 @@ enum class TEXTURE_ASSET_ID {
 	ENEMYBACTERIA = HELPPANEL + 1,
 	ENEMYCHASE = ENEMYBACTERIA + 1,
 	KNIGHT = ENEMYCHASE +1,
-	TEXTURE_COUNT = KNIGHT + 1
+	FRAME1 = KNIGHT +1,
+	FRAME2 = FRAME1 +1,
+	FRAME3 = FRAME2 +1,
+	FRAME4 = FRAME3 +1,
+	FRAME5 = FRAME4 +1,
+	FRAME6 = FRAME5 +1,
+	TEXTURE_COUNT = FRAME6 + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

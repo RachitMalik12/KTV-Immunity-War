@@ -413,6 +413,35 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			createHelp();
 		}
 	}
+
+	if (action == GLFW_RELEASE && key == GLFW_KEY_SPACE) {
+		//if (storyMode.inStoryMode == 6) {
+		//	storyMode.inStoryMode = 0;
+		//	/*for (Entity entity : registry.storyModes.entities) {
+		//		registry.remove_all_components_of(entity);
+		//	}*/
+		//}
+		//else if (storyMode.inStoryMode == 1) {
+		//	storyMode.inStoryMode = 2;
+		//	std::cout << "1->2";
+		//	/*registry.renderRequests.remove(player_wizard);
+		//	registry.renderRequests.insert(
+		//		player_wizard,
+		//		{ TEXTURE_ASSET_ID::KNIGHT,
+		//			EFFECT_ASSET_ID::KNIGHT,
+		//			GEOMETRY_BUFFER_ID::SPRITE }, false);*/
+		//	createStory();
+		//}
+		//else if (storyMode.inStoryMode == 2) {
+		//	storyMode.inStoryMode = 3;
+		//	std::cout << "2->3";
+		//
+		//}
+		//else if (storyMode.inStoryMode == 2) {
+		//	storyMode.inStoryMode = 3;
+		//
+		//}
+	}
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
