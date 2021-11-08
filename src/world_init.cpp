@@ -430,12 +430,7 @@ Entity createStory() {
 	motion.angle = 0.f;
 	motion.velocity = { 0, 0 };
 	motion.position = { defaultResolution.width / 2, defaultResolution.height / 2 };
-	if (defaultResolution.scaling == 2) {
-		motion.scale = vec2({ STORY_BB_WIDTH * 0.7, STORY_BB_HEIGHT * 0.7 });
-	}
-	else {
-		motion.scale = vec2({ STORY_BB_WIDTH * defaultResolution.scaling, STORY_BB_HEIGHT * defaultResolution.scaling });
-	}
+	motion.scale = vec2({ STORY_BB_WIDTH * defaultResolution.scaling, STORY_BB_HEIGHT * defaultResolution.scaling });
 
 	registry.storyModes.emplace(entity);
 
