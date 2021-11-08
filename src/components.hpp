@@ -143,6 +143,7 @@ extern HelpMode helpMode;
 
 struct StoryMode {
 	int inStoryMode = 0;
+	bool firstLoad = true;
 };
 extern StoryMode storyMode;
 

@@ -238,6 +238,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	glfwGetWindowSize(window, &w, &h);
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
+		storyMode.firstLoad = true;
         restart_game();
 	}
 
@@ -414,33 +415,72 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	if (action == GLFW_RELEASE && key == GLFW_KEY_SPACE) {
-		//if (storyMode.inStoryMode == 6) {
-		//	storyMode.inStoryMode = 0;
-		//	/*for (Entity entity : registry.storyModes.entities) {
-		//		registry.remove_all_components_of(entity);
-		//	}*/
-		//}
-		//else if (storyMode.inStoryMode == 1) {
-		//	storyMode.inStoryMode = 2;
-		//	std::cout << "1->2";
-		//	/*registry.renderRequests.remove(player_wizard);
-		//	registry.renderRequests.insert(
-		//		player_wizard,
-		//		{ TEXTURE_ASSET_ID::KNIGHT,
-		//			EFFECT_ASSET_ID::KNIGHT,
-		//			GEOMETRY_BUFFER_ID::SPRITE }, false);*/
-		//	createStory();
-		//}
-		//else if (storyMode.inStoryMode == 2) {
-		//	storyMode.inStoryMode = 3;
-		//	std::cout << "2->3";
-		//
-		//}
-		//else if (storyMode.inStoryMode == 2) {
-		//	storyMode.inStoryMode = 3;
-		//
-		//}
+	// storymode
+	if (action == GLFW_RELEASE && key == GLFW_KEY_SPACE && storyMode.firstLoad) {
+		Entity ent;
+		if (storyMode.inStoryMode ==6) {
+			storyMode.inStoryMode = 0;
+			for (Entity entity : registry.storyModes.entities) {
+				registry.remove_all_components_of(entity);
+			}
+			storyMode.firstLoad = false;
+		}
+		else if (storyMode.inStoryMode == 0){
+			storyMode.inStoryMode = 1;
+			createStory();
+		}
+		else if (storyMode.inStoryMode == 1) {
+			storyMode.inStoryMode = 2;
+			ent = registry.storyModes.entities[0];
+			registry.renderRequests.remove(ent);
+			registry.renderRequests.insert(
+				ent,
+				{ TEXTURE_ASSET_ID::FRAME2,
+					EFFECT_ASSET_ID::TEXTURED,
+					GEOMETRY_BUFFER_ID::SPRITE }, false);
+			
+		}
+		else if (storyMode.inStoryMode == 2) {
+			storyMode.inStoryMode = 3;
+			ent = registry.storyModes.entities[0];
+			registry.renderRequests.remove(ent);
+			registry.renderRequests.insert(
+				ent,
+				{ TEXTURE_ASSET_ID::FRAME3,
+					EFFECT_ASSET_ID::TEXTURED,
+					GEOMETRY_BUFFER_ID::SPRITE }, false);
+		}
+		else if (storyMode.inStoryMode == 3) {
+			storyMode.inStoryMode = 4;
+			ent = registry.storyModes.entities[0];
+			registry.renderRequests.remove(ent);
+			registry.renderRequests.insert(
+				ent,
+				{ TEXTURE_ASSET_ID::FRAME4,
+					EFFECT_ASSET_ID::TEXTURED,
+					GEOMETRY_BUFFER_ID::SPRITE }, false);
+		}
+		else if (storyMode.inStoryMode == 4) {
+			storyMode.inStoryMode = 5;
+			ent = registry.storyModes.entities[0];
+			registry.renderRequests.remove(ent);
+			registry.renderRequests.insert(
+				ent,
+				{ TEXTURE_ASSET_ID::FRAME5,
+					EFFECT_ASSET_ID::TEXTURED,
+					GEOMETRY_BUFFER_ID::SPRITE }, false);
+		}
+		else if (storyMode.inStoryMode == 5) {
+			storyMode.inStoryMode = 6;
+			ent = registry.storyModes.entities[0];
+			registry.renderRequests.remove(ent);
+			registry.renderRequests.insert(
+				ent,
+				{ TEXTURE_ASSET_ID::FRAME6,
+					EFFECT_ASSET_ID::TEXTURED,
+					GEOMETRY_BUFFER_ID::SPRITE }, false);
+
+		}
 	}
 }
 
