@@ -349,7 +349,7 @@ Entity createEnemySwarm(RenderSystem* renderer, vec2 position)
 	motion.angle = 0.f;
 	motion.position = position;
 
-	motion.scale = vec2({ ENEMYCHASE_BB_WIDTH * defaultResolution.scaling, ENEMYCHASE_BB_HEIGHT * defaultResolution.scaling });
+	motion.scale = vec2({ ENEMYSWARM_BB_WIDTH  * defaultResolution.scaling, ENEMYSWARM_BB_HEIGHT  * defaultResolution.scaling });
 
 	registry.enemies.emplace(entity);
 	registry.enemyChase.emplace(entity);
@@ -372,7 +372,7 @@ Entity createEnemySwarm(RenderSystem* renderer, vec2 position)
 
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::ENEMYCHASE,
+		{ TEXTURE_ASSET_ID::ENEMYSWARM,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
