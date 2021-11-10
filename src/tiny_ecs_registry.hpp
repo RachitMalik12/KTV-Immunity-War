@@ -38,6 +38,8 @@ public:
 	ComponentContainer<Mesh*> hitboxes;
 	ComponentContainer<HelpMode> helpModes;
 	ComponentContainer<Animation> animations;
+	ComponentContainer<StoryMode> storyModes;
+
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -70,6 +72,7 @@ public:
 		registry_list.push_back(&hitboxes);
 		registry_list.push_back(&helpModes);
 		registry_list.push_back(&animations);
+		registry_list.push_back(&storyModes);
 	}
 
 	void clear_all_components() {

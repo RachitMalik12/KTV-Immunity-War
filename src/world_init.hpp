@@ -25,6 +25,8 @@ const float ENEMYCHASE_BB_HEIGHT = 0.05f * 1024.f;
 const float ENEMYCHASE_BB_WIDTH = 0.05f * 1258.f;
 const float HELP_BB_WIDTH = 1000.f;
 const float HELP_BB_HEIGHT = 641.f;
+const float STORY_BB_WIDTH = 0.5*2388.f;
+const float STORY_BB_HEIGHT = 0.5*1668.f;
 
 // the player
 Entity createWizard(RenderSystem* renderer, vec2 pos);
@@ -67,3 +69,6 @@ Entity createLine(vec2 position, vec2 size);
 
 // help popup
 Entity createHelp();
+
+// story cutscenes
+Entity createStory();
