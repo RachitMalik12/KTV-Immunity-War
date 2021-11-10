@@ -147,6 +147,13 @@ struct StoryMode {
 };
 extern StoryMode storyMode;
 
+struct MenuMode {
+	// 1 = first, main menu // 2 = other in game menu
+	int inMenuMode = 1;
+
+};
+extern MenuMode menuMode;
+
 struct DefaultResolution {
 	int width = 1200;
 	int height = 800;

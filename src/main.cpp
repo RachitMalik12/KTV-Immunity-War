@@ -16,6 +16,7 @@ DefaultResolution defaultResolution;
 TwoPlayer twoPlayer;
 HelpMode helpMode;
 StoryMode storyMode;
+MenuMode menuMode;
 
 // Entry point
 int main()
