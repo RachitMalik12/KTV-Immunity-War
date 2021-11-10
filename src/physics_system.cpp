@@ -58,18 +58,15 @@ void PhysicsSystem::handle_collision() {
 		if (registry.players.has(entity)) {
 			Player& player = registry.players.get(entity);
 			// Check Player - Enemy collisions 
-			if (registry.enemies.has(entity_other) && !registry.powerups.has(entity_other)) {
-				if (!player.isInvin) {
-					player.hp -= registry.enemies.get(entity_other).damage;
-					// if hp - 1 is <= 0 then initiate death unless already dying 
-					if (player.hp <= 0) {
-						player.hp = 0;
-						player.isDead = true;
-					}
-					else {
-						player.isInvin = true;
-						player.invinTimerInMs = player.invinFrame;
-					}
+			if (registry.enemies.has(entity_other)) {
+				int enemyDamage = registry.enemies.get(entity_other).damage;
+				resolvePlayerDamage(player, enemyDamage);
+			}
+			else if (registry.enemyProjectiles.has(entity_other)) {
+				Entity enemyEntity = registry.enemyProjectiles.get(entity_other).belongToEnemy;
+				if (registry.enemies.has(enemyEntity)) {
+					int enemyDamage = registry.enemies.get(enemyEntity).damage;
+					resolvePlayerDamage(player, enemyDamage);
 				}
 			}
 		}
@@ -77,6 +74,21 @@ void PhysicsSystem::handle_collision() {
 
 	// Remove all collisions from this simulation step
 	registry.collisions.clear();
+}
+
+void PhysicsSystem::resolvePlayerDamage(Player& player, int enemyDamage) {
+	if (!player.isInvin) {
+		player.hp -= enemyDamage;
+		// if hp - 1 is <= 0 then initiate death unless already dying 
+		if (player.hp <= 0) {
+			player.hp = 0;
+			player.isDead = true;
+		}
+		else {
+			player.isInvin = true;
+			player.invinTimerInMs = player.invinFrame;
+		}
+	}
 }
 
 // Returns the local bounding coordinates scaled by the current size of the entity
@@ -254,7 +266,7 @@ void PhysicsSystem::bounceEnemies(Entity curEntity, bool hitABlock) {
 	// check if fireball/projectile hit a wall/block, if so remove it
 		// if enemy hit a wall/block, revert moving direction
 	if (hitABlock) {
-		if (registry.projectiles.has(curEntity)) {
+		if (registry.projectiles.has(curEntity) || registry.enemyProjectiles.has(curEntity)) {
 			registry.remove_all_components_of(curEntity);
 		}
 		else if (registry.enemyBlobs.has(curEntity)) {

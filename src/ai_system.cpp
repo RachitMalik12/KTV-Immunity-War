@@ -6,6 +6,7 @@ void AISystem::step(float elapsed_ms, float width, float height) {
 	stepEnemyHunter(elapsed_ms);
 	stepEnemyBacteria(elapsed_ms, width, height);
 	stepEnemyChase(elapsed_ms);
+	stepEnemySwarm(elapsed_ms);
 }
 
 void AISystem::stepEnemyHunter(float elapsed_ms) {
@@ -22,15 +23,15 @@ void AISystem::stepEnemyHunter(float elapsed_ms) {
 		else {
 			if (hunter.timeToUpdateAi) {
 				if (hunter.currentState == hunter.searchingMode) {
-					if (isHunterInRangeOfThePlayers(hunterEntity)) {
+					if (isEnemyInRangeOfThePlayers(hunterEntity)) {
 						hunter.currentState = hunter.huntingMode;
 					}
 					else {
-						setHunterWonderingRandomly(hunterEntity);
+						setEnemyWonderingRandomly(hunterEntity);
 					}
 				}
 				if (hunter.currentState == hunter.huntingMode) {
-					setHunterChasingThePlayer(hunterEntity);
+					setEnemyChasingThePlayer(hunterEntity);
 				}
 				hunter.timeToUpdateAi = false;
 				hunter.aiUpdateTimer = hunter.aiUpdateTime;
@@ -268,21 +269,21 @@ void AISystem::moveToSpot(float initX, float initY, float finalX, float finalY, 
 
 }
 
-bool AISystem::isHunterInRangeOfThePlayers(Entity hunterEntity) {
-	Motion& hunterMotion = registry.motions.get(hunterEntity);
+bool AISystem::isEnemyInRangeOfThePlayers(Entity enemyEntity) {
+	Motion& enemyMotion = registry.motions.get(enemyEntity);
 	float distance;
 	if (twoPlayer.inTwoPlayerMode) {
 		Motion& player1Motion = registry.motions.get(registry.players.entities.front());
 		Motion& player2Motion = registry.motions.get(registry.players.entities.back());
-		float distFromPlayer1 = enemyDistanceFromPlayer(player1Motion, hunterMotion);
-		float distFromPlayer2 = enemyDistanceFromPlayer(player2Motion, hunterMotion);
+		float distFromPlayer1 = enemyDistanceFromPlayer(player1Motion, enemyMotion);
+		float distFromPlayer2 = enemyDistanceFromPlayer(player2Motion, enemyMotion);
 		distance = std::min(distFromPlayer1, distFromPlayer2);
 	}
 	else {
 		Motion& player1Motion = registry.motions.get(registry.players.entities.front());
-		distance = enemyDistanceFromPlayer(player1Motion, hunterMotion);
+		distance = enemyDistanceFromPlayer(player1Motion, enemyMotion);
 	}
-	if (distance < registry.enemyHunters.get(hunterEntity).huntingRange) {
+	if (distance < registry.enemyHunters.get(enemyEntity).huntingRange) {
 		return true;
 	}
 	return false;
@@ -293,30 +294,30 @@ float AISystem::enemyDistanceFromPlayer(const Motion& player, const Motion& hunt
 	return sqrt(dot(dp, dp));
 }
 
-void AISystem::setHunterWonderingRandomly(Entity hunterEntity) {
-	Enemy& hunterStatus = registry.enemies.get(hunterEntity);
+void AISystem::setEnemyWonderingRandomly(Entity enemyEntity) {
+	Enemy& enemyStatus = registry.enemies.get(enemyEntity);
 	float randomNumBetweenNegativeOneAndOne = (uniform_dist(rng) - 0.5) * 2;
 	float anotherRandomNumBetweenNegativeOneAndOne = (uniform_dist(rng) - 0.5) * 2;
 	vec2 randomVelocity =
-		vec2(1.0f * hunterStatus.speed * randomNumBetweenNegativeOneAndOne,
-			1.0f * hunterStatus.speed * anotherRandomNumBetweenNegativeOneAndOne);
-	registry.motions.get(hunterEntity).velocity = randomVelocity;
+		vec2(1.0f * enemyStatus.speed * randomNumBetweenNegativeOneAndOne,
+			1.0f * enemyStatus.speed * anotherRandomNumBetweenNegativeOneAndOne);
+	registry.motions.get(enemyEntity).velocity = randomVelocity;
 }
 
-void AISystem::setHunterChasingThePlayer(Entity hunterEntity) {
-	Enemy& hunterStatus = registry.enemies.get(hunterEntity);
-	Motion& hunterMotion = registry.motions.get(hunterEntity);
+void AISystem::setEnemyChasingThePlayer(Entity enemyEntity) {
+	Enemy& enemyStatus = registry.enemies.get(enemyEntity);
+	Motion& enemyMotion = registry.motions.get(enemyEntity);
 	Entity playerToChase;
 	if (twoPlayer.inTwoPlayerMode) {
-		playerToChase = determineWhichPlayerToChase(hunterEntity);
+		playerToChase = determineWhichPlayerToChase(enemyEntity);
 	}
 	else {
 		playerToChase = registry.players.entities.front();
 	}
 	Motion& playerMotion = registry.motions.get(playerToChase);
-	vec2 diff = playerMotion.position - hunterMotion.position;
+	vec2 diff = playerMotion.position - enemyMotion.position;
 	float angle = atan2(diff.y, diff.x);
-	hunterMotion.velocity = vec2(cos(angle) * hunterStatus.speed, sin(angle) * hunterStatus.speed);
+	enemyMotion.velocity = vec2(cos(angle) * enemyStatus.speed, sin(angle) * enemyStatus.speed);
 }
 
 Entity AISystem::determineWhichPlayerToChase(Entity enemyEntity) {
@@ -331,4 +332,56 @@ Entity AISystem::determineWhichPlayerToChase(Entity enemyEntity) {
 	else {
 		return registry.players.entities.back();
 	}
+}
+
+void AISystem::stepEnemySwarm(float elapsed_ms) {
+	for (Entity swarmEntity : registry.enemySwarms.entities) {
+		EnemySwarm& swarm = registry.enemySwarms.get(swarmEntity);
+		if (swarm.timeToUpdateAi) {
+			Motion& swarmMotion = registry.motions.get(swarmEntity);
+			swarmMotion.velocity = vec2(1, 1);
+
+			swarmFireProjectileAtPlayer(swarmEntity);
+
+			swarm.timeToUpdateAi = false;
+			swarm.aiUpdateTimer = swarm.aiUpdateTime;
+		}
+		else {
+			swarm.aiUpdateTimer -= elapsed_ms;
+			if (swarm.aiUpdateTimer < 0) {
+				swarm.timeToUpdateAi = true;
+			}
+		}
+	}
+}
+
+void AISystem::swarmFireProjectileAtPlayer(Entity swarmEntity) {
+	EnemySwarm& swarm = registry.enemySwarms.get(swarmEntity);
+	Motion& swarmMotion = registry.motions.get(swarmEntity);
+	Motion& playerMotion = registry.motions.get(pickAPlayer());
+	vec2 diff = playerMotion.position - swarmMotion.position;
+	float angle = atan2(diff.y, diff.x);
+	vec2 velocity = vec2(cos(angle) * swarm.projectileSpeed, sin(angle) * swarm.projectileSpeed);
+	createEnemyProjectile(renderer, swarmMotion.position, velocity, angle, swarmEntity);
+}
+
+Entity AISystem::pickAPlayer() {
+	Entity playerOneEntity = registry.players.entities.front();
+	Entity playerEntity = playerOneEntity;
+	if (twoPlayer.inTwoPlayerMode) {
+		Entity playerTwoEntity = registry.players.entities.back();
+		Player& player1 = registry.players.get(playerOneEntity);
+		Player& player2 = registry.players.get(playerTwoEntity);
+		if (uniform_dist(rng) > 0.5) {
+			if (!player2.isDead) {
+				playerEntity = playerTwoEntity;
+			}
+		}
+		else {
+			if (player1.isDead) {
+				playerEntity = playerTwoEntity;
+			}
+		}
+	}
+	return playerEntity;
 }

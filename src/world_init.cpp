@@ -134,17 +134,25 @@ Entity createBlock(RenderSystem* renderer, vec2 pos, std::string color) {
 
 Entity createEnemy(RenderSystem* renderer, vec2 position, int enemyType) {
 	Entity curEnemy;
-	if (enemyType == 0) {
-		curEnemy = createEnemyBlob(renderer, position);
-	} else if (enemyType == 1) {
-		curEnemy = createEnemyRun(renderer, position);
-	} else if (enemyType == 2) {
-		curEnemy = createEnemyHunter(renderer, position);
-	} else if (enemyType == 3) {
-		curEnemy = createEnemyBacteria(renderer, position);
-	}
-	else if (enemyType == 4) {
-		curEnemy = createEnemyChase(renderer, position);
+	switch (enemyType) {
+		case 0:
+			curEnemy = createEnemyBlob(renderer, position);
+			break;
+		case 1:
+			curEnemy = createEnemyRun(renderer, position);
+			break;
+		case 2:
+			curEnemy = createEnemyHunter(renderer, position);
+			break;
+		case 3:
+			curEnemy = createEnemyBacteria(renderer, position);
+			break;
+		case 4:
+			curEnemy = createEnemyChase(renderer, position);
+			break;
+		case 5:
+			curEnemy = createEnemySwarmTriplet(renderer, position);
+			break;
 	}
 	return curEnemy;
 }
@@ -306,50 +314,7 @@ Entity createEnemyChase(RenderSystem* renderer, vec2 position)
 	motion.angle = 0.f;
 	motion.position = position;
 
-	motion.scale = vec2({ ENEMYSWARM_BB_WIDTH * defaultResolution.scaling, ENEMYSWARM_BB_HEIGHT * defaultResolution.scaling });
-
-	Enemy& enemyCom = registry.enemies.emplace(entity);
-	registry.enemySwarms.emplace(entity);
-	// Set enemy attributes
-	enemyCom.damage = 1;
-	enemyCom.hp = 3;
-	enemyCom.loot = 1;
-	enemyCom.speed = 50.f * defaultResolution.scaling;
-	motion.velocity = vec2(uniform_dist(rng) * enemyCom.speed, uniform_dist(rng) * enemyCom.speed);
-	
-	Motion& player_motion = motion;
-	for (Entity player : registry.players.entities) {
-		player_motion = registry.motions.get(entity);
-		break;
-	}
-
-	vec2 enemy_to_player = vec2(player_motion.position.x - motion.position.x, player_motion.position.y - motion.position.y);
-	float radians = atan2f(enemy_to_player.y, -enemy_to_player.x);
-
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::ENEMYSWARM,
-			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE });
-
-	return entity;
-}
-
-Entity createEnemySwarm(RenderSystem* renderer, vec2 position)
-{
-	// Reserve en entity
-	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
-	// Initialize the position, scale, and physics components
-	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
-	motion.position = position;
-
-	motion.scale = vec2({ ENEMYSWARM_BB_WIDTH  * defaultResolution.scaling, ENEMYSWARM_BB_HEIGHT  * defaultResolution.scaling });
+	motion.scale = vec2({ ENEMYCHASE_BB_WIDTH * defaultResolution.scaling, ENEMYCHASE_BB_HEIGHT * defaultResolution.scaling });
 
 	registry.enemies.emplace(entity);
 	registry.enemyChase.emplace(entity);
@@ -369,6 +334,52 @@ Entity createEnemySwarm(RenderSystem* renderer, vec2 position)
 
 	vec2 enemy_to_player = vec2(player_motion.position.x - motion.position.x, player_motion.position.y - motion.position.y);
 	float radians = atan2f(enemy_to_player.y, -enemy_to_player.x);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ENEMYCHASE,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
+Entity createEnemySwarmTriplet(RenderSystem* renderer, vec2 position)
+{
+	// Reserve en entity
+	auto entity = createEnemySwarm(renderer, position);
+	float swarmSpawnGap = 60.f;
+	vec2 enemyTwoPosition = vec2(position.x + (swarmSpawnGap * defaultResolution.scaling), position.y - (swarmSpawnGap * defaultResolution.scaling));
+	createEnemySwarm(renderer, enemyTwoPosition);
+	vec2 enemyThreePosition = vec2(position.x + (swarmSpawnGap * defaultResolution.scaling), position.y + (swarmSpawnGap * defaultResolution.scaling));
+	createEnemySwarm(renderer, enemyThreePosition);
+
+	return entity;
+}
+
+Entity createEnemySwarm(RenderSystem* renderer, vec2 position) {
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.position = position;
+	motion.scale = vec2({ ENEMYSWARM_BB_WIDTH  * defaultResolution.scaling, ENEMYSWARM_BB_HEIGHT  * defaultResolution.scaling });
+	registry.enemies.emplace(entity);
+	// Set enemy attributes
+	EnemySwarm& swarm = registry.enemySwarms.emplace(entity);
+	swarm.projectileSpeed = swarm.projectileSpeed * defaultResolution.scaling;
+	auto& enemyCom = registry.enemies.get(entity);
+	enemyCom.damage = 1;
+	enemyCom.hp = 3;
+	enemyCom.loot = 1;
+	enemyCom.speed = 100.f * defaultResolution.scaling;
+	motion.velocity = vec2(0, 0);
 
 	registry.renderRequests.insert(
 		entity,
@@ -409,7 +420,7 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, vec2 velocity, Entity 
 	return entity;
 }
 
-Entity createEnemyProjectile(RenderSystem* renderer, vec2 pos, vec2 velocity, float angle) {
+Entity createEnemyProjectile(RenderSystem* renderer, vec2 pos, vec2 velocity, float angle, Entity enemyEntity) {
 	// Reserve en entity
 	auto entity = Entity();
 
@@ -426,7 +437,8 @@ Entity createEnemyProjectile(RenderSystem* renderer, vec2 pos, vec2 velocity, fl
 	// Setting initial values
 	motion.scale = vec2({ FIREBALL_BB_WIDTH * defaultResolution.scaling, FIREBALL_BB_HEIGHT * defaultResolution.scaling });
 
-	registry.enemyProjectiles.emplace(entity);
+	EnemyProjectile& projectile = registry.enemyProjectiles.emplace(entity);
+	projectile.belongToEnemy = enemyEntity;
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::FIREBALL,

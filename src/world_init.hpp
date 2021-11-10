@@ -37,7 +37,7 @@ Entity createKnight(RenderSystem* renderer, vec2 pos);
 
 // the projectile  
 Entity createProjectile(RenderSystem* render, vec2 pos, vec2 velocity, Entity playerEntity); 
-Entity createEnemyProjectile(RenderSystem* renderer, vec2 pos, vec2 velocity, float angle);
+Entity createEnemyProjectile(RenderSystem* renderer, vec2 pos, vec2 velocity, float angle, Entity enemyEntity);
 // create wall
 Entity createWall(vec2 position, vec2 scale);
 
@@ -68,3 +68,7 @@ Entity createLine(vec2 position, vec2 size);
 
 // help popup
 Entity createHelp();
+
+// Swarm
+Entity createEnemySwarm(RenderSystem* renderer, vec2 position);
+Entity createEnemySwarmTriplet(RenderSystem* renderer, vec2 position);

@@ -26,7 +26,6 @@ int main()
 
 	RenderSystem renderer;
 	PhysicsSystem physics;
-	AISystem ai;
 
 	// Initializing window
 	GLFWwindow* window = world.create_window(defaultResolution.width, defaultResolution.height);
@@ -42,6 +41,7 @@ int main()
 	glfwGetWindowSize(window, &w, &h);
 	renderer.init(w, h, window);
 	world.init(&renderer);
+	AISystem ai(&renderer);
 	// variable timestep loop
 	auto t = Clock::now();
 	while (!world.is_over()) {
