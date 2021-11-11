@@ -51,14 +51,6 @@ namespace {
 // World initialization
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer
 GLFWwindow* WorldSystem::create_window(int width, int height) {
-	///////////////////////////////////////
-	// Initialize GLFW
-	glfwSetErrorCallback(glfw_err_cb);
-	if (!glfwInit()) {
-		fprintf(stderr, "Failed to initialize GLFW");
-		return nullptr;
-	}
-
 	//-------------------------------------------------------------------------
 	// If you are on Linux or Windows, you can change these 2 numbers to 4 and 3 and
 	// enable the glDebugMessageCallback to have OpenGL catch your mistakes for you.
@@ -598,28 +590,34 @@ void WorldSystem::setPlayerMode() {
 }
 
 void WorldSystem::setResolution() {
+	// Initialize GLFW
+	glfwSetErrorCallback(glfw_err_cb);
+	if (!glfwInit()) {
+		fprintf(stderr, "Failed to initialize GLFW");
+	}
 	int resolutionSelection;
-	do {
-		std::string input;
-		printf("Input 1 for 2400 by 1600, 2 for 1200 by 800 and 3 for 600 by 400.\n");
-		std::cin >> input;
-		try {
-			resolutionSelection = std::stoi(input);
-		}
-		catch (...) {
-			resolutionSelection = 0;
-		}
-	} while (resolutionSelection != 1 && resolutionSelection != 2 && resolutionSelection != 3);
-
-	if (resolutionSelection == 1) {
+	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+	if (mode->width <= 3840 && mode->width > 2560) {
+		// 4k resolution (3840 x 2160)
 		defaultResolution.width = 2400;
 		defaultResolution.height = 1600;
 		defaultResolution.scaling = 2;
-	} else if (resolutionSelection == 2) {
+	}
+	else if (mode->width <= 2560 && mode->width > 1920) {
+		// 1440p resolution (2560 x 1440)
+		defaultResolution.width = 1800;
+		defaultResolution.height = 1200;
+		defaultResolution.scaling = 1.5;
+	}
+	else if (mode->width <=  1920 && mode->width > 1280) {
+		// 1080p resolution (1920 x 1080)
 		defaultResolution.width = 1200;
 		defaultResolution.height = 800;
 		defaultResolution.scaling = 1;
-	} else {
+	}
+	else {
+		// 720p resolution (1280 x 720)
 		defaultResolution.width = 600;
 		defaultResolution.height = 400;
 		defaultResolution.scaling = 0.5;
