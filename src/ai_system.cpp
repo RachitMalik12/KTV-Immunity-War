@@ -361,19 +361,24 @@ void AISystem::swarmSpreadOut(Entity swarmEntity) {
 
 
 void AISystem::moveAwayfromOtherSwarm(Entity enemyEntity, Entity otherEnemyEntity) {
-	Motion& enemyMotion = registry.motions.get(enemyEntity);
-	Motion& otherEnemyMotion = registry.motions.get(otherEnemyEntity);
-	EnemySwarm& enemySwarm = registry.enemySwarms.get(enemyEntity);
-	float distance = sqrt(pow(enemyMotion.position.x - otherEnemyMotion.position.x, 2) +
-		pow(enemyMotion.position.y - otherEnemyMotion.position.y, 2));
-	if (distance < enemySwarm.spreadOutDistance) {
-		vec2 directionFromEnemyToOtherEnemy =
-			vec2(otherEnemyMotion.position.x - enemyMotion.position.x, otherEnemyMotion.position.y - enemyMotion.position.y);
-		vec2 oppositeOfDirection = vec2(directionFromEnemyToOtherEnemy.x * -1.f, directionFromEnemyToOtherEnemy.y * -1.f);
-		vec2 normalizedDirection = vec2(oppositeOfDirection.x / sqrt(pow(oppositeOfDirection.x, 2) + pow(oppositeOfDirection.y, 2)),
-			oppositeOfDirection.y / sqrt(pow(oppositeOfDirection.x, 2) + pow(oppositeOfDirection.y, 2)));
-		Enemy& enemyStatus = registry.enemies.get(enemyEntity);
-		enemyMotion.velocity = vec2(normalizedDirection.x * enemyStatus.speed, normalizedDirection.y * enemyStatus.speed);
+	if (registry.motions.has(otherEnemyEntity)) {
+		Motion& enemyMotion = registry.motions.get(enemyEntity);
+		Motion& otherEnemyMotion = registry.motions.get(otherEnemyEntity);
+		EnemySwarm& enemySwarm = registry.enemySwarms.get(enemyEntity);
+		float distance = sqrt(pow(enemyMotion.position.x - otherEnemyMotion.position.x, 2) +
+			pow(enemyMotion.position.y - otherEnemyMotion.position.y, 2));
+		if (distance < enemySwarm.spreadOutDistance) {
+			vec2 directionFromEnemyToOtherEnemy =
+				vec2(otherEnemyMotion.position.x - enemyMotion.position.x, otherEnemyMotion.position.y - enemyMotion.position.y);
+			vec2 oppositeOfDirection = vec2(directionFromEnemyToOtherEnemy.x * -1.f, directionFromEnemyToOtherEnemy.y * -1.f);
+			vec2 normalizedDirection = vec2(oppositeOfDirection.x / sqrt(pow(oppositeOfDirection.x, 2) + pow(oppositeOfDirection.y, 2)),
+				oppositeOfDirection.y / sqrt(pow(oppositeOfDirection.x, 2) + pow(oppositeOfDirection.y, 2)));
+			Enemy& enemyStatus = registry.enemies.get(enemyEntity);
+			enemyMotion.velocity = vec2(normalizedDirection.x * enemyStatus.speed, normalizedDirection.y * enemyStatus.speed);
+		}
+		else {
+			setEnemyWonderingRandomly(enemyEntity);
+		}
 	}
 	else {
 		setEnemyWonderingRandomly(enemyEntity);

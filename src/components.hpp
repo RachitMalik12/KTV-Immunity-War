@@ -98,9 +98,9 @@ struct EnemyBacteria
 };
 
 struct EnemySwarm {
-	float aiUpdateTime = 2500.f;
-	// Wait 500ms before update AI for the first time so it doesn't fire at the player right after level loads
-	float aiUpdateTimer = 500.f;
+	float aiUpdateTime = 3000.f;
+	// Wait 1000ms before update AI for the first time so it doesn't fire at the player right after level loads
+	float aiUpdateTimer = 1000.f;
 	bool timeToUpdateAi = false;
 	float projectileSpeed = 200.f;
 	float spreadOutDistance = 200.f;
