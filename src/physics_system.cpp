@@ -58,18 +58,16 @@ void PhysicsSystem::handle_collision() {
 		if (registry.players.has(entity)) {
 			Player& player = registry.players.get(entity);
 			// Check Player - Enemy collisions 
-			if (registry.enemies.has(entity_other) && !registry.powerups.has(entity_other)) {
-				if (!player.isInvin) {
-					player.hp -= registry.enemies.get(entity_other).damage;
-					// if hp - 1 is <= 0 then initiate death unless already dying 
-					if (player.hp <= 0) {
-						player.hp = 0;
-						player.isDead = true;
-					}
-					else {
-						player.isInvin = true;
-						player.invinTimerInMs = player.invinFrame;
-					}
+			if (registry.enemies.has(entity_other)) {
+				int enemyDamage = registry.enemies.get(entity_other).damage;
+				resolvePlayerDamage(player, enemyDamage);
+			}
+			else if (registry.enemyProjectiles.has(entity_other)) {
+				Entity enemyEntity = registry.enemyProjectiles.get(entity_other).belongToEnemy;
+				if (registry.enemies.has(enemyEntity)) {
+					int enemyDamage = registry.enemies.get(enemyEntity).damage;
+					resolvePlayerDamage(player, enemyDamage);
+					registry.remove_all_components_of(entity_other);
 				}
 			}
 		}
@@ -77,6 +75,22 @@ void PhysicsSystem::handle_collision() {
 
 	// Remove all collisions from this simulation step
 	registry.collisions.clear();
+}
+
+void PhysicsSystem::resolvePlayerDamage(Player& player, int enemyDamage) {
+	if (!player.isInvin) {
+		player.hp -= enemyDamage;
+		// if hp - 1 is <= 0 then initiate death unless already dying 
+		if (player.hp <= 0) {
+			player.hp = 0;
+			player.isDead = true;
+		}
+		else {
+			player.isInvin = true;
+			player.invinTimerInMs = player.invinFrame;
+			// TODO: Implement player hit handling
+		}
+	}
 }
 
 // Returns the local bounding coordinates scaled by the current size of the entity
@@ -254,7 +268,7 @@ void PhysicsSystem::bounceEnemies(Entity curEntity, bool hitABlock) {
 	// check if fireball/projectile hit a wall/block, if so remove it
 		// if enemy hit a wall/block, revert moving direction
 	if (hitABlock) {
-		if (registry.projectiles.has(curEntity)) {
+		if (registry.projectiles.has(curEntity) || registry.enemyProjectiles.has(curEntity)) {
 			registry.remove_all_components_of(curEntity);
 		}
 		else if (registry.enemyBlobs.has(curEntity)) {
@@ -285,13 +299,9 @@ void PhysicsSystem::bounceEnemies(Entity curEntity, bool hitABlock) {
 				}
 			}
 		}
-		else if (registry.enemyHunters.has(curEntity)) {
-			Motion& hunterMotion = registry.motions.get(curEntity);
-			hunterMotion.velocity = vec2(hunterMotion.velocity.x * -1.f, hunterMotion.velocity.y);
-		}
-		else if (registry.enemyBacterias.has(curEntity)) {
-			Motion& bacteriaMotion = registry.motions.get(curEntity);
-			bacteriaMotion.velocity = vec2(bacteriaMotion.velocity.x * -1.f, bacteriaMotion.velocity.y);
+		else if (registry.enemies.has(curEntity)) {
+			Motion& motion = registry.motions.get(curEntity);
+			motion.velocity = vec2(motion.velocity.x * -0.5f, motion.velocity.y * -0.5f);
 		}
 
 	}

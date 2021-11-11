@@ -159,11 +159,13 @@ void WorldSystem::deathHandling() {
 			Motion& player1Motion = registry.motions.get(player_wizard);
 			player1Motion.velocity = vec2(0, 0);
 			registry.renderRequests.remove(player_wizard);
+			// TODO: Implement player death animation
 		}
 		if (player2.isDead) {
 			Motion& player2Motion = registry.motions.get(player2_wizard);
 			player2Motion.velocity = vec2(0, 0);
 			registry.renderRequests.remove(player2_wizard);
+			// TODO: Implement player death animation
 		}
 		if (player1.isDead && player2.isDead) {
 			setupLevel(level_number);
@@ -366,6 +368,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// load level 3
 	if (action == GLFW_PRESS && key == GLFW_KEY_3) {
 		level_number = 3;
+		setupLevel(level_number);
+	}
+	// load level 4
+	if (action == GLFW_PRESS && key == GLFW_KEY_4) {
+		level_number = 4;
 		setupLevel(level_number);
 	}
 	
@@ -625,12 +632,14 @@ void WorldSystem::setPlayerStats() {
 	player_stat = entity;
 	PlayerStat& playerOneStat = registry.playerStats.get(player_stat);
 	playerOneStat.movementSpeed = playerOneStat.movementSpeed * defaultResolution.scaling;
+	playerOneStat.projectileSpeed = playerOneStat.projectileSpeed * defaultResolution.scaling;
 	if (twoPlayer.inTwoPlayerMode) {
 		auto entity2 = Entity();
 		registry.playerStats.emplace(entity2);
 		player2_stat = entity2;
 		PlayerStat& playerTwoStat = registry.playerStats.get(player2_stat);
 		playerTwoStat.movementSpeed = playerTwoStat.movementSpeed * defaultResolution.scaling;
+		playerTwoStat.projectileSpeed = playerTwoStat.projectileSpeed * defaultResolution.scaling;
 	}
 }
 
@@ -651,7 +660,7 @@ void WorldSystem::handlePlayerTwoProjectile(float elapsed_ms_since_last_update) 
 			float dx = (float)x - player2Motion.position.x;
 			float dy = (float)y - player2Motion.position.y;
 			float h = sqrtf(powf(dx, 2) + powf(dy, 2));
-			float scale = playerTwoStat.projectileSpeed * defaultResolution.scaling / h;
+			float scale = playerTwoStat.projectileSpeed / h;
 			createProjectile(renderer, player2Motion.position, { dx * scale, dy * scale }, player2_wizard);
 		}
 	}
@@ -667,16 +676,16 @@ void WorldSystem::handlePlayerOneProjectile(float elapsed_ms_since_last_update) 
 		next_projectile_fire_player1 = playerOneStat.projectileFireRate;
 		switch (player1.firingDirection) {
 		case 0: // up
-			createProjectile(renderer, playerMotion.position, { 0, -1.f * playerOneStat.projectileSpeed * defaultResolution.scaling }, player_wizard);
+			createProjectile(renderer, playerMotion.position, { 0, -1.f * playerOneStat.projectileSpeed }, player_wizard);
 			break;
 		case 1: // right
-			createProjectile(renderer, playerMotion.position, { playerOneStat.projectileSpeed * defaultResolution.scaling, 0 }, player_wizard);
+			createProjectile(renderer, playerMotion.position, { playerOneStat.projectileSpeed , 0 }, player_wizard);
 			break;
 		case 2: // down
-			createProjectile(renderer, playerMotion.position, { 0, playerOneStat.projectileSpeed * defaultResolution.scaling }, player_wizard);
+			createProjectile(renderer, playerMotion.position, { 0, playerOneStat.projectileSpeed }, player_wizard);
 			break;
 		case 3: // left
-			createProjectile(renderer, playerMotion.position, { -1.f * playerOneStat.projectileSpeed * defaultResolution.scaling, 0 }, player_wizard);
+			createProjectile(renderer, playerMotion.position, { -1.f * playerOneStat.projectileSpeed , 0 }, player_wizard);
 			break;
 		}
 	}
@@ -784,6 +793,8 @@ void WorldSystem::setupLevel(int levelNum) {
 		registry.remove_all_components_of(registry.players.entities.back());
 	while (registry.projectiles.entities.size() > 0)
 		registry.remove_all_components_of(registry.projectiles.entities.back());
+	while (registry.enemyProjectiles.entities.size() > 0)
+		registry.remove_all_components_of(registry.enemyProjectiles.entities.back());
 	while (registry.enemies.entities.size() > 0)
 		registry.remove_all_components_of(registry.enemies.entities.back());
 	while (registry.blocks.entities.size() > 0)

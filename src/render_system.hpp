@@ -57,7 +57,9 @@ class RenderSystem {
 			textures_path("Frame_3.png"),
 			textures_path("Frame_4.png"),
 			textures_path("Frame_5.png"),
-			textures_path("Frame_6.png")
+			textures_path("Frame_6.png"),
+			textures_path("swarm1.png"),
+			textures_path("fireball.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

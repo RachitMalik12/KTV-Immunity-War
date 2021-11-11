@@ -33,6 +33,10 @@ struct Projectile
 	Entity belongToPlayer;
 };
 
+struct EnemyProjectile {
+	Entity belongToEnemy;
+};
+
 struct Block
 {
 
@@ -91,6 +95,15 @@ struct EnemyBacteria
 {
 	bool huntingMode = true;
 	float bfsUpdateTime = 2000.f;
+};
+
+struct EnemySwarm {
+	float aiUpdateTime = 3000.f;
+	// Wait 1000ms before update AI for the first time so it doesn't fire at the player right after level loads
+	float aiUpdateTimer = 1000.f;
+	bool timeToUpdateAi = false;
+	float projectileSpeed = 200.f;
+	float spreadOutDistance = 200.f;
 };
 
 struct Powerup 
@@ -169,7 +182,7 @@ struct DebugComponent
 // A timer that will be associated to enemies/enemies run being stuck
 struct StuckTimer
 {
-	float counter_ms = 3000;
+	float counter_ms = 4000;
 	vec2 stuck_pos = { 0, 0 };
 };
 
@@ -277,7 +290,9 @@ enum class TEXTURE_ASSET_ID {
 	FRAME4 = FRAME3 +1,
 	FRAME5 = FRAME4 +1,
 	FRAME6 = FRAME5 +1,
-	TEXTURE_COUNT = FRAME6 + 1
+	ENEMYSWARM = FRAME6 + 1,
+	FIREBALL = ENEMYSWARM + 1,
+	TEXTURE_COUNT = FIREBALL + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
