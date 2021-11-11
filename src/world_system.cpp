@@ -159,11 +159,13 @@ void WorldSystem::deathHandling() {
 			Motion& player1Motion = registry.motions.get(player_wizard);
 			player1Motion.velocity = vec2(0, 0);
 			registry.renderRequests.remove(player_wizard);
+			// TODO: Implement player death animation
 		}
 		if (player2.isDead) {
 			Motion& player2Motion = registry.motions.get(player2_wizard);
 			player2Motion.velocity = vec2(0, 0);
 			registry.renderRequests.remove(player2_wizard);
+			// TODO: Implement player death animation
 		}
 		if (player1.isDead && player2.isDead) {
 			setupLevel(level_number);
