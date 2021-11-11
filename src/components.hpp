@@ -339,3 +339,13 @@ public:
 
 extern LevelFileLoader levelFileLoader; 
 
+class SaveFile {
+private: 
+	int levelNumber; 
+	PlayerStat playerStat; 
+public: 
+	void saveFile(); 
+	void loadFile(); 
+};
+
+extern SaveFile saveFile; 
