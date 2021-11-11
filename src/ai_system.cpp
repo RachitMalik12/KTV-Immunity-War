@@ -1,6 +1,5 @@
 // internal
 #include "ai_system.hpp"
-#include <iostream>
 
 void AISystem::step(float elapsed_ms, float width, float height) {
 	stepEnemyHunter(elapsed_ms);
@@ -338,11 +337,8 @@ void AISystem::stepEnemySwarm(float elapsed_ms) {
 	for (Entity swarmEntity : registry.enemySwarms.entities) {
 		EnemySwarm& swarm = registry.enemySwarms.get(swarmEntity);
 		if (swarm.timeToUpdateAi) {
-			Motion& swarmMotion = registry.motions.get(swarmEntity);
-			swarmMotion.velocity = vec2(1, 1);
-
+			swarmSpreadOut(swarmEntity);
 			swarmFireProjectileAtPlayer(swarmEntity);
-
 			swarm.timeToUpdateAi = false;
 			swarm.aiUpdateTimer = swarm.aiUpdateTime;
 		}
@@ -353,6 +349,53 @@ void AISystem::stepEnemySwarm(float elapsed_ms) {
 			}
 		}
 	}
+}
+
+void AISystem::swarmSpreadOut(Entity swarmEntity) {
+	if (registry.enemySwarms.entities.size() == 1) {
+		setEnemyWonderingRandomly(swarmEntity);
+	}
+	Entity closestSwarmEntity = findClosestSwarm(swarmEntity);
+	moveAwayfromOtherSwarm(swarmEntity, closestSwarmEntity);
+}
+
+
+void AISystem::moveAwayfromOtherSwarm(Entity enemyEntity, Entity otherEnemyEntity) {
+	Motion& enemyMotion = registry.motions.get(enemyEntity);
+	Motion& otherEnemyMotion = registry.motions.get(otherEnemyEntity);
+	EnemySwarm& enemySwarm = registry.enemySwarms.get(enemyEntity);
+	float distance = sqrt(pow(enemyMotion.position.x - otherEnemyMotion.position.x, 2) +
+		pow(enemyMotion.position.y - otherEnemyMotion.position.y, 2));
+	if (distance < enemySwarm.spreadOutDistance) {
+		vec2 directionFromEnemyToOtherEnemy =
+			vec2(otherEnemyMotion.position.x - enemyMotion.position.x, otherEnemyMotion.position.y - enemyMotion.position.y);
+		vec2 oppositeOfDirection = vec2(directionFromEnemyToOtherEnemy.x * -1.f, directionFromEnemyToOtherEnemy.y * -1.f);
+		vec2 normalizedDirection = vec2(oppositeOfDirection.x / sqrt(pow(oppositeOfDirection.x, 2) + pow(oppositeOfDirection.y, 2)),
+			oppositeOfDirection.y / sqrt(pow(oppositeOfDirection.x, 2) + pow(oppositeOfDirection.y, 2)));
+		Enemy& enemyStatus = registry.enemies.get(enemyEntity);
+		enemyMotion.velocity = vec2(normalizedDirection.x * enemyStatus.speed, normalizedDirection.y * enemyStatus.speed);
+	}
+	else {
+		setEnemyWonderingRandomly(enemyEntity);
+	}
+}
+
+Entity AISystem::findClosestSwarm(Entity swarmEntity) {
+	Motion& swarmMotion = registry.motions.get(swarmEntity);
+	float shortestDistance = std::numeric_limits<float>::max();
+	Entity closestSwarmEntity;
+	for (Entity otherSwarmEntity : registry.enemySwarms.entities) {
+		if (swarmEntity.getId() != otherSwarmEntity.getId()) {
+			Motion& otherSwarmMotion = registry.motions.get(otherSwarmEntity);
+			float distance = sqrt(pow(swarmMotion.position.x - otherSwarmMotion.position.x, 2) +
+				pow(swarmMotion.position.y - otherSwarmMotion.position.y, 2));
+			if (distance != 0 && distance < shortestDistance) {
+				shortestDistance = distance;
+				closestSwarmEntity = otherSwarmEntity;
+			}
+		}
+	}
+	return closestSwarmEntity;
 }
 
 void AISystem::swarmFireProjectileAtPlayer(Entity swarmEntity) {

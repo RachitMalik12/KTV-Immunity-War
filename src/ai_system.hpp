@@ -5,6 +5,8 @@
 #include <queue>
 #include <map>
 #include <stack>
+#include <cmath>
+#include <limits>
 
 #include "tiny_ecs_registry.hpp"
 #include "common.hpp"
@@ -44,6 +46,9 @@ private:
 	void bfsSearchPath(float initX, float initY, float finX, float finY, Entity& bacteriaEntity, float width, float height);
 	void moveToSpot(float initX, float initY, float finalX, float finalY, Entity& bacteriaEntity);
 	void createAdj();
-	Entity AISystem::pickAPlayer();
+	Entity pickAPlayer();
 	void swarmFireProjectileAtPlayer(Entity swarmEntity);
+	void swarmSpreadOut(Entity swarmEntity);
+	Entity findClosestSwarm(Entity swarmEntity);
+	void moveAwayfromOtherSwarm(Entity enemyEntity, Entity otherEnemyEntity);
 };

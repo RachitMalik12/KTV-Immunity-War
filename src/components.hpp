@@ -103,6 +103,7 @@ struct EnemySwarm {
 	float aiUpdateTimer = 500.f;
 	bool timeToUpdateAi = false;
 	float projectileSpeed = 200.f;
+	float spreadOutDistance = 200.f;
 };
 
 struct Powerup 
@@ -175,7 +176,7 @@ struct DebugComponent
 // A timer that will be associated to enemies/enemies run being stuck
 struct StuckTimer
 {
-	float counter_ms = 3000;
+	float counter_ms = 4000;
 	vec2 stuck_pos = { 0, 0 };
 };
 

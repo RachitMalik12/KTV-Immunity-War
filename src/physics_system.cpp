@@ -299,7 +299,11 @@ void PhysicsSystem::bounceEnemies(Entity curEntity, bool hitABlock) {
 		}
 		else if (registry.enemyHunters.has(curEntity)) {
 			Motion& hunterMotion = registry.motions.get(curEntity);
-			hunterMotion.velocity = vec2(hunterMotion.velocity.x * -1.f, hunterMotion.velocity.y);
+			hunterMotion.velocity = vec2(hunterMotion.velocity.x * -1.f, hunterMotion.velocity.y * -1.f);
+		}
+		else if (registry.enemySwarms.has(curEntity)) {
+			Motion& swarmMotion = registry.motions.get(curEntity);
+			swarmMotion.velocity = vec2(swarmMotion.velocity.x * -1.f, swarmMotion.velocity.y * -1.f);
 		}
 		else if (registry.enemyBacterias.has(curEntity)) {
 			Motion& bacteriaMotion = registry.motions.get(curEntity);
