@@ -51,8 +51,14 @@ class RenderSystem {
 			textures_path("help.png"),
 			textures_path("yellow-bacteria.png"),
 			textures_path("enemychase.png"),
-			textures_path("swarm1.png"),
 			textures_path("knight.png"),
+			textures_path("Frame_1.png"),
+			textures_path("Frame_2.png"),
+			textures_path("Frame_3.png"),
+			textures_path("Frame_4.png"),
+			textures_path("Frame_5.png"),
+			textures_path("Frame_6.png"),
+			textures_path("swarm1.png"),
 			textures_path("fireball.png")
 	};
 

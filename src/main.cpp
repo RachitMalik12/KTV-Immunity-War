@@ -15,6 +15,7 @@ using Clock = std::chrono::high_resolution_clock;
 DefaultResolution defaultResolution;
 TwoPlayer twoPlayer;
 HelpMode helpMode;
+StoryMode storyMode;
 
 // Entry point
 int main()
@@ -58,7 +59,9 @@ int main()
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
 
-		if (!helpMode.inHelpMode) {
+
+
+		if (!helpMode.inHelpMode && !storyMode.firstLoad) {
 			world.step(elapsed_ms);
 			ai.step(elapsed_ms, (float)width, (float)height);
 			physics.step(elapsed_ms, (float)width, (float)height);
