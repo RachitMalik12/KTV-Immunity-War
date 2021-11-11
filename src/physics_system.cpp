@@ -67,6 +67,7 @@ void PhysicsSystem::handle_collision() {
 				if (registry.enemies.has(enemyEntity)) {
 					int enemyDamage = registry.enemies.get(enemyEntity).damage;
 					resolvePlayerDamage(player, enemyDamage);
+					registry.remove_all_components_of(entity_other);
 				}
 			}
 		}
@@ -87,6 +88,7 @@ void PhysicsSystem::resolvePlayerDamage(Player& player, int enemyDamage) {
 		else {
 			player.isInvin = true;
 			player.invinTimerInMs = player.invinFrame;
+			// TODO: Implement player hit handling
 		}
 	}
 }
