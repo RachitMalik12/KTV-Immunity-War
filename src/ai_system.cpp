@@ -1,6 +1,5 @@
 // internal
 #include "ai_system.hpp"
-#include <iostream>
 
 void AISystem::step(float elapsed_ms, float width, float height) {
 	stepEnemyHunter(elapsed_ms);
@@ -273,7 +272,6 @@ void AISystem::bfsSearchPath(float initX, float initY, float finX, float finY, E
 	// traverse from the final destination "grid" block
 	// turn it back into the actually screen size using * (width/8) or * (height/8)
 	// push into our traversalStack -- stack because we are now going BACKWARDS from the end to the beginning, using the predecessor to find our path from the player to the bacteria.
-	std::cout << "bfsSearchPath";
 	while (currPosition.first != initX || currPosition.second != initY) {
 		std::pair<int, int> temp = { pred[currPosition.first][currPosition.second].first * (width / 8),  pred[currPosition.first][currPosition.second].second * (height / 8) };
 		traversalStack.push(temp);
