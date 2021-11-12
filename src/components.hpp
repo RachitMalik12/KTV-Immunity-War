@@ -95,8 +95,8 @@ struct EnemyHunter
 struct EnemyBacteria
 {
 	bool huntingMode = true;
-	float bfsUpdateTime = 2000.f;
-	float pathUpdateTime = 300.f;
+	float bfsUpdateTime = 3000.f;
+	float pathUpdateTime = 500.f;
 	float finX = 0;
 	float finY = 0;
 
