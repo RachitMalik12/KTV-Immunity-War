@@ -247,7 +247,6 @@ void GameSaveDataManager::saveFile(int playerMode) {
 	}
 	std::ofstream saveFileWrite(path);
 	writer.write(saveFileWrite, root);
-	std::cout << root << std::endl;
 	saveFileWrite.close();
 }
 
