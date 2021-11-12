@@ -3,6 +3,7 @@
 #include <vector>
 #include <unordered_map>
 #include "../ext/stb_image/stb_image.h"
+#include "../ext/json/dist/json/json.h" 
 
 // Player component
 struct Player
@@ -339,13 +340,22 @@ public:
 
 extern LevelFileLoader levelFileLoader; 
 
-class SaveFile {
+class GameSaveDataManager {
 private: 
 	int levelNumber; 
-	PlayerStat playerStat; 
+	Entity playerStatEntity1; 
+	Entity playerStatEntity2; 
+	int playerModeFromFile = 1; 
+	void loadPlayerStats(Json::Value& root, int playerMode);
+	void savePlayerStats(Json::Value& root, Entity playerStatEntity, int playerNum);
 public: 
-	void saveFile(); 
-	void loadFile(); 
+	void saveFile(int playerMode); 
+	bool loadFile(); 
+	int getLevelNumber(); 
+	int getPlayerMode(); 
+	void setLevelNumber(int levelNumber);
+	void setPlayerStatEntity(Entity playerStatEntity1, Entity playerStatEntity2); 
+	void setPlayerStatEntity(Entity playerStatEntity1); 
 };
 
-extern SaveFile saveFile; 
+extern GameSaveDataManager dataManager; 

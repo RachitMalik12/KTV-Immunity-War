@@ -1,0 +1,12 @@
+{
+	"levelNumber" : 4,
+	"playerStat_p1" : 
+	{
+		"damage" : 1,
+		"maxHp" : 3,
+		"money" : 3,
+		"movementSpeed" : 150.0,
+		"projectileFireRate" : 500.0,
+		"projectileSpeed" : 300.0
+	}
+}

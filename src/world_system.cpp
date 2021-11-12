@@ -351,9 +351,43 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}	
 
+	if (action == GLFW_PRESS && key == GLFW_KEY_K) {
+		// Save current level. 
+		dataManager.setLevelNumber(level_number); 
+		if (twoPlayer.inTwoPlayerMode) {
+			dataManager.setPlayerStatEntity(player_stat, player2_stat);
+			dataManager.saveFile(2);
+		}
+		else {
+			dataManager.setPlayerStatEntity(player_stat); 
+			dataManager.saveFile(1); 
+		}
+		
+	}
+
 	// level loading
 	if (action == GLFW_PRESS && key == GLFW_KEY_L) {
-		setupLevel(level_number); 
+		if (twoPlayer.inTwoPlayerMode) {
+			dataManager.setPlayerStatEntity(player_stat, player2_stat); 
+		}
+		dataManager.setPlayerStatEntity(player_stat); 
+		bool loadFile = dataManager.loadFile();
+		if (!loadFile) {
+			// If load failed due to file missing,load level 1 with 1 player. 
+			twoPlayer.inTwoPlayerMode = false;
+			setupLevel(1);
+		}
+		else {
+			level_number = dataManager.getLevelNumber();
+			int playerModeFile = dataManager.getPlayerMode();
+			if (playerModeFile == 1) {
+				twoPlayer.inTwoPlayerMode = false;
+			}
+			else {
+				twoPlayer.inTwoPlayerMode = true;
+			}
+			setupLevel(level_number);
+		}
 	}
 	// load level 1
 	if (action == GLFW_PRESS && key == GLFW_KEY_1) {

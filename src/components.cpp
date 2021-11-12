@@ -1,5 +1,6 @@
 #include "components.hpp"
 #include "render_system.hpp" // for gl_has_errors
+#include "tiny_ecs_registry.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "../ext/stb_image/stb_image.h"
@@ -11,7 +12,7 @@
 
 Debug debugging;
 LevelFileLoader levelFileLoader; 
-SaveFile saveFile; 
+GameSaveDataManager dataManager; 
 float death_timer_counter_ms = 3000;
 
 
@@ -171,3 +172,100 @@ std::vector<Level> LevelFileLoader::getLevels() {
 	return levels;
 }
 
+bool GameSaveDataManager::loadFile() {
+	std::string path = data_path() + "/saveData/saveFile.json";
+	Json::Value root;
+	Json::Reader reader;
+	std::ifstream saveFileRead(path);
+	if (!saveFileRead.good()) {
+		std::cout << "No save file found, loading level 1 by default";
+		return false; 
+	}
+	bool success = reader.parse(saveFileRead, root);
+	if (!success) {
+		std::cout << "Failed to parse save file :( : " << reader.getFormatedErrorMessages();
+	}
+	this->levelNumber = root["levelNumber"].asInt(); 
+	// Load p1 and p2 player information 
+	if (root.isMember("playerStat_p1") && root.isMember("playerStat_p2")) {
+		playerModeFromFile = 2;
+		loadPlayerStats(root, 1);
+		loadPlayerStats(root, 2); 
+	}
+	else if (root.isMember("playerStat_p1")) {
+		playerModeFromFile = 1; 
+		loadPlayerStats(root, 1); 
+	}
+	
+	saveFileRead.close();
+	return true; 
+}
+
+void GameSaveDataManager::loadPlayerStats(Json::Value& root, int playerMode) {
+	std::string playerStatKey = "playerStat_p" + std::to_string(playerMode); 
+	Entity playerStatEntity = playerMode == 1 ? playerStatEntity1 : playerStatEntity2; 
+	PlayerStat& playerStat = registry.playerStats.get(playerStatEntity);
+	playerStat.damage = root[playerStatKey]["damage"].asInt();
+	playerStat.maxHp = root [playerStatKey]["maxHp"].asInt();
+	playerStat.money = root[playerStatKey]["money"].asInt();
+	playerStat.movementSpeed = root[playerStatKey]["movementSpeed"].asFloat();
+	playerStat.projectileFireRate = root[playerStatKey]["projectileFireRate"].asFloat(); 
+	playerStat.projectileSpeed = root[playerStatKey]["projectileSpeed"].asFloat(); 
+
+}
+
+void GameSaveDataManager::saveFile(int playerMode) {
+	std::string path = data_path() + "/saveData/saveFile.json";
+	Json::Value root;
+	Json::Value levelNum(this->levelNumber);
+	Json::StyledStreamWriter writer;
+	root["levelNumber"] = levelNum;
+	// Always write player 1 
+	savePlayerStats(root, playerStatEntity1, 1);
+	if (playerMode == 2) {
+		savePlayerStats(root, playerStatEntity2, playerMode);
+	}
+	std::ofstream saveFileWrite(path);
+	writer.write(saveFileWrite, root);
+	std::cout << root << std::endl;
+	saveFileWrite.close();
+}
+
+void GameSaveDataManager::savePlayerStats(Json::Value& root, Entity playerStatEntity,  int playerNum) {
+	PlayerStat& playerStat = registry.playerStats.get(playerStatEntity); 
+	std::string playerKey = "playerStat_p" + std::to_string(playerNum); 
+	Json::Value damage(playerStat.damage);
+	root[playerKey]["damage"] = damage; 
+	Json::Value maxHp(playerStat.maxHp);
+	root[playerKey]["maxHp"] = maxHp; 
+	Json::Value money(playerStat.money);
+	root[playerKey]["money"] = money; 
+	Json::Value movementSpeed(playerStat.movementSpeed);
+	root[playerKey]["movementSpeed"] = movementSpeed; 
+	Json::Value projectileFireRate(playerStat.projectileFireRate);
+	root[playerKey]["projectileFireRate"] = projectileFireRate;
+	Json::Value projectileSpeed(playerStat.projectileSpeed);
+	root[playerKey]["projectileSpeed"] = projectileSpeed;
+
+}
+
+void GameSaveDataManager::setPlayerStatEntity(Entity playerStatEntity1, Entity playerStatEntity2) {
+	this->playerStatEntity1 = playerStatEntity1; 
+	this->playerStatEntity2 = playerStatEntity2; 
+}
+
+void GameSaveDataManager::setPlayerStatEntity(Entity playerStatEntity1) {
+	this->playerStatEntity1 = playerStatEntity1; 
+}
+
+void GameSaveDataManager::setLevelNumber(int levelNumber) {
+	this->levelNumber = levelNumber;
+}
+
+int GameSaveDataManager::getLevelNumber() {
+	return this->levelNumber; 
+}
+
+int GameSaveDataManager::getPlayerMode() {
+	return this->playerModeFromFile;
+}
