@@ -22,7 +22,6 @@ int main()
 {
 	// Global systems
 	WorldSystem world;
-	world.setPlayerMode();
 	world.setResolution();
 
 	RenderSystem renderer;

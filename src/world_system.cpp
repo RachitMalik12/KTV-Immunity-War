@@ -343,9 +343,56 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}	
 
+	if (action == GLFW_PRESS && key == GLFW_KEY_K) {
+		// Save current level. 
+		dataManager.setLevelNumber(level_number); 
+		if (twoPlayer.inTwoPlayerMode) {
+			dataManager.setPlayerStatEntity(player_stat, player2_stat);
+			dataManager.saveFile(2);
+		}
+		else {
+			dataManager.setPlayerStatEntity(player_stat); 
+			dataManager.saveFile(1); 
+		}
+		
+	}
+
 	// level loading
 	if (action == GLFW_PRESS && key == GLFW_KEY_L) {
-		setupLevel(level_number); 
+		// Update player mode based on savefile
+		dataManager.setPlayerModeFromFile();
+		int player_mode_file = dataManager.getPlayerMode();
+		if (player_mode_file == 1) {
+			twoPlayer.inTwoPlayerMode = false;
+		}
+		else {
+			twoPlayer.inTwoPlayerMode = true;
+		}
+		setPlayerStats(); 
+
+		if (twoPlayer.inTwoPlayerMode) {
+			dataManager.setPlayerStatEntity(player_stat, player2_stat); 
+		}
+		else {
+			dataManager.setPlayerStatEntity(player_stat);
+		}
+		bool loadFile = dataManager.loadFile();
+		if (!loadFile) {
+			// If load failed due to file missing,load level 1 with 1 player. 
+			twoPlayer.inTwoPlayerMode = false;
+			setupLevel(1);
+		}
+		else {
+			level_number = dataManager.getLevelNumber();
+			int playerModeFile = dataManager.getPlayerMode();
+			if (playerModeFile == 1) {
+				twoPlayer.inTwoPlayerMode = false;
+			}
+			else {
+				twoPlayer.inTwoPlayerMode = true;
+			}
+			setupLevel(level_number);
+		}
 	}
 	// load level 1
 	if (action == GLFW_PRESS && key == GLFW_KEY_1) {
@@ -566,27 +613,6 @@ void WorldSystem::createWalls(int screenWidth, int screenHeight) {
 	vec2 shopWallScale = { screenWidth - (screenWidth * doorWidthScale), SHOP_WALL_THICKNESS };
 	createWall(middleWallLeftPos, shopWallScale);
 	createWall(middleWallRightPos, shopWallScale);
-}
-
-void WorldSystem::setPlayerMode() {
-	int playerMode;
-	do {
-		std::string input;
-		printf("Input 1 for 1 player mode and 2 for 2 players mode.\n");
-		std::cin >> input;
-		try {
-			playerMode = std::stoi(input);
-		}
-		catch (...) {
-			playerMode = 0;
-		}
-	} while (playerMode != 1 && playerMode != 2);
-	if (playerMode == 1) {
-		twoPlayer.inTwoPlayerMode = false;
-	}
-	else {
-		twoPlayer.inTwoPlayerMode = true;
-	}
 }
 
 void WorldSystem::setResolution() {

@@ -39,8 +39,6 @@ public:
 
 	int frame_counter(float elapsed_ms, float animationSpeed, int frame, int num_frames);
 
-	void setPlayerMode();
-
 	void setResolution();
 
 private:
