@@ -1,5 +1,6 @@
 // internal
 #include "ai_system.hpp"
+#include <iostream>
 
 void AISystem::step(float elapsed_ms, float width, float height) {
 	stepEnemyHunter(elapsed_ms);
@@ -59,6 +60,7 @@ void AISystem::createAdj() {
 
 void AISystem::stepEnemyBacteria(float elapsed_ms, float width, float height) {
 	next_bacteria_BFS_calculation -= elapsed_ms;
+	next_bacteria_PATH_calculation -= elapsed_ms;
 	auto& motions_registry = registry.motions;
 	if (next_bacteria_BFS_calculation < 0.f) {
 		for (Entity bacteriaEntity : registry.enemyBacterias.entities) {
@@ -78,19 +80,37 @@ void AISystem::stepEnemyBacteria(float elapsed_ms, float width, float height) {
 					float pickPlayer = rand() % 2 + 1;
 
 					if (pickPlayer != 1 && !registry.players.get(registry.players.entities[1]).isDead) {
-						handlePath(player2Motion.position.x, player2Motion.position.y, width, height, bacteriaEntity);
+						registry.enemyBacterias.get(bacteriaEntity).finX = player2Motion.position.x;
+						registry.enemyBacterias.get(bacteriaEntity).finY = player2Motion.position.y;
+
+						handlePath(registry.enemyBacterias.get(bacteriaEntity).finX, registry.enemyBacterias.get(bacteriaEntity).finY, width, height, bacteriaEntity);
 					}
 					else {
-						handlePath(player1Motion.position.x, player1Motion.position.y, width, height, bacteriaEntity);
+						registry.enemyBacterias.get(bacteriaEntity).finX = player1Motion.position.x;
+						registry.enemyBacterias.get(bacteriaEntity).finY = player1Motion.position.y;
+
+						handlePath(registry.enemyBacterias.get(bacteriaEntity).finX, registry.enemyBacterias.get(bacteriaEntity).finY, width, height, bacteriaEntity);
 					}
 				}
 				else {
 					next_bacteria_BFS_calculation = bacteria.bfsUpdateTime;
-					handlePath(player1Motion.position.x, player1Motion.position.y, width, height, bacteriaEntity);
+					registry.enemyBacterias.get(bacteriaEntity).finX = player1Motion.position.x;
+					registry.enemyBacterias.get(bacteriaEntity).finY = player1Motion.position.y;
+
+					handlePath(registry.enemyBacterias.get(bacteriaEntity).finX, registry.enemyBacterias.get(bacteriaEntity).finY, width, height, bacteriaEntity);
 				}
 			}
 		}
 	}
+
+	if (next_bacteria_PATH_calculation < 0.f) {
+		for (Entity bacteriaEntity : registry.enemyBacterias.entities) {
+			EnemyBacteria& bacteria = registry.enemyBacterias.get(bacteriaEntity);
+			next_bacteria_PATH_calculation = bacteria.pathUpdateTime;
+			findPath(bacteriaEntity, registry.enemyBacterias.get(bacteriaEntity).finX, registry.enemyBacterias.get(bacteriaEntity).finY);
+		}
+	}
+
 }
 
 void AISystem::stepEnemyChase(float elapsed_ms) {
@@ -231,21 +251,11 @@ bool AISystem::handlePath(int positionX, int positionY, float width, float heigh
 
 }
 
-void AISystem::bfsSearchPath(float initX, float initY, float finX, float finY, Entity& bacteriaEntity, float width, float height) {
+void AISystem::findPath(Entity& bacteriaEntity, float finX, float finY) {
 	std::pair<int, int> currPosition = { finX , finY };
-
-	// traverse from the final destination "grid" block
-	// turn it back into the actually screen size using * (width/8) or * (height/8)
-	// push into our traversalStack -- stack because we are now going BACKWARDS from the end to the beginning, using the predecessor to find our path from the player to the bacteria.
-	while (currPosition.first != initX || currPosition.second != initY) {
-		std::pair<int, int> temp = { pred[currPosition.first][currPosition.second].first * (width / 8),  pred[currPosition.first][currPosition.second].second * (height / 8) };
-		traversalStack.push(temp);
-		currPosition = pred[currPosition.first][currPosition.second];
-	}
-
 	// go through traversal stack. it should have the path now.
-	// if it's empty, stop.
-	while (!traversalStack.empty()) {
+	// if it's empty, don't do anything.
+	if (!traversalStack.empty()) {
 		// get current position of traversal stack
 		currPosition = traversalStack.top();
 		traversalStack.pop();
@@ -255,6 +265,21 @@ void AISystem::bfsSearchPath(float initX, float initY, float finX, float finY, E
 		// from the current bacteria position, go to 
 		moveToSpot(bacteriaPositionX, bacteriaPositionY, currPosition.first, currPosition.second, bacteriaEntity);
 	}
+}
+
+void AISystem::bfsSearchPath(float initX, float initY, float finX, float finY, Entity& bacteriaEntity, float width, float height) {
+	std::pair<int, int> currPosition = { finX , finY };
+
+	// traverse from the final destination "grid" block
+	// turn it back into the actually screen size using * (width/8) or * (height/8)
+	// push into our traversalStack -- stack because we are now going BACKWARDS from the end to the beginning, using the predecessor to find our path from the player to the bacteria.
+	std::cout << "bfsSearchPath";
+	while (currPosition.first != initX || currPosition.second != initY) {
+		std::pair<int, int> temp = { pred[currPosition.first][currPosition.second].first * (width / 8),  pred[currPosition.first][currPosition.second].second * (height / 8) };
+		traversalStack.push(temp);
+		currPosition = pred[currPosition.first][currPosition.second];
+	}
+
 	while (!adjacentsQueue.empty())
 	{
 		adjacentsQueue.pop();
@@ -265,7 +290,6 @@ void AISystem::moveToSpot(float initX, float initY, float finalX, float finalY, 
 	vec2 diff = vec2(finalX, finalY) - vec2(initX, initY);
 	float angle = atan2(diff.y, diff.x);
 	registry.motions.get(bacteriaEntity).velocity = vec2(cos(angle) * registry.enemies.get(bacteriaEntity).speed, sin(angle) * registry.enemies.get(bacteriaEntity).speed);
-
 }
 
 bool AISystem::isEnemyInRangeOfThePlayers(Entity enemyEntity) {

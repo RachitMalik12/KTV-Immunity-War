@@ -33,6 +33,8 @@ private:
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist;
 	float next_bacteria_BFS_calculation;
+	float next_bacteria_PATH_calculation;
+
 	bool isEnemyInRangeOfThePlayers(Entity enemyEntity);
 	float enemyDistanceFromPlayer(const Motion& player, const Motion& hunter);
 	void setEnemyWonderingRandomly(Entity enemyEntity);
@@ -46,6 +48,8 @@ private:
 	void bfsSearchPath(float initX, float initY, float finX, float finY, Entity& bacteriaEntity, float width, float height);
 	void moveToSpot(float initX, float initY, float finalX, float finalY, Entity& bacteriaEntity);
 	void createAdj();
+	void findPath(Entity& bacteriaEntity, float finX, float finY);
+
 	Entity pickAPlayer();
 	void swarmFireProjectileAtPlayer(Entity swarmEntity);
 	void swarmSpreadOut(Entity swarmEntity);
