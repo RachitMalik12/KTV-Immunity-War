@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include "../ext/stb_image/stb_image.h"
 #include "../ext/json/dist/json/json.h" 
+#include <queue>
+#include <stack>
 
 // Player component
 struct Player
@@ -99,7 +101,8 @@ struct EnemyBacteria
 	float pathUpdateTime = 500.f;
 	float finX = 0;
 	float finY = 0;
-
+	std::stack<std::pair<int, int>> traversalStack;
+	std::queue<std::pair<int, int>> adjacentsQueue;
 };
 
 struct EnemySwarm {

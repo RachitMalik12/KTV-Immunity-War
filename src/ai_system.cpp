@@ -184,13 +184,13 @@ bool AISystem::handlePath(float width, float height, Entity& bacteriaEntity) {
 
 	// initialize first position, it will be visited later, add it to the queue
 	visited[resIndexX][resIndexY] = false;
-	adjacentsQueue.push({ resIndexX, resIndexY });
-	std::pair<int, int> currPosition = adjacentsQueue.front();
+	registry.enemyBacterias.get(bacteriaEntity).adjacentsQueue.push({ resIndexX, resIndexY });
+	std::pair<int, int> currPosition = registry.enemyBacterias.get(bacteriaEntity).adjacentsQueue.front();
 
-	while (!adjacentsQueue.empty()) {
+	while (!registry.enemyBacterias.get(bacteriaEntity).adjacentsQueue.empty()) {
 		// get first element in queue
-		currPosition = adjacentsQueue.front();
-		adjacentsQueue.pop();
+		currPosition = registry.enemyBacterias.get(bacteriaEntity).adjacentsQueue.front();
+		registry.enemyBacterias.get(bacteriaEntity).adjacentsQueue.pop();
 
 		// check if it's out of bounds or has been visited. if so, skip
 		if (currPosition.first < 8 && currPosition.second < 8 && visited[currPosition.first][currPosition.second] == false && currPosition.first >= 0 && currPosition.second >= 0) {
@@ -209,7 +209,7 @@ bool AISystem::handlePath(float width, float height, Entity& bacteriaEntity) {
 			// add adjacent "grid" block above to queue
 			if (currPosition.second - 1 >= 0) {
 				if (visited[currPosition.first][currPosition.second - 1] == false) {
-					adjacentsQueue.push({ currPosition.first, currPosition.second - 1 });
+					registry.enemyBacterias.get(bacteriaEntity).adjacentsQueue.push({ currPosition.first, currPosition.second - 1 });
 				}
 				if (pred[currPosition.first][currPosition.second - 1].first == -1 && pred[currPosition.first][currPosition.second - 1].second == -1) {
 					pred[currPosition.first][currPosition.second - 1] = { currPosition.first, currPosition.second };
@@ -219,7 +219,7 @@ bool AISystem::handlePath(float width, float height, Entity& bacteriaEntity) {
 			// add adjacent "grid" block below to queue
 			if (currPosition.second + 1 < 8) {
 				if (visited[currPosition.first][currPosition.second + 1] == false) {
-					adjacentsQueue.push({ currPosition.first, currPosition.second + 1 });
+					registry.enemyBacterias.get(bacteriaEntity).adjacentsQueue.push({ currPosition.first, currPosition.second + 1 });
 				}
 				if (pred[currPosition.first][currPosition.second + 1].first == -1 && pred[currPosition.first][currPosition.second + 1].second == -1) {
 					pred[currPosition.first][currPosition.second + 1] = { currPosition.first, currPosition.second };
@@ -229,7 +229,7 @@ bool AISystem::handlePath(float width, float height, Entity& bacteriaEntity) {
 			// add adjacent "grid" block left to queue
 			if (currPosition.first - 1 >= 0) {
 				if (visited[currPosition.first - 1][currPosition.second] == false) {
-					adjacentsQueue.push({ currPosition.first - 1, currPosition.second });
+					registry.enemyBacterias.get(bacteriaEntity).adjacentsQueue.push({ currPosition.first - 1, currPosition.second });
 				}
 				if (pred[currPosition.first - 1][currPosition.second].first == -1 && pred[currPosition.first - 1][currPosition.second].second == -1) {
 					pred[currPosition.first - 1][currPosition.second] = { currPosition.first, currPosition.second };
@@ -239,7 +239,7 @@ bool AISystem::handlePath(float width, float height, Entity& bacteriaEntity) {
 			// add adjacent "grid" block right to queue
 			if (currPosition.first + 1 < 8) {
 				if (visited[currPosition.first + 1][currPosition.second] == false) {
-					adjacentsQueue.push({ currPosition.first + 1, currPosition.second });
+					registry.enemyBacterias.get(bacteriaEntity).adjacentsQueue.push({ currPosition.first + 1, currPosition.second });
 				}
 				if (pred[currPosition.first + 1][currPosition.second].first == -1 && pred[currPosition.first + 1][currPosition.second].second == -1) {
 					pred[currPosition.first + 1][currPosition.second] = { currPosition.first, currPosition.second };
@@ -258,10 +258,10 @@ void AISystem::findPath(Entity& bacteriaEntity) {
 	std::pair<int, int> currPosition = { finX , finY };
 	// go through traversal stack. it should have the path now.
 	// if it's empty, don't do anything.
-	if (!traversalStack.empty()) {
+	if (!registry.enemyBacterias.get(bacteriaEntity).traversalStack.empty()) {
 		// get current position of traversal stack
-		currPosition = traversalStack.top();
-		traversalStack.pop();
+		currPosition = registry.enemyBacterias.get(bacteriaEntity).traversalStack.top();
+		registry.enemyBacterias.get(bacteriaEntity).traversalStack.pop();
 		int bacteriaPositionX = registry.motions.get(bacteriaEntity).position.x;
 		int bacteriaPositionY = registry.motions.get(bacteriaEntity).position.y;
 
@@ -278,13 +278,13 @@ void AISystem::bfsSearchPath(float initX, float initY, float finX, float finY, E
 	// push into our traversalStack -- stack because we are now going BACKWARDS from the end to the beginning, using the predecessor to find our path from the player to the bacteria.
 	while (currPosition.first != initX || currPosition.second != initY) {
 		std::pair<int, int> temp = { pred[currPosition.first][currPosition.second].first * (width / 8),  pred[currPosition.first][currPosition.second].second * (height / 8) };
-		traversalStack.push(temp);
+		registry.enemyBacterias.get(bacteriaEntity).traversalStack.push(temp);
 		currPosition = pred[currPosition.first][currPosition.second];
 	}
 
-	while (!adjacentsQueue.empty())
+	while (!registry.enemyBacterias.get(bacteriaEntity).adjacentsQueue.empty())
 	{
-		adjacentsQueue.pop();
+		registry.enemyBacterias.get(bacteriaEntity).adjacentsQueue.pop();
 	}
 }
 

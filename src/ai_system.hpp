@@ -24,8 +24,6 @@ public:
 private:
 	RenderSystem* renderer;
 	bool blocksInitialized = false;
-	std::queue<std::pair<int, int>> adjacentsQueue;
-	std::stack<std::pair<int, int>> traversalStack;
 	std::vector<int> path;
 	std::pair<int, int> pred[8][8]{};
 	std::pair<int, int> adj[8][8]{};
