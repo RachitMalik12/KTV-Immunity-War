@@ -359,10 +359,23 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// level loading
 	if (action == GLFW_PRESS && key == GLFW_KEY_L) {
+		// Update player mode based on savefile
+		dataManager.setPlayerModeFromFile();
+		int player_mode_file = dataManager.getPlayerMode();
+		if (player_mode_file == 1) {
+			twoPlayer.inTwoPlayerMode = false;
+		}
+		else {
+			twoPlayer.inTwoPlayerMode = true;
+		}
+		setPlayerStats(); 
+
 		if (twoPlayer.inTwoPlayerMode) {
 			dataManager.setPlayerStatEntity(player_stat, player2_stat); 
 		}
-		dataManager.setPlayerStatEntity(player_stat); 
+		else {
+			dataManager.setPlayerStatEntity(player_stat);
+		}
 		bool loadFile = dataManager.loadFile();
 		if (!loadFile) {
 			// If load failed due to file missing,load level 1 with 1 player. 
@@ -600,27 +613,6 @@ void WorldSystem::createWalls(int screenWidth, int screenHeight) {
 	vec2 shopWallScale = { screenWidth - (screenWidth * doorWidthScale), SHOP_WALL_THICKNESS };
 	createWall(middleWallLeftPos, shopWallScale);
 	createWall(middleWallRightPos, shopWallScale);
-}
-
-void WorldSystem::setPlayerMode() {
-	int playerMode;
-	do {
-		std::string input;
-		printf("Input 1 for 1 player mode and 2 for 2 players mode.\n");
-		std::cin >> input;
-		try {
-			playerMode = std::stoi(input);
-		}
-		catch (...) {
-			playerMode = 0;
-		}
-	} while (playerMode != 1 && playerMode != 2);
-	if (playerMode == 1) {
-		twoPlayer.inTwoPlayerMode = false;
-	}
-	else {
-		twoPlayer.inTwoPlayerMode = true;
-	}
 }
 
 void WorldSystem::setResolution() {

@@ -350,6 +350,7 @@ private:
 	void savePlayerStats(Json::Value& root, Entity playerStatEntity, int playerNum);
 public: 
 	void saveFile(int playerMode); 
+	void setPlayerModeFromFile(); 
 	bool loadFile(); 
 	int getLevelNumber(); 
 	int getPlayerMode(); 

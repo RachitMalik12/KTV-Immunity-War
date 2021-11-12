@@ -171,7 +171,30 @@ void LevelFileLoader::readFile() {
 std::vector<Level> LevelFileLoader::getLevels() {
 	return levels;
 }
+// Some reading logic inspired from here: https://stackoverflow.com/questions/27486538/jsoncpp-writing-back-to-the-json-file
+void GameSaveDataManager::setPlayerModeFromFile() {
+	std::string path = data_path() + "/saveData/saveFile.json";
+	Json::Value root;
+	Json::Reader reader;
+	std::ifstream saveFileRead(path);
+	if (!saveFileRead.good()) {
+		std::cout << "No save file found, set player mode to 1";
+		playerModeFromFile = 1;
+	}
 
+	bool success = reader.parse(saveFileRead, root);
+	if (!success) {
+		std::cout << "Failed to parse save file :( : " << reader.getFormatedErrorMessages();
+	}
+	
+	if (root.isMember("playerStat_p1") && root.isMember("playerStat_p2")) {
+		playerModeFromFile = 2; 
+	}
+	else if (root.isMember("playerStat_p1")) {
+		playerModeFromFile = 1; 
+	}
+}
+// Some reading logic inspired from here: https://stackoverflow.com/questions/27486538/jsoncpp-writing-back-to-the-json-file
 bool GameSaveDataManager::loadFile() {
 	std::string path = data_path() + "/saveData/saveFile.json";
 	Json::Value root;
@@ -186,17 +209,15 @@ bool GameSaveDataManager::loadFile() {
 		std::cout << "Failed to parse save file :( : " << reader.getFormatedErrorMessages();
 	}
 	this->levelNumber = root["levelNumber"].asInt(); 
-	// Load p1 and p2 player information 
-	if (root.isMember("playerStat_p1") && root.isMember("playerStat_p2")) {
-		playerModeFromFile = 2;
-		loadPlayerStats(root, 1);
+	// Load p1 and p2 player information
+	setPlayerModeFromFile(); 
+	if (playerModeFromFile == 1) {
+		loadPlayerStats(root, 1); 
+	} 
+	if (playerModeFromFile == 2) {
+		loadPlayerStats(root, 1); 
 		loadPlayerStats(root, 2); 
 	}
-	else if (root.isMember("playerStat_p1")) {
-		playerModeFromFile = 1; 
-		loadPlayerStats(root, 1); 
-	}
-	
 	saveFileRead.close();
 	return true; 
 }
@@ -211,9 +232,8 @@ void GameSaveDataManager::loadPlayerStats(Json::Value& root, int playerMode) {
 	playerStat.movementSpeed = root[playerStatKey]["movementSpeed"].asFloat();
 	playerStat.projectileFireRate = root[playerStatKey]["projectileFireRate"].asFloat(); 
 	playerStat.projectileSpeed = root[playerStatKey]["projectileSpeed"].asFloat(); 
-
 }
-
+// Some inspired from here: https://stackoverflow.com/questions/27486538/jsoncpp-writing-back-to-the-json-file
 void GameSaveDataManager::saveFile(int playerMode) {
 	std::string path = data_path() + "/saveData/saveFile.json";
 	Json::Value root;
