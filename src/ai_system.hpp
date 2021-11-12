@@ -2,9 +2,7 @@
 
 #include <iostream>
 #include <random>
-#include <queue>
 #include <map>
-#include <stack>
 #include <cmath>
 #include <limits>
 
@@ -30,9 +28,6 @@ private:
 	bool visited[8][8]{};
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist;
-	float next_bacteria_BFS_calculation;
-	float next_bacteria_PATH_calculation;
-
 	bool isEnemyInRangeOfThePlayers(Entity enemyEntity);
 	float enemyDistanceFromPlayer(const Motion& player, const Motion& hunter);
 	void setEnemyWonderingRandomly(Entity enemyEntity);

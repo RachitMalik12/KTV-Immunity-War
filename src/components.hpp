@@ -103,6 +103,8 @@ struct EnemyBacteria
 	float finY = 0;
 	std::stack<std::pair<int, int>> traversalStack;
 	std::queue<std::pair<int, int>> adjacentsQueue;
+	float next_bacteria_BFS_calculation;
+	float next_bacteria_PATH_calculation;
 };
 
 struct EnemySwarm {

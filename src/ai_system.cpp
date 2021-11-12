@@ -58,54 +58,54 @@ void AISystem::createAdj() {
 }
 
 void AISystem::stepEnemyBacteria(float elapsed_ms, float width, float height) {
-	next_bacteria_BFS_calculation -= elapsed_ms;
-	next_bacteria_PATH_calculation -= elapsed_ms;
-	auto& motions_registry = registry.motions;
-	if (next_bacteria_BFS_calculation < 0.f) {
-		for (Entity bacteriaEntity : registry.enemyBacterias.entities) {
-			EnemyBacteria& bacteria = registry.enemyBacterias.get(bacteriaEntity);
-			Motion& player1Motion = motions_registry.get(registry.players.entities[0]);
+	for (Entity bacteriaEntity : registry.enemyBacterias.entities) {
 
-			// if bacteria is hunting, it will do BFS to find player
-			if (bacteria.huntingMode) {
-				bacteria.huntingMode = false;
+		registry.enemyBacterias.get(bacteriaEntity).next_bacteria_BFS_calculation -= elapsed_ms;
+		registry.enemyBacterias.get(bacteriaEntity).next_bacteria_PATH_calculation -= elapsed_ms;
+		auto& motions_registry = registry.motions;
+		if (registry.enemyBacterias.get(bacteriaEntity).next_bacteria_BFS_calculation < 0.f) {
+				EnemyBacteria& bacteria = registry.enemyBacterias.get(bacteriaEntity);
+				Motion& player1Motion = motions_registry.get(registry.players.entities[0]);
 
-				createAdj();
+				// if bacteria is hunting, it will do BFS to find player
+				if (bacteria.huntingMode) {
+					bacteria.huntingMode = false;
 
-				// twoPlayerMode ? select random player to follow
-				if (twoPlayer.inTwoPlayerMode) {
-					next_bacteria_BFS_calculation = bacteria.bfsUpdateTime;
-					Motion player2Motion = motions_registry.get(registry.players.entities[1]);
-					float pickPlayer = rand() % 2 + 1;
+					createAdj();
 
-					if (pickPlayer != 1 && !registry.players.get(registry.players.entities[1]).isDead) {
-						registry.enemyBacterias.get(bacteriaEntity).finX = player2Motion.position.x;
-						registry.enemyBacterias.get(bacteriaEntity).finY = player2Motion.position.y;
+					// twoPlayerMode ? select random player to follow
+					if (twoPlayer.inTwoPlayerMode) {
+						registry.enemyBacterias.get(bacteriaEntity).next_bacteria_BFS_calculation = bacteria.bfsUpdateTime;
+						Motion player2Motion = motions_registry.get(registry.players.entities[1]);
+						float pickPlayer = rand() % 2 + 1;
 
-						handlePath(width, height, bacteriaEntity);
+						if (pickPlayer != 1 && !registry.players.get(registry.players.entities[1]).isDead) {
+							registry.enemyBacterias.get(bacteriaEntity).finX = player2Motion.position.x;
+							registry.enemyBacterias.get(bacteriaEntity).finY = player2Motion.position.y;
+
+							handlePath(width, height, bacteriaEntity);
+						}
+						else {
+							registry.enemyBacterias.get(bacteriaEntity).finX = player1Motion.position.x;
+							registry.enemyBacterias.get(bacteriaEntity).finY = player1Motion.position.y;
+
+							handlePath(width, height, bacteriaEntity);
+						}
 					}
 					else {
+						registry.enemyBacterias.get(bacteriaEntity).next_bacteria_BFS_calculation = bacteria.bfsUpdateTime;
 						registry.enemyBacterias.get(bacteriaEntity).finX = player1Motion.position.x;
 						registry.enemyBacterias.get(bacteriaEntity).finY = player1Motion.position.y;
 
 						handlePath(width, height, bacteriaEntity);
 					}
 				}
-				else {
-					next_bacteria_BFS_calculation = bacteria.bfsUpdateTime;
-					registry.enemyBacterias.get(bacteriaEntity).finX = player1Motion.position.x;
-					registry.enemyBacterias.get(bacteriaEntity).finY = player1Motion.position.y;
-
-					handlePath(width, height, bacteriaEntity);
-				}
-			}
 		}
 	}
-
-	if (next_bacteria_PATH_calculation < 0.f) {
-		for (Entity bacteriaEntity : registry.enemyBacterias.entities) {
+	for (Entity bacteriaEntity : registry.enemyBacterias.entities) {
+		if (registry.enemyBacterias.get(bacteriaEntity).next_bacteria_PATH_calculation < 0.f) {
 			EnemyBacteria& bacteria = registry.enemyBacterias.get(bacteriaEntity);
-			next_bacteria_PATH_calculation = bacteria.pathUpdateTime;
+			registry.enemyBacterias.get(bacteriaEntity).next_bacteria_PATH_calculation = bacteria.pathUpdateTime;
 			findPath(bacteriaEntity);
 		}
 	}
