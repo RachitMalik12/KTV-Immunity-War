@@ -442,7 +442,7 @@ Entity createMenu() {
 
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::FRAME1,
+		{ TEXTURE_ASSET_ID::MENU,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
 

@@ -60,7 +60,8 @@ int main()
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
 
-
+		// TODO: JASMINE (MAKE IT SO THAT CLICKING IN SOME RANGE WILL BRING IT TO STORY MODE)
+		world.createMenu();
 
 		if (!helpMode.inHelpMode && !storyMode.firstLoad) {
 			world.step(elapsed_ms);

@@ -148,6 +148,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	handlePlayerTwoProjectile(elapsed_ms_since_last_update);
 	deathHandling();
 
+
 	return true;
 }
 
@@ -776,6 +777,7 @@ void WorldSystem::animateKnight(float elapsed_ms_since_last_update) {
 	}
 }
 
+
 void WorldSystem::setupLevel(int levelNum) {
 	int screen_width, screen_height;
 	glfwGetFramebufferSize(window, &screen_width, &screen_height);
@@ -838,4 +840,25 @@ void WorldSystem::setupLevel(int levelNum) {
 	}
 	// Update state 
 	isLevelOver = false;
+}
+
+Entity WorldSystem::createMenu() {
+	Entity entity = Entity();
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::MENU,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	// Create motion
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = { defaultResolution.width / 2, defaultResolution.height / 2 };
+	motion.scale = vec2({ STORY_BB_WIDTH * defaultResolution.scaling, STORY_BB_HEIGHT * defaultResolution.scaling });
+
+	registry.menuModes.emplace(entity);
+
+	return entity;
 }

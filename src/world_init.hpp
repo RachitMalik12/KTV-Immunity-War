@@ -72,3 +72,6 @@ Entity createHelp();
 
 // story cutscenes
 Entity createStory();
+
+// menu
+Entity createMenu();
