@@ -82,13 +82,13 @@ void AISystem::stepEnemyBacteria(float elapsed_ms, float width, float height) {
 						registry.enemyBacterias.get(bacteriaEntity).finX = player2Motion.position.x;
 						registry.enemyBacterias.get(bacteriaEntity).finY = player2Motion.position.y;
 
-						handlePath(registry.enemyBacterias.get(bacteriaEntity).finX, registry.enemyBacterias.get(bacteriaEntity).finY, width, height, bacteriaEntity);
+						handlePath(width, height, bacteriaEntity);
 					}
 					else {
 						registry.enemyBacterias.get(bacteriaEntity).finX = player1Motion.position.x;
 						registry.enemyBacterias.get(bacteriaEntity).finY = player1Motion.position.y;
 
-						handlePath(registry.enemyBacterias.get(bacteriaEntity).finX, registry.enemyBacterias.get(bacteriaEntity).finY, width, height, bacteriaEntity);
+						handlePath(width, height, bacteriaEntity);
 					}
 				}
 				else {
@@ -96,7 +96,7 @@ void AISystem::stepEnemyBacteria(float elapsed_ms, float width, float height) {
 					registry.enemyBacterias.get(bacteriaEntity).finX = player1Motion.position.x;
 					registry.enemyBacterias.get(bacteriaEntity).finY = player1Motion.position.y;
 
-					handlePath(registry.enemyBacterias.get(bacteriaEntity).finX, registry.enemyBacterias.get(bacteriaEntity).finY, width, height, bacteriaEntity);
+					handlePath(width, height, bacteriaEntity);
 				}
 			}
 		}
@@ -106,7 +106,7 @@ void AISystem::stepEnemyBacteria(float elapsed_ms, float width, float height) {
 		for (Entity bacteriaEntity : registry.enemyBacterias.entities) {
 			EnemyBacteria& bacteria = registry.enemyBacterias.get(bacteriaEntity);
 			next_bacteria_PATH_calculation = bacteria.pathUpdateTime;
-			findPath(bacteriaEntity, registry.enemyBacterias.get(bacteriaEntity).finX, registry.enemyBacterias.get(bacteriaEntity).finY);
+			findPath(bacteriaEntity);
 		}
 	}
 
@@ -168,7 +168,9 @@ void AISystem::stepEnemyChase(float elapsed_ms) {
 	}
 }
 
-bool AISystem::handlePath(int positionX, int positionY, float width, float height, Entity& bacteriaEntity) {
+bool AISystem::handlePath(float width, float height, Entity& bacteriaEntity) {
+	int positionX = registry.enemyBacterias.get(bacteriaEntity).finX;
+	int positionY = registry.enemyBacterias.get(bacteriaEntity).finY;
 	Motion playerMotion = registry.motions.get(registry.players.entities[0]);
 	Motion bacteriaMotion = registry.motions.get(bacteriaEntity);
 
@@ -250,7 +252,9 @@ bool AISystem::handlePath(int positionX, int positionY, float width, float heigh
 
 }
 
-void AISystem::findPath(Entity& bacteriaEntity, float finX, float finY) {
+void AISystem::findPath(Entity& bacteriaEntity) {
+	float finX = registry.enemyBacterias.get(bacteriaEntity).finX;
+	float finY = registry.enemyBacterias.get(bacteriaEntity).finY;
 	std::pair<int, int> currPosition = { finX , finY };
 	// go through traversal stack. it should have the path now.
 	// if it's empty, don't do anything.
