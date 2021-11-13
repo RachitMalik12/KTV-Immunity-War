@@ -656,7 +656,7 @@ void WorldSystem::setPlayerStats() {
 	registry.playerStats.emplace(entity);
 	player_stat = entity;
 	PlayerStat& playerOneStat = registry.playerStats.get(player_stat);
-	playerOneStat.damage += 1;
+	playerOneStat.damage += 1; // The sword does 1 more damage than the waterball.
 	playerOneStat.movementSpeed = playerOneStat.movementSpeed * defaultResolution.scaling;
 	playerOneStat.projectileSpeed = playerOneStat.projectileSpeed * defaultResolution.scaling;
 	if (twoPlayer.inTwoPlayerMode) {
@@ -805,9 +805,9 @@ void WorldSystem::animateStep(float elapsed_ms_since_last_update) {
 		if (animation.pressed) {
 			float prev_frame = animation.xFrame;
 			frame_counter(elapsed_ms_since_last_update, entity);
-			if (registry.knights.has(entity) && animation.xFrame == 0)
+			if (entity.getId() == player_wizard.getId() && animation.xFrame == 0)
 				animation.xFrame = 1;
-			if (registry.knights.has(entity)) {
+			if (entity.getId() == player_wizard.getId()) {
 				registry.renderRequests.remove(entity);
 				registry.renderRequests.insert(
 					entity,

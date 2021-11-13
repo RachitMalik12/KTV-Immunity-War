@@ -52,7 +52,6 @@ Entity createKnight(RenderSystem* renderer, vec2 position) {
 	motion.scale = vec2({ KNIGHT_BB_WIDTH * defaultResolution.scaling, KNIGHT_BB_HEIGHT * defaultResolution.scaling });
 
 	registry.players.emplace(entity);
-	registry.knights.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::KNIGHT,

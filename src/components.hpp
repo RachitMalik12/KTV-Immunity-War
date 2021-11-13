@@ -257,13 +257,10 @@ struct Animation {
 	int animationTimer = 0;
 };
 
-struct Knight {
-
-};
-
 struct Sword {
 	Entity belongToPlayer;
-	float max_distance = M_PI * 2 / 3;
+	float max_distance_modifier = 2.f / 3.f;
+	float max_distance = M_PI * max_distance_modifier;
 	float distance_traveled = 0;
 	float angular_velocity = M_PI / 8;
 	mat3 rotation;

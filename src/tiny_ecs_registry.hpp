@@ -41,7 +41,6 @@ public:
 	ComponentContainer<HelpMode> helpModes;
 	ComponentContainer<Animation> animations;
 	ComponentContainer<StoryMode> storyModes;
-	ComponentContainer<Knight> knights;
 	ComponentContainer<Sword> swords;
 
 
@@ -79,7 +78,6 @@ public:
 		registry_list.push_back(&helpModes);
 		registry_list.push_back(&animations);
 		registry_list.push_back(&storyModes);
-		registry_list.push_back(&knights);
 		registry_list.push_back(&swords);
 	}
 
