@@ -23,7 +23,7 @@ struct Player
 struct PlayerStat
 {
 	float projectileSpeed = 300.f;
-	float projectileFireRate = 500.f;
+	float attackDelay = 500.f;
 	float movementSpeed = 150.f;
 	int maxHp = 3;
 	int money = 0;

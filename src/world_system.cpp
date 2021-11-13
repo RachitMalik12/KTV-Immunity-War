@@ -656,7 +656,7 @@ void WorldSystem::setPlayerStats() {
 	registry.playerStats.emplace(entity);
 	player_stat = entity;
 	PlayerStat& playerOneStat = registry.playerStats.get(player_stat);
-	playerOneStat.damage += 1; // The sword does 1 more damage than the waterball.
+	playerOneStat.damage = 2;
 	playerOneStat.movementSpeed = playerOneStat.movementSpeed * defaultResolution.scaling;
 	playerOneStat.projectileSpeed = playerOneStat.projectileSpeed * defaultResolution.scaling;
 	if (twoPlayer.inTwoPlayerMode) {
@@ -677,7 +677,7 @@ void WorldSystem::handlePlayerTwoProjectile(float elapsed_ms_since_last_update) 
 		Player& player2 = registry.players.get(player2_wizard);
 		PlayerStat& playerTwoStat = registry.playerStats.get(player2.playerStat);
 		if (player2.isFiringProjectile && next_projectile_fire_player2 < 0.f) {
-			next_projectile_fire_player2 = playerTwoStat.projectileFireRate;
+			next_projectile_fire_player2 = playerTwoStat.attackDelay;
 			double x, y;
 			glfwGetCursorPos(window, &x, &y);
 			if (registry.inShops.has(player2_wizard)) {
@@ -695,27 +695,30 @@ void WorldSystem::handlePlayerTwoProjectile(float elapsed_ms_since_last_update) 
 
 void WorldSystem::handlePlayerOneProjectile(float elapsed_ms_since_last_update) {
 	// handle player1 projectiles
+	float angle = 0;
+	float offset = -M_PI / 3.f;
 	next_projectile_fire_player1 -= elapsed_ms_since_last_update;
 	Player& player1 = registry.players.get(player_wizard);
 	PlayerStat& playerOneStat = registry.playerStats.get(player1.playerStat);
 	Motion playerMotion = registry.motions.get(player_wizard);
 	if (player1.isFiringProjectile && next_projectile_fire_player1 < 0.f) {
-		next_projectile_fire_player1 = playerOneStat.projectileFireRate;
-
+		next_projectile_fire_player1 = playerOneStat.attackDelay;
+		
 		switch (player1.firingDirection) {
 		case 0: // up
-			createSword(renderer, M_PI * 3 / 2 - M_PI / 3, player_wizard);
+			angle = M_PI * 3 / 2;
 			break;
 		case 1: // right
-		    createSword(renderer, -M_PI / 3, player_wizard);
+			// no action
 			break;
 		case 2: // down
-			createSword(renderer, M_PI / 2 - M_PI / 3, player_wizard);
+			angle = M_PI / 2;
 			break;
 		case 3: // left
-			createSword(renderer, M_PI - M_PI / 3, player_wizard);
+			angle = M_PI;
 			break;
 		}
+		createSword(renderer, angle + offset, player_wizard);
 	}
 }
 
