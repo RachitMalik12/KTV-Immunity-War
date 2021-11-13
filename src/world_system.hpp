@@ -39,8 +39,6 @@ public:
 
 	void WorldSystem::frame_counter(float elapsed_ms, Entity entity);
 
-	void setPlayerMode();
-
 	void setResolution();
 
 private:

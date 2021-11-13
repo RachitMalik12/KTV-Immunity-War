@@ -3,6 +3,9 @@
 #include <vector>
 #include <unordered_map>
 #include "../ext/stb_image/stb_image.h"
+#include "../ext/json/dist/json/json.h" 
+#include <queue>
+#include <stack>
 
 // Player component
 struct Player
@@ -94,7 +97,14 @@ struct EnemyHunter
 struct EnemyBacteria
 {
 	bool huntingMode = true;
-	float bfsUpdateTime = 2000.f;
+	float bfsUpdateTime = 3000.f;
+	float pathUpdateTime = 500.f;
+	float finX = 0;
+	float finY = 0;
+	std::stack<std::pair<int, int>> traversalStack;
+	std::queue<std::pair<int, int>> adjacentsQueue;
+	float next_bacteria_BFS_calculation;
+	float next_bacteria_PATH_calculation;
 };
 
 struct EnemySwarm {
@@ -353,3 +363,23 @@ public:
 
 extern LevelFileLoader levelFileLoader; 
 
+class GameSaveDataManager {
+private: 
+	int levelNumber; 
+	Entity playerStatEntity1; 
+	Entity playerStatEntity2; 
+	int playerModeFromFile = 1; 
+	void loadPlayerStats(Json::Value& root, int playerMode);
+	void savePlayerStats(Json::Value& root, Entity playerStatEntity, int playerNum);
+public: 
+	void saveFile(int playerMode); 
+	void setPlayerModeFromFile(); 
+	bool loadFile(); 
+	int getLevelNumber(); 
+	int getPlayerMode(); 
+	void setLevelNumber(int levelNumber);
+	void setPlayerStatEntity(Entity playerStatEntity1, Entity playerStatEntity2); 
+	void setPlayerStatEntity(Entity playerStatEntity1); 
+};
+
+extern GameSaveDataManager dataManager; 
