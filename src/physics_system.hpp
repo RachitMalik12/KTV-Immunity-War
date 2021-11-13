@@ -40,4 +40,6 @@ private:
 	void drawDebugMode();
 	void checkForCollision();
 	void resolvePlayerDamage(Player& player, int enemyDamage);
+	void rotateSword(Entity entity, float elapsed_ms);
+
 };

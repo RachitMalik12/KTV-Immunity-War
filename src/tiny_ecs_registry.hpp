@@ -41,6 +41,8 @@ public:
 	ComponentContainer<HelpMode> helpModes;
 	ComponentContainer<Animation> animations;
 	ComponentContainer<StoryMode> storyModes;
+	ComponentContainer<Knight> knights;
+	ComponentContainer<Sword> swords;
 
 
 	// constructor that adds all containers for looping over them
@@ -77,6 +79,8 @@ public:
 		registry_list.push_back(&helpModes);
 		registry_list.push_back(&animations);
 		registry_list.push_back(&storyModes);
+		registry_list.push_back(&knights);
+		registry_list.push_back(&swords);
 	}
 
 	void clear_all_components() {

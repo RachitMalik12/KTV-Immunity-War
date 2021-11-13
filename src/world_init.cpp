@@ -40,6 +40,9 @@ Entity createKnight(RenderSystem* renderer, vec2 position) {
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
+	registry.animations.emplace(entity);
+	Animation& animation = registry.animations.get(entity);
+	animation.numOfFrames = 9;
 
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
@@ -49,10 +52,40 @@ Entity createKnight(RenderSystem* renderer, vec2 position) {
 	motion.scale = vec2({ KNIGHT_BB_WIDTH * defaultResolution.scaling, KNIGHT_BB_HEIGHT * defaultResolution.scaling });
 
 	registry.players.emplace(entity);
+	registry.knights.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::KNIGHT,
 			EFFECT_ASSET_ID::KNIGHT,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
+Entity createSword(RenderSystem* renderer, float angle, Entity playerEntity) {
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+	Mesh& hitbox = renderer->getMesh(GEOMETRY_BUFFER_ID::SWORD);
+	registry.hitboxes.emplace(entity, &hitbox);
+
+	// Initialize the position, scale, and physics components		
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = angle;
+	motion.velocity = { 0, 0 };
+	motion.position = { 0, 0 };
+	motion.scale = vec2({ SWORD_BB_WIDTH * defaultResolution.scaling, SWORD_BB_HEIGHT * defaultResolution.scaling });
+
+	registry.players.emplace(entity);
+	registry.swords.emplace(entity);
+	registry.swords.get(entity).belongToPlayer = playerEntity;
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::SWORD,
+			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
@@ -390,7 +423,7 @@ Entity createEnemySwarm(RenderSystem* renderer, vec2 position) {
 	return entity;
 }
 
-Entity createProjectile(RenderSystem* renderer, vec2 pos, vec2 velocity, Entity playerEntity) {
+Entity createProjectile(RenderSystem* renderer, vec2 pos, vec2 velocity, float angle, Entity playerEntity) {
 	// Reserve en entity
 	auto entity = Entity();
 
@@ -402,7 +435,7 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, vec2 velocity, Entity 
 
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
+	motion.angle = angle;
 	motion.velocity = velocity;
 	motion.position = pos;
 

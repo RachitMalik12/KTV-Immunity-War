@@ -9,6 +9,8 @@ const float WIZARD_BB_WIDTH = 0.1f * 1231.f;
 const float WIZARD_BB_HEIGHT = 0.1f * 1767.f;
 const float KNIGHT_BB_WIDTH = 3.1f * 64.f;
 const float KNIGHT_BB_HEIGHT = 3.1f * 64.f;
+const float SWORD_BB_WIDTH = 3.1f * 64.f;
+const float SWORD_BB_HEIGHT = 3.1f * 23.f;
 const float BLOCK_BB_WIDTH = 0.1f * 871.f;
 const float BLOCK_BB_HEIGHT = 0.1f * 1549.f;
 const float WATERBALL_BB_WIDTH = 0.04f * 1954.f;
@@ -37,8 +39,10 @@ Entity createWizard(RenderSystem* renderer, vec2 pos);
 
 Entity createKnight(RenderSystem* renderer, vec2 pos);
 
+// the sword
+Entity createSword(RenderSystem* renderer, float angle, Entity playerEntity);
 // the projectile  
-Entity createProjectile(RenderSystem* render, vec2 pos, vec2 velocity, Entity playerEntity); 
+Entity createProjectile(RenderSystem* render, vec2 pos, vec2 velocity, float angle, Entity playerEntity);
 Entity createEnemyProjectile(RenderSystem* renderer, vec2 pos, vec2 velocity, float angle, Entity enemyEntity);
 // create wall
 Entity createWall(vec2 position, vec2 scale);

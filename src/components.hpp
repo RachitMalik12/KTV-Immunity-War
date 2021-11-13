@@ -242,9 +242,21 @@ struct Animation {
 	int xFrame = 0;
 	int yFrame = 0;
 	bool pressed = 0;
-	int numOfFrames = 9;
+	int numOfFrames = 0;
 	int animationSpeed = 100;
 	int animationTimer = 0;
+};
+
+struct Knight {
+
+};
+
+struct Sword {
+	Entity belongToPlayer;
+	float max_distance = M_PI * 2 / 3;
+	float distance_traveled = 0;
+	float angular_velocity = M_PI / 8;
+	mat3 rotation;
 };
 
 /**
@@ -292,7 +304,8 @@ enum class TEXTURE_ASSET_ID {
 	FRAME6 = FRAME5 +1,
 	ENEMYSWARM = FRAME6 + 1,
 	FIREBALL = ENEMYSWARM + 1,
-	TEXTURE_COUNT = FIREBALL + 1
+	SWORD = FIREBALL + 1,
+	TEXTURE_COUNT = SWORD + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -319,7 +332,8 @@ enum class GEOMETRY_BUFFER_ID {
 	WATERBALL = RUNNER + 1,
 	TREE = WATERBALL + 1,
 	BACTERIA = TREE + 1,
-	GEOMETRY_COUNT = BACTERIA + 1
+	SWORD = BACTERIA + 1,
+	GEOMETRY_COUNT = SWORD + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
