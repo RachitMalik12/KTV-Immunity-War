@@ -1,5 +1,6 @@
 #include "components.hpp"
 #include "render_system.hpp" // for gl_has_errors
+#include "tiny_ecs_registry.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "../ext/stb_image/stb_image.h"
@@ -11,6 +12,7 @@
 
 Debug debugging;
 LevelFileLoader levelFileLoader; 
+GameSaveDataManager dataManager; 
 float death_timer_counter_ms = 3000;
 
 
@@ -169,4 +171,120 @@ void LevelFileLoader::readFile() {
 std::vector<Level> LevelFileLoader::getLevels() {
 	return levels;
 }
+// Some reading logic inspired from here: https://stackoverflow.com/questions/27486538/jsoncpp-writing-back-to-the-json-file
+void GameSaveDataManager::setPlayerModeFromFile() {
+	std::string path = data_path() + "/saveData/saveFile.json";
+	Json::Value root;
+	Json::Reader reader;
+	std::ifstream saveFileRead(path);
+	if (!saveFileRead.good()) {
+		std::cout << "No save file found, set player mode to 1";
+		playerModeFromFile = 1;
+	}
 
+	bool success = reader.parse(saveFileRead, root);
+	if (!success) {
+		std::cout << "Failed to parse save file :( : " << reader.getFormatedErrorMessages();
+	}
+	
+	if (root.isMember("playerStat_p1") && root.isMember("playerStat_p2")) {
+		playerModeFromFile = 2; 
+	}
+	else if (root.isMember("playerStat_p1")) {
+		playerModeFromFile = 1; 
+	}
+}
+// Some reading logic inspired from here: https://stackoverflow.com/questions/27486538/jsoncpp-writing-back-to-the-json-file
+bool GameSaveDataManager::loadFile() {
+	std::string path = data_path() + "/saveData/saveFile.json";
+	Json::Value root;
+	Json::Reader reader;
+	std::ifstream saveFileRead(path);
+	if (!saveFileRead.good()) {
+		std::cout << "No save file found, loading level 1 by default";
+		return false; 
+	}
+	bool success = reader.parse(saveFileRead, root);
+	if (!success) {
+		std::cout << "Failed to parse save file :( : " << reader.getFormatedErrorMessages();
+	}
+	this->levelNumber = root["levelNumber"].asInt(); 
+	// Load p1 and p2 player information
+	setPlayerModeFromFile(); 
+	if (playerModeFromFile == 1) {
+		loadPlayerStats(root, 1); 
+	} 
+	if (playerModeFromFile == 2) {
+		loadPlayerStats(root, 1); 
+		loadPlayerStats(root, 2); 
+	}
+	saveFileRead.close();
+	return true; 
+}
+
+void GameSaveDataManager::loadPlayerStats(Json::Value& root, int playerMode) {
+	std::string playerStatKey = "playerStat_p" + std::to_string(playerMode); 
+	Entity playerStatEntity = playerMode == 1 ? playerStatEntity1 : playerStatEntity2; 
+	PlayerStat& playerStat = registry.playerStats.get(playerStatEntity);
+	playerStat.damage = root[playerStatKey]["damage"].asInt();
+	playerStat.maxHp = root [playerStatKey]["maxHp"].asInt();
+	playerStat.money = root[playerStatKey]["money"].asInt();
+	playerStat.movementSpeed = root[playerStatKey]["movementSpeed"].asFloat();
+	playerStat.attackDelay = root[playerStatKey]["attackDelay"].asFloat(); 
+	playerStat.projectileSpeed = root[playerStatKey]["projectileSpeed"].asFloat(); 
+}
+// Some inspired from here: https://stackoverflow.com/questions/27486538/jsoncpp-writing-back-to-the-json-file
+void GameSaveDataManager::saveFile(int playerMode) {
+	std::string path = data_path() + "/saveData/saveFile.json";
+	Json::Value root;
+	Json::Value levelNum(this->levelNumber);
+	Json::StyledStreamWriter writer;
+	root["levelNumber"] = levelNum;
+	// Always write player 1 
+	savePlayerStats(root, playerStatEntity1, 1);
+	if (playerMode == 2) {
+		savePlayerStats(root, playerStatEntity2, playerMode);
+	}
+	std::ofstream saveFileWrite(path);
+	writer.write(saveFileWrite, root);
+	saveFileWrite.close();
+}
+
+void GameSaveDataManager::savePlayerStats(Json::Value& root, Entity playerStatEntity,  int playerNum) {
+	PlayerStat& playerStat = registry.playerStats.get(playerStatEntity); 
+	std::string playerKey = "playerStat_p" + std::to_string(playerNum); 
+	Json::Value damage(playerStat.damage);
+	root[playerKey]["damage"] = damage; 
+	Json::Value maxHp(playerStat.maxHp);
+	root[playerKey]["maxHp"] = maxHp; 
+	Json::Value money(playerStat.money);
+	root[playerKey]["money"] = money; 
+	Json::Value movementSpeed(playerStat.movementSpeed);
+	root[playerKey]["movementSpeed"] = movementSpeed; 
+	Json::Value attackDelay(playerStat.attackDelay);
+	root[playerKey]["attackDelay"] = attackDelay;
+	Json::Value projectileSpeed(playerStat.projectileSpeed);
+	root[playerKey]["projectileSpeed"] = projectileSpeed;
+
+}
+
+void GameSaveDataManager::setPlayerStatEntity(Entity playerStatEntity1, Entity playerStatEntity2) {
+	this->playerStatEntity1 = playerStatEntity1; 
+	this->playerStatEntity2 = playerStatEntity2; 
+}
+
+void GameSaveDataManager::setPlayerStatEntity(Entity playerStatEntity1) {
+	this->playerStatEntity1 = playerStatEntity1; 
+}
+
+void GameSaveDataManager::setLevelNumber(int levelNumber) {
+	this->levelNumber = levelNumber;
+}
+
+int GameSaveDataManager::getLevelNumber() {
+	return this->levelNumber; 
+}
+
+int GameSaveDataManager::getPlayerMode() {
+	return this->playerModeFromFile;
+}

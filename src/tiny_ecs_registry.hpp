@@ -11,7 +11,6 @@ class ECSRegistry
 
 public:
 	// Manually created list of all components this game has
-	ComponentContainer<DeathTimer> deathTimers;
 	ComponentContainer<StuckTimer> stuckTimers;
 	ComponentContainer<Motion> motions;
 	ComponentContainer<Collision> collisions;
@@ -23,6 +22,7 @@ public:
 	ComponentContainer<DebugComponent> debugComponents;
 	ComponentContainer<MouseDestination> mouseDestinations;
 	ComponentContainer<Projectile> projectiles;
+	ComponentContainer<EnemyProjectile> enemyProjectiles;
 	ComponentContainer<Block> blocks;
 	ComponentContainer<Wall> walls;
 	ComponentContainer<Door> doors;
@@ -33,18 +33,22 @@ public:
 	ComponentContainer<EnemyHunter> enemyHunters;
 	ComponentContainer<EnemyBacteria> enemyBacterias;
 	ComponentContainer<EnemyChase> enemyChase;
+	ComponentContainer<EnemySwarm> enemySwarms;
 	ComponentContainer<Powerup> powerups; 
 	ComponentContainer<Flip> flips;
 	ComponentContainer<InShop> inShops;
 	ComponentContainer<Mesh*> hitboxes;
 	ComponentContainer<HelpMode> helpModes;
+	ComponentContainer<Step> steps;
 	ComponentContainer<Animation> animations;
+	ComponentContainer<StoryMode> storyModes;
+	ComponentContainer<Sword> swords;
+
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
 	ECSRegistry()
 	{
-		registry_list.push_back(&deathTimers);
 		registry_list.push_back(&stuckTimers);
 		registry_list.push_back(&motions);
 		registry_list.push_back(&collisions);
@@ -56,6 +60,7 @@ public:
 		registry_list.push_back(&debugComponents);
 		registry_list.push_back(&mouseDestinations);
 		registry_list.push_back(&projectiles);
+		registry_list.push_back(&enemyProjectiles);
 		registry_list.push_back(&blocks);
 		registry_list.push_back(&walls);
 		registry_list.push_back(&doors);
@@ -66,12 +71,16 @@ public:
 		registry_list.push_back(&enemyHunters);
 		registry_list.push_back(&enemyBacterias);
 		registry_list.push_back(&enemyChase);
+		registry_list.push_back(&enemySwarms);
 		registry_list.push_back(&powerups);
 		registry_list.push_back(&flips);
 		registry_list.push_back(&inShops);
 		registry_list.push_back(&hitboxes);
 		registry_list.push_back(&helpModes);
+		registry_list.push_back(&steps);
 		registry_list.push_back(&animations);
+		registry_list.push_back(&storyModes);
+		registry_list.push_back(&swords);
 	}
 
 	void clear_all_components() {

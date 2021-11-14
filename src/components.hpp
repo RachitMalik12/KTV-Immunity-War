@@ -3,6 +3,9 @@
 #include <vector>
 #include <unordered_map>
 #include "../ext/stb_image/stb_image.h"
+#include "../ext/json/dist/json/json.h" 
+#include <queue>
+#include <stack>
 
 // Player component
 struct Player
@@ -20,7 +23,7 @@ struct Player
 struct PlayerStat
 {
 	float projectileSpeed = 300.f;
-	float projectileFireRate = 500.f;
+	float attackDelay = 500.f;
 	float movementSpeed = 150.f;
 	int maxHp = 3;
 	int money = 0;
@@ -31,6 +34,10 @@ struct PlayerStat
 struct Projectile
 {
 	Entity belongToPlayer;
+};
+
+struct EnemyProjectile {
+	Entity belongToEnemy;
 };
 
 struct Block
@@ -46,6 +53,9 @@ struct Enemy
 	int damage;
 	int loot;
 	float speed;
+	float invinFrame = 1000.f;
+	float invinTimerInMs = 0;
+	bool isInvin = false;
 };
 
 struct EnemyBlob
@@ -90,7 +100,23 @@ struct EnemyHunter
 struct EnemyBacteria
 {
 	bool huntingMode = true;
-	float bfsUpdateTime = 2000.f;
+	float bfsUpdateTime = 3000.f;
+	float pathUpdateTime = 500.f;
+	float finX = 0;
+	float finY = 0;
+	std::stack<std::pair<int, int>> traversalStack;
+	std::queue<std::pair<int, int>> adjacentsQueue;
+	float next_bacteria_BFS_calculation;
+	float next_bacteria_PATH_calculation;
+};
+
+struct EnemySwarm {
+	float aiUpdateTime = 3000.f;
+	// Wait 1000ms before update AI for the first time so it doesn't fire at the player right after level loads
+	float aiUpdateTimer = 1000.f;
+	bool timeToUpdateAi = false;
+	float projectileSpeed = 200.f;
+	float spreadOutDistance = 200.f;
 };
 
 struct Powerup 
@@ -141,6 +167,17 @@ struct HelpMode {
 };
 extern HelpMode helpMode;
 
+struct Step {
+	bool stepInProgress = false;
+};
+extern Step stepProgress;
+
+struct StoryMode {
+	int inStoryMode = 0;
+	bool firstLoad = true;
+};
+extern StoryMode storyMode;
+
 struct DefaultResolution {
 	int width = 1200;
 	int height = 800;
@@ -160,16 +197,10 @@ struct DebugComponent
 	// Note, an empty struct has size 1
 };
 
-// A timer that will be associated to dying salmon
-struct DeathTimer
-{
-	float counter_ms = 3000;
-};
-
 // A timer that will be associated to enemies/enemies run being stuck
 struct StuckTimer
 {
-	float counter_ms = 3000;
+	float counter_ms = 4000;
 	vec2 stuck_pos = { 0, 0 };
 };
 
@@ -229,9 +260,18 @@ struct Animation {
 	int xFrame = 0;
 	int yFrame = 0;
 	bool pressed = 0;
-	int numOfFrames = 9;
+	int numOfFrames = 0;
 	int animationSpeed = 100;
 	int animationTimer = 0;
+};
+
+struct Sword {
+	Entity belongToPlayer;
+	float max_distance_modifier = 2.f / 3.f;
+	float max_distance = M_PI * max_distance_modifier;
+	float distance_traveled = 0;
+	float angular_velocity = M_PI / 8;
+	mat3 rotation;
 };
 
 /**
@@ -262,27 +302,32 @@ enum class TEXTURE_ASSET_ID {
 	TREE_RED = 0,
 	TREE_ORANGE = TREE_RED + 1,
 	TREE_YELLOW = TREE_ORANGE + 1,
-	FIREBALL = TREE_YELLOW + 1,
-	WIZARD = FIREBALL + 1,
-	WIZARD_LEFT = WIZARD + 1,
-	BLACK_BAR = WIZARD_LEFT + 1,
-	ENEMY = BLACK_BAR + 1,
-	POWERUP = ENEMY + 1,
-	ENEMYRUN = POWERUP + 1,
+	WATERBALL = TREE_YELLOW + 1,
+	WIZARD = WATERBALL + 1,
+	ENEMY = WIZARD + 1,
+	ENEMYRUN = ENEMY + 1,
 	ENEMYHUNTER = ENEMYRUN + 1,
 	HELPPANEL = ENEMYHUNTER + 1,
 	ENEMYBACTERIA = HELPPANEL + 1,
 	ENEMYCHASE = ENEMYBACTERIA + 1,
 	KNIGHT = ENEMYCHASE +1,
-	TEXTURE_COUNT = KNIGHT + 1
+	FRAME1 = KNIGHT +1,
+	FRAME2 = FRAME1 +1,
+	FRAME3 = FRAME2 +1,
+	FRAME4 = FRAME3 +1,
+	FRAME5 = FRAME4 +1,
+	FRAME6 = FRAME5 +1,
+	ENEMYSWARM = FRAME6 + 1,
+	FIREBALL = ENEMYSWARM + 1,
+	SWORD = FIREBALL + 1,
+	TEXTURE_COUNT = SWORD + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
 enum class EFFECT_ASSET_ID {
 	COLOURED = 0,
-	PEBBLE = COLOURED + 1,
-	SALMON = PEBBLE + 1,
-	TEXTURED = SALMON + 1,
+	LINE = COLOURED + 1,
+	TEXTURED = LINE + 1,
 	WATER = TEXTURED + 1,
 	KNIGHT = WATER + 1,
 	EFFECT_COUNT = KNIGHT + 1
@@ -290,10 +335,8 @@ enum class EFFECT_ASSET_ID {
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
 enum class GEOMETRY_BUFFER_ID {
-	SALMON = 0,
-	SPRITE = SALMON + 1,
-	PEBBLE = SPRITE + 1,
-	DEBUG_LINE = PEBBLE + 1,
+	SPRITE = 0,
+	DEBUG_LINE = SPRITE + 1,
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,
 	WALLS = SCREEN_TRIANGLE + 1,
 	DOOR = WALLS + 1,
@@ -301,10 +344,11 @@ enum class GEOMETRY_BUFFER_ID {
 	HUNTER = WIZARD + 1,
 	BLOBBER = HUNTER + 1,
 	RUNNER = BLOBBER + 1,
-	FIREBALL = RUNNER + 1,
-	TREE = FIREBALL + 1,
+	WATERBALL = RUNNER + 1,
+	TREE = WATERBALL + 1,
 	BACTERIA = TREE + 1,
-	GEOMETRY_COUNT = BACTERIA + 1
+	SWORD = BACTERIA + 1,
+	GEOMETRY_COUNT = SWORD + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
@@ -324,3 +368,23 @@ public:
 
 extern LevelFileLoader levelFileLoader; 
 
+class GameSaveDataManager {
+private: 
+	int levelNumber; 
+	Entity playerStatEntity1; 
+	Entity playerStatEntity2; 
+	int playerModeFromFile = 1; 
+	void loadPlayerStats(Json::Value& root, int playerMode);
+	void savePlayerStats(Json::Value& root, Entity playerStatEntity, int playerNum);
+public: 
+	void saveFile(int playerMode); 
+	void setPlayerModeFromFile(); 
+	bool loadFile(); 
+	int getLevelNumber(); 
+	int getPlayerMode(); 
+	void setLevelNumber(int levelNumber);
+	void setPlayerStatEntity(Entity playerStatEntity1, Entity playerStatEntity2); 
+	void setPlayerStatEntity(Entity playerStatEntity1); 
+};
+
+extern GameSaveDataManager dataManager; 
