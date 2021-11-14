@@ -239,7 +239,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	glfwGetWindowSize(window, &w, &h);
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
-		storyMode.firstLoad = true;
         restart_game();
 	}
 
@@ -426,10 +425,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 			storyMode.firstLoad = false;
 		}
-		else if (storyMode.inStoryMode == 0){
-			storyMode.inStoryMode = 1;
-			createStory();
-		}
 		else if (storyMode.inStoryMode == 1) {
 			storyMode.inStoryMode = 2;
 			ent = registry.storyModes.entities[0];
@@ -509,6 +504,24 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 			}
 		}
 	}
+	// menu is main menu
+	if (menuMode.menuType == 1) {
+		for (Entity entity : registry.menuModes.entities) {
+			Motion &motion = registry.motions.get(entity);
+			vec2 xpos = { motion.position.x -STORY_BB_WIDTH, motion.position.x + STORY_BB_WIDTH };
+			vec2 ypos = { motion.position.y - STORY_BB_HEIGHT, motion.position.y + STORY_BB_HEIGHT};
+			if (mouse_position.x < xpos[1] && mouse_position.x > xpos[0]) {
+				if (mouse_position.y < ypos[1] && mouse_position.y > ypos[0]) {
+
+				}
+			}
+		}
+
+	}
+	// menu is in game
+	if (menuMode.menuType == 2) {
+
+	}
 }
 
 void WorldSystem::on_mouse_click(int button, int action, int mods) {
@@ -549,6 +562,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 
 	// menu is main menu
 	if (menuMode.menuType == 1) {
+
 		if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_LEFT) {
 			menuMode.menuType = 0;
 			for (Entity entity : registry.menuModes.entities) {

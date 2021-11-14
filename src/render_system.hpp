@@ -58,7 +58,7 @@ class RenderSystem {
 			textures_path("Frame_4.png"),
 			textures_path("Frame_5.png"),
 			textures_path("Frame_6.png"),
-			textures_path("menu.gif")
+			textures_path("main_menu.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
