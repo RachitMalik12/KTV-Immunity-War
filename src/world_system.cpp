@@ -542,6 +542,24 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			}
 		}
 	}
+	// menu is in-game menu
+	if (menuMode.menuType == 2) {
+
+	}
+
+	// menu is main menu
+	if (menuMode.menuType == 1) {
+		if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_LEFT) {
+			menuMode.menuType = 0;
+			for (Entity entity : registry.menuModes.entities) {
+				registry.remove_all_components_of(entity);
+			}
+			if (storyMode.inStoryMode == 0) {
+				storyMode.inStoryMode = 1;
+				createStory();
+			}
+		}
+	}
 }
 
 void WorldSystem::setupWindowScaling() {
@@ -843,6 +861,7 @@ void WorldSystem::setupLevel(int levelNum) {
 }
 
 Entity WorldSystem::createMenu() {
+//
 	Entity entity = Entity();
 
 	registry.renderRequests.insert(
@@ -855,7 +874,7 @@ Entity WorldSystem::createMenu() {
 	Motion& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
 	motion.velocity = { 0, 0 };
-	motion.position = { defaultResolution.width / 2, defaultResolution.height / 2 };
+	motion.position = { defaultResolution.width / 2, defaultResolution.height / 2};
 	motion.scale = vec2({ STORY_BB_WIDTH * defaultResolution.scaling, STORY_BB_HEIGHT * defaultResolution.scaling });
 
 	registry.menuModes.emplace(entity);

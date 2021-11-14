@@ -149,8 +149,9 @@ extern StoryMode storyMode;
 
 struct MenuMode {
 	// 1 = first, main menu // 2 = other in game menu
-	int inMenuMode = 1;
-
+	bool inMenuMode = true;
+	int menuType = 1;
+	int twoPlayerJoined = false;
 };
 extern MenuMode menuMode;
 

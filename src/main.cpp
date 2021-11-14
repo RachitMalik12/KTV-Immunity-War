@@ -61,9 +61,11 @@ int main()
 		t = now;
 
 		// TODO: JASMINE (MAKE IT SO THAT CLICKING IN SOME RANGE WILL BRING IT TO STORY MODE)
-		world.createMenu();
+		if (menuMode.menuType == 1) {
+			world.createMenu();
+		}
 
-		if (!helpMode.inHelpMode && !storyMode.firstLoad) {
+		if (!helpMode.inHelpMode && !storyMode.firstLoad && menuMode.menuType == 0) {
 			world.step(elapsed_ms);
 			ai.step(elapsed_ms, (float)width, (float)height);
 			physics.step(elapsed_ms, (float)width, (float)height);
