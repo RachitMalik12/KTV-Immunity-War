@@ -900,12 +900,9 @@ void WorldSystem::playerTwoJoinOrLeave() {
 	helpMode.inHelpMode = true;
 	while (stepProgress.stepInProgress);
 	if (twoPlayer.inTwoPlayerMode) {
-		helpMode.inHelpMode = true;
-		while (stepProgress.stepInProgress);
 		twoPlayer.inTwoPlayerMode = false;
 		registry.remove_all_components_of(player2_wizard);
 		registry.remove_all_components_of(player2_stat);
-		helpMode.inHelpMode = false;
 	}
 	else {
 		twoPlayer.inTwoPlayerMode = true;
