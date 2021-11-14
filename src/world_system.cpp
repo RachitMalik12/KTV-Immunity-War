@@ -187,7 +187,7 @@ void WorldSystem::restart_game() {
 	while (registry.motions.entities.size() > 0)
 	    registry.remove_all_components_of(registry.motions.entities.back());
 
-	// remove player stats
+	// reset player stats
 	while (registry.playerStats.entities.size() > 0)
 		registry.remove_all_components_of(registry.playerStats.entities.back());
 	setPlayersStats();
