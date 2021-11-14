@@ -18,7 +18,7 @@ void main()
 	float xScale = 1.0 / 9.0;
 	float yScale = 1.0 / 4.0;
 	float xShift = xScale * 0.2;
-	float yShift = yScale * 0.075;
+	float yShift = yScale * 0.085;
 	texcoord = in_texcoord;
 	texcoord.x = texcoord.x * xScale * 0.6;
 	texcoord.x += xScale * xFrame;
