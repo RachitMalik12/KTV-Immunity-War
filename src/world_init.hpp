@@ -5,14 +5,14 @@
 #include "render_system.hpp"
 
 // These are hard coded to the dimensions of the entity texture
-const float WIZARD_BB_WIDTH = 0.1f * 1231.f;
-const float WIZARD_BB_HEIGHT = 0.1f * 1767.f;
-const float KNIGHT_BB_WIDTH = 3.1f * 64.f;
-const float KNIGHT_BB_HEIGHT = 3.1f * 64.f;
+const float WIZARD_BB_WIDTH = 0.08f * 1231.f;
+const float WIZARD_BB_HEIGHT = 0.08f * 1767.f;
+const float KNIGHT_BB_WIDTH = 2.2f * 64.f;
+const float KNIGHT_BB_HEIGHT = 2.2f * 64.f;
 const float SWORD_BB_WIDTH = 3.1f * 64.f;
 const float SWORD_BB_HEIGHT = 3.1f * 23.f;
-const float BLOCK_BB_WIDTH = 0.1f * 871.f;
-const float BLOCK_BB_HEIGHT = 0.1f * 1549.f;
+const float BLOCK_BB_WIDTH = 0.09f * 871.f;
+const float BLOCK_BB_HEIGHT = 0.09f * 1549.f;
 const float WATERBALL_BB_WIDTH = 0.04f * 1954.f;
 const float WATERBALL_BB_HEIGHT = 0.04f * 1602.f;
 const float FIREBALL_BB_WIDTH = 0.15f * 512.f;
