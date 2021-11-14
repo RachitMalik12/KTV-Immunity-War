@@ -53,6 +53,9 @@ struct Enemy
 	int damage;
 	int loot;
 	float speed;
+	float invinFrame = 1000.f;
+	float invinTimerInMs = 0;
+	bool isInvin = false;
 };
 
 struct EnemyBlob
