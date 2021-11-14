@@ -167,6 +167,11 @@ struct HelpMode {
 };
 extern HelpMode helpMode;
 
+struct Step {
+	bool stepInProgress = false;
+};
+extern Step stepProgress;
+
 struct StoryMode {
 	int inStoryMode = 0;
 	bool firstLoad = true;
