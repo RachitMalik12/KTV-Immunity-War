@@ -21,8 +21,6 @@ WorldSystem::WorldSystem()
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
 	setupWindowScaling();
-	auto entity = Entity();
-	registry.animations.emplace(entity);
 }
 
 WorldSystem::~WorldSystem() {
@@ -130,7 +128,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	int screen_width, screen_height;
 	glfwGetFramebufferSize(window, &screen_width, &screen_height);
 
-	animateKnight(elapsed_ms_since_last_update);
+	animateStep(elapsed_ms_since_last_update);
 	updateWindowTitle();
 	levelCompletionCheck();
 	resolveMouseControl();
@@ -215,15 +213,14 @@ bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
 }
 
-int WorldSystem::frame_counter(float elapsed_ms, float animationSpeed, int frame, int num_frames)
+void WorldSystem::frame_counter(float elapsed_ms, Entity entity)
 {
-	Animation& playerOneAnimation = registry.animations.get(registry.animations.entities.front());
+	Animation& playerOneAnimation = registry.animations.get(entity);
 	playerOneAnimation.animationTimer += elapsed_ms;
-	if (playerOneAnimation.animationTimer > animationSpeed) {
-		frame = (frame + 1) % num_frames;
+	if (playerOneAnimation.animationTimer > playerOneAnimation.animationSpeed) {
+		playerOneAnimation.xFrame = (playerOneAnimation.xFrame + 1) % playerOneAnimation.numOfFrames;
 		playerOneAnimation.animationTimer = 0;
 	}
-	return frame;
 }
 
 // On key callback
@@ -264,6 +261,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 		if (action == GLFW_RELEASE && key == GLFW_KEY_W) {
 			playerOneAnimation.pressed = false;
+			playerOneAnimation.xFrame = 0;
 			player1motion.velocity = vec2(currentVelocity.x, 0);
 		}
 
@@ -282,6 +280,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 		if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
 			playerOneAnimation.pressed = false;
+			playerOneAnimation.xFrame = 0;
 			player1motion.velocity = vec2(currentVelocity.x, 0);
 		}
 
@@ -299,6 +298,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 		if (action == GLFW_RELEASE && key == GLFW_KEY_A) {
 			playerOneAnimation.pressed = false;
+			playerOneAnimation.xFrame = 0;
 			player1motion.velocity = vec2(0, currentVelocity.y);
 
 		}
@@ -318,6 +318,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 		if (action == GLFW_RELEASE && key == GLFW_KEY_D) {
 			playerOneAnimation.pressed = false;
+			playerOneAnimation.xFrame = 0;
 			player1motion.velocity = vec2(0, currentVelocity.y);
 		}
 
@@ -655,6 +656,7 @@ void WorldSystem::setPlayerStats() {
 	registry.playerStats.emplace(entity);
 	player_stat = entity;
 	PlayerStat& playerOneStat = registry.playerStats.get(player_stat);
+	playerOneStat.damage = 2;
 	playerOneStat.movementSpeed = playerOneStat.movementSpeed * defaultResolution.scaling;
 	playerOneStat.projectileSpeed = playerOneStat.projectileSpeed * defaultResolution.scaling;
 	if (twoPlayer.inTwoPlayerMode) {
@@ -675,7 +677,7 @@ void WorldSystem::handlePlayerTwoProjectile(float elapsed_ms_since_last_update) 
 		Player& player2 = registry.players.get(player2_wizard);
 		PlayerStat& playerTwoStat = registry.playerStats.get(player2.playerStat);
 		if (player2.isFiringProjectile && next_projectile_fire_player2 < 0.f) {
-			next_projectile_fire_player2 = playerTwoStat.projectileFireRate;
+			next_projectile_fire_player2 = playerTwoStat.attackDelay;
 			double x, y;
 			glfwGetCursorPos(window, &x, &y);
 			if (registry.inShops.has(player2_wizard)) {
@@ -685,33 +687,38 @@ void WorldSystem::handlePlayerTwoProjectile(float elapsed_ms_since_last_update) 
 			float dy = (float)y - player2Motion.position.y;
 			float h = sqrtf(powf(dx, 2) + powf(dy, 2));
 			float scale = playerTwoStat.projectileSpeed / h;
-			createProjectile(renderer, player2Motion.position, { dx * scale, dy * scale }, player2_wizard);
+			float th = atan2(dy, dx);
+			createProjectile(renderer, player2Motion.position, { dx * scale, dy * scale }, th, player2_wizard);
 		}
 	}
 }
 
 void WorldSystem::handlePlayerOneProjectile(float elapsed_ms_since_last_update) {
 	// handle player1 projectiles
+	float angle = 0;
+	float offset = -M_PI / 3.f;
 	next_projectile_fire_player1 -= elapsed_ms_since_last_update;
 	Player& player1 = registry.players.get(player_wizard);
 	PlayerStat& playerOneStat = registry.playerStats.get(player1.playerStat);
 	Motion playerMotion = registry.motions.get(player_wizard);
 	if (player1.isFiringProjectile && next_projectile_fire_player1 < 0.f) {
-		next_projectile_fire_player1 = playerOneStat.projectileFireRate;
+		next_projectile_fire_player1 = playerOneStat.attackDelay;
+		
 		switch (player1.firingDirection) {
 		case 0: // up
-			createProjectile(renderer, playerMotion.position, { 0, -1.f * playerOneStat.projectileSpeed }, player_wizard);
+			angle = M_PI * 3 / 2;
 			break;
 		case 1: // right
-			createProjectile(renderer, playerMotion.position, { playerOneStat.projectileSpeed , 0 }, player_wizard);
+			// no action
 			break;
 		case 2: // down
-			createProjectile(renderer, playerMotion.position, { 0, playerOneStat.projectileSpeed }, player_wizard);
+			angle = M_PI / 2;
 			break;
 		case 3: // left
-			createProjectile(renderer, playerMotion.position, { -1.f * playerOneStat.projectileSpeed , 0 }, player_wizard);
+			angle = M_PI;
 			break;
 		}
+		createSword(renderer, angle + offset, player_wizard);
 	}
 }
 
@@ -794,18 +801,24 @@ void WorldSystem::updateWindowTitle() {
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 }
 
-void WorldSystem::animateKnight(float elapsed_ms_since_last_update) {
-	Animation& playerOneAnimation = registry.animations.get(registry.animations.entities.front());
+void WorldSystem::animateStep(float elapsed_ms_since_last_update) {
 	//animate
-	if (playerOneAnimation.pressed) {
-		playerOneAnimation.xFrame =
-			frame_counter(elapsed_ms_since_last_update, playerOneAnimation.animationSpeed, playerOneAnimation.xFrame, playerOneAnimation.numOfFrames);
-		registry.renderRequests.remove(player_wizard);
-		registry.renderRequests.insert(
-			player_wizard,
-			{ TEXTURE_ASSET_ID::KNIGHT,
-				EFFECT_ASSET_ID::KNIGHT,
-				GEOMETRY_BUFFER_ID::SPRITE }, false);
+	for (Entity entity : registry.animations.entities) {
+		Animation& animation = registry.animations.get(entity);
+		if (animation.pressed) {
+			float prev_frame = animation.xFrame;
+			frame_counter(elapsed_ms_since_last_update, entity);
+			if (entity.getId() == player_wizard.getId() && animation.xFrame == 0)
+				animation.xFrame = 1;
+			if (entity.getId() == player_wizard.getId()) {
+				registry.renderRequests.remove(entity);
+				registry.renderRequests.insert(
+					entity,
+					{ TEXTURE_ASSET_ID::KNIGHT,
+						EFFECT_ASSET_ID::KNIGHT,
+						GEOMETRY_BUFFER_ID::SPRITE }, false);
+			}
+		}
 	}
 }
 

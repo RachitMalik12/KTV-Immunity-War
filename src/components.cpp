@@ -230,7 +230,7 @@ void GameSaveDataManager::loadPlayerStats(Json::Value& root, int playerMode) {
 	playerStat.maxHp = root [playerStatKey]["maxHp"].asInt();
 	playerStat.money = root[playerStatKey]["money"].asInt();
 	playerStat.movementSpeed = root[playerStatKey]["movementSpeed"].asFloat();
-	playerStat.projectileFireRate = root[playerStatKey]["projectileFireRate"].asFloat(); 
+	playerStat.attackDelay = root[playerStatKey]["attackDelay"].asFloat(); 
 	playerStat.projectileSpeed = root[playerStatKey]["projectileSpeed"].asFloat(); 
 }
 // Some inspired from here: https://stackoverflow.com/questions/27486538/jsoncpp-writing-back-to-the-json-file
@@ -261,8 +261,8 @@ void GameSaveDataManager::savePlayerStats(Json::Value& root, Entity playerStatEn
 	root[playerKey]["money"] = money; 
 	Json::Value movementSpeed(playerStat.movementSpeed);
 	root[playerKey]["movementSpeed"] = movementSpeed; 
-	Json::Value projectileFireRate(playerStat.projectileFireRate);
-	root[playerKey]["projectileFireRate"] = projectileFireRate;
+	Json::Value attackDelay(playerStat.attackDelay);
+	root[playerKey]["attackDelay"] = attackDelay;
 	Json::Value projectileSpeed(playerStat.projectileSpeed);
 	root[playerKey]["projectileSpeed"] = projectileSpeed;
 

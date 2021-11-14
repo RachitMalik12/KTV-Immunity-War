@@ -37,7 +37,7 @@ public:
 	// Should the game be over ?
 	bool is_over()const;
 
-	int frame_counter(float elapsed_ms, float animationSpeed, int frame, int num_frames);
+	void WorldSystem::frame_counter(float elapsed_ms, Entity entity);
 
 	void setResolution();
 
@@ -88,5 +88,6 @@ private:
 	void resolveMouseControl();
 	void levelCompletionCheck();
 	void updateWindowTitle();
-	void animateKnight(float elapsed_ms_since_last_update);
+	void animateStep(float elapsed_ms_since_last_update);
+	void animateSword(float elapsed_ms_since_last_update);
 }; 

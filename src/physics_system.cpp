@@ -23,13 +23,28 @@ void PhysicsSystem::handle_collision() {
 				Enemy& enemyCom = registry.enemies.get(entity_other);
 				Player& playerCom = registry.players.get(registry.projectiles.get(entity).belongToPlayer);
 				PlayerStat& playerStatCom = registry.playerStats.get(playerCom.playerStat);
-				Motion& projectileMotionCom = registry.motions.get(entity);
 				registry.remove_all_components_of(entity);
 				enemyCom.hp -= playerStatCom.damage;
 				if (enemyCom.hp <= 0) {
 					playerStatCom.money += enemyCom.loot;
 					registry.remove_all_components_of(entity_other);
 				} else {
+					// TODO:: Implement some kind of enemy hit handling
+				}
+			}
+		}
+
+		if (registry.swords.has(entity)) {
+			if (registry.enemies.has(entity_other)) {
+				Enemy& enemyCom = registry.enemies.get(entity_other);
+				Player& playerCom = registry.players.get(registry.swords.get(entity).belongToPlayer);
+				PlayerStat& playerStatCom = registry.playerStats.get(playerCom.playerStat);
+				enemyCom.hp -= playerStatCom.damage;
+				if (enemyCom.hp <= 0) {
+					playerStatCom.money += enemyCom.loot;
+					registry.remove_all_components_of(entity_other);
+				}
+				else {
 					// TODO:: Implement some kind of enemy hit handling
 				}
 			}
@@ -339,6 +354,32 @@ void PhysicsSystem::moveEntities(float elapsed_ms) {
 		}
 		bounceEnemies(entity, hitABlock);
 		bounceEnemyRun(entity);
+		rotateSword(entity, elapsed_ms);
+	}
+}
+
+void PhysicsSystem::rotateSword(Entity entity, float elapsed_ms) {
+	float pivot_distance_modifier = 3.f / 4.f;
+	float step_seconds = 1.0f * (elapsed_ms / 1000.f);
+	for (Entity entity : registry.swords.entities) {
+		Sword& sword = registry.swords.get(entity);
+		Motion& parent_motion = registry.motions.get(sword.belongToPlayer);
+		Motion& motion = registry.motions.get(entity);
+		vec2 pivot = parent_motion.position;
+		pivot.x += SWORD_BB_WIDTH * pivot_distance_modifier;
+		motion.angle += sword.angular_velocity * step_seconds;
+		Transform T;
+		T.translate(parent_motion.position);
+		Transform R;
+		R.rotate(motion.angle);
+		Transform T_inv;
+		T_inv.translate(-parent_motion.position);
+		mat3 matrix = T.mat * R.mat * T_inv.mat;
+		vec3 world_coord = matrix * vec3(pivot.x, pivot.y, 1);
+		motion.position = vec2(world_coord.x, world_coord.y);
+		sword.distance_traveled += sword.angular_velocity * step_seconds;
+		if (sword.distance_traveled > sword.max_distance)
+			registry.remove_all_components_of(entity);
 	}
 }
 
