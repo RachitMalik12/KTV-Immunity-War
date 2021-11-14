@@ -129,14 +129,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	glfwGetFramebufferSize(window, &screen_width, &screen_height);
 
 	animateStep(elapsed_ms_since_last_update);
-	levelCompletionCheck();
 	updateWindowTitle();
+	levelCompletionCheck();
 	resolveMouseControl();
 	stuckTimer(elapsed_ms_since_last_update, screen_width, screen_height);
 	invincibilityTimer(elapsed_ms_since_last_update);
 	handlePlayerOneProjectile(elapsed_ms_since_last_update);
 	handlePlayerTwoProjectile(elapsed_ms_since_last_update);
 	deathHandling();
+
 	return true;
 }
 
