@@ -190,7 +190,7 @@ void WorldSystem::restart_game() {
 	// reset player stats
 	while (registry.playerStats.entities.size() > 0)
 		registry.remove_all_components_of(registry.playerStats.entities.back());
-	setPlayerStats();
+	setPlayersStats();
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
@@ -369,7 +369,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		else {
 			twoPlayer.inTwoPlayerMode = true;
 		}
-		setPlayerStats(); 
+		setPlayersStats(); 
 
 		if (twoPlayer.inTwoPlayerMode) {
 			dataManager.setPlayerStatEntity(player_stat, player2_stat); 
@@ -440,12 +440,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// Switch between one player/two player
 	if (action == GLFW_PRESS && key == GLFW_KEY_X) {
-		if (twoPlayer.inTwoPlayerMode) {
-			twoPlayer.inTwoPlayerMode = false;
-		} else {
-			twoPlayer.inTwoPlayerMode = true;
-		}
-		restart_game();
+		playerTwoJoinOrLeave();
 	}
 
 	// Control if in help mode or not
@@ -651,22 +646,29 @@ void WorldSystem::setResolution() {
 	}
 }
 
-void WorldSystem::setPlayerStats() {
+void WorldSystem::setPlayersStats() {
+	setPlayerOneStats();
+	if (twoPlayer.inTwoPlayerMode) {
+		setPlayerTwoStats();
+	}
+}
+
+void WorldSystem::setPlayerOneStats() {
 	auto entity = Entity();
-	registry.playerStats.emplace(entity);
 	player_stat = entity;
-	PlayerStat& playerOneStat = registry.playerStats.get(player_stat);
-	playerOneStat.damage = 2;
+	PlayerStat& playerOneStat = registry.playerStats.emplace(entity);
+	int swordDefaultDamage = 2;
+	playerOneStat.damage = swordDefaultDamage;
 	playerOneStat.movementSpeed = playerOneStat.movementSpeed * defaultResolution.scaling;
 	playerOneStat.projectileSpeed = playerOneStat.projectileSpeed * defaultResolution.scaling;
-	if (twoPlayer.inTwoPlayerMode) {
-		auto entity2 = Entity();
-		registry.playerStats.emplace(entity2);
-		player2_stat = entity2;
-		PlayerStat& playerTwoStat = registry.playerStats.get(player2_stat);
-		playerTwoStat.movementSpeed = playerTwoStat.movementSpeed * defaultResolution.scaling;
-		playerTwoStat.projectileSpeed = playerTwoStat.projectileSpeed * defaultResolution.scaling;
-	}
+}
+
+void WorldSystem::setPlayerTwoStats() {
+	auto entity = Entity();
+	PlayerStat& playerTwoStat = registry.playerStats.emplace(entity);
+	player2_stat = entity;
+	playerTwoStat.movementSpeed = playerTwoStat.movementSpeed * defaultResolution.scaling;
+	playerTwoStat.projectileSpeed = playerTwoStat.projectileSpeed * defaultResolution.scaling;
 }
 
 void WorldSystem::handlePlayerTwoProjectile(float elapsed_ms_since_last_update) {
@@ -799,10 +801,8 @@ void WorldSystem::updateWindowTitle() {
 	hp_p1 = registry.players.get(player_wizard).hp;
 	if (twoPlayer.inTwoPlayerMode) {
 		hp_p2 = registry.players.get(player2_wizard).hp;
-	}
-	if (twoPlayer.inTwoPlayerMode) {
-		title_ss << " P1 Money: " << registry.playerStats.get(registry.players.get(player_wizard).playerStat).money << " Health: " << hp_p1
-			<< " & P2 Money: " << registry.playerStats.get(registry.players.get(player2_wizard).playerStat).money << " Health: " << hp_p2;
+		title_ss << " P1 Money: " << registry.playerStats.get(player_stat).money << " Health: " << hp_p1
+			<< " & P2 Money: " << registry.playerStats.get(player2_stat).money << " Health: " << hp_p2;
 	}
 	else {
 		title_ss << " Money: " << registry.playerStats.get(registry.players.get(player_wizard).playerStat).money << " & Health P1 " << hp_p1;
@@ -881,6 +881,9 @@ void WorldSystem::setupLevel(int levelNum) {
 	if (twoPlayer.inTwoPlayerMode) {
 		player2_wizard = createWizard(renderer, level.player2_position * defaultResolution.scaling);
 		Player& player2 = registry.players.get(player2_wizard);
+		if (!registry.playerStats.has(player2_stat)) {
+			setPlayerTwoStats();
+		}
 		player2.playerStat = player2_stat;
 		PlayerStat& playerTwoStat = registry.playerStats.get(player2_stat);
 		player2.hp = playerTwoStat.maxHp;
@@ -895,4 +898,19 @@ void WorldSystem::setupLevel(int levelNum) {
 	}
 	// Update state 
 	isLevelOver = false;
+}
+
+void WorldSystem::playerTwoJoinOrLeave() {
+	helpMode.inHelpMode = true;
+	while (stepProgress.stepInProgress);
+	if (twoPlayer.inTwoPlayerMode) {
+		twoPlayer.inTwoPlayerMode = false;
+		registry.remove_all_components_of(player2_wizard);
+		registry.remove_all_components_of(player2_stat);
+	}
+	else {
+		twoPlayer.inTwoPlayerMode = true;
+		setupLevel(level_number);
+	}
+	helpMode.inHelpMode = false;
 }

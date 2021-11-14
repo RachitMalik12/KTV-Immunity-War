@@ -49,7 +49,10 @@ private:
 	// restart level
 	void restart_game();
 	void setupLevel(int levelNum); 
-	void setPlayerStats();
+	void restartLevel();
+	void setPlayersStats();
+	void setPlayerOneStats();
+	void setPlayerTwoStats();
 	// OpenGL window handle
 	GLFWwindow* window;
 	int level_number;
@@ -90,4 +93,6 @@ private:
 	void updateWindowTitle();
 	void animateStep(float elapsed_ms_since_last_update);
 	void animateSword(float elapsed_ms_since_last_update);
+	// misc
+	void playerTwoJoinOrLeave();
 }; 

@@ -16,6 +16,7 @@ DefaultResolution defaultResolution;
 TwoPlayer twoPlayer;
 HelpMode helpMode;
 StoryMode storyMode;
+Step stepProgress;
 
 // Entry point
 int main()
@@ -61,10 +62,12 @@ int main()
 
 
 		if (!helpMode.inHelpMode && !storyMode.firstLoad) {
+			stepProgress.stepInProgress = true;
 			world.step(elapsed_ms);
 			ai.step(elapsed_ms, (float)width, (float)height);
 			physics.step(elapsed_ms, (float)width, (float)height);
 			physics.handle_collision();
+			stepProgress.stepInProgress = false;
 		}
 
 		renderer.draw();
