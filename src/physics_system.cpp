@@ -39,13 +39,17 @@ void PhysicsSystem::handle_collision() {
 				Enemy& enemyCom = registry.enemies.get(entity_other);
 				Player& playerCom = registry.players.get(registry.swords.get(entity).belongToPlayer);
 				PlayerStat& playerStatCom = registry.playerStats.get(playerCom.playerStat);
-				enemyCom.hp -= playerStatCom.damage;
-				if (enemyCom.hp <= 0) {
-					playerStatCom.money += enemyCom.loot;
-					registry.remove_all_components_of(entity_other);
-				}
-				else {
-					// TODO:: Implement some kind of enemy hit handling
+				if (!enemyCom.isInvin) {
+					enemyCom.hp -= playerStatCom.damage;
+					if (enemyCom.hp <= 0) {
+						playerStatCom.money += enemyCom.loot;
+						registry.remove_all_components_of(entity_other);
+					}
+					else {
+						// TODO:: Implement some kind of enemy hit handling
+						enemyCom.isInvin = true;
+						enemyCom.invinTimerInMs = enemyCom.invinFrame;
+					}
 				}
 			}
 		}

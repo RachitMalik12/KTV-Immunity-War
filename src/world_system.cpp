@@ -733,6 +733,15 @@ void WorldSystem::invincibilityTimer(float elapsed_ms_since_last_update) {
 
 		}
 	}
+	for (Entity enemyEntity : registry.enemies.entities) {
+		Enemy& enemy = registry.enemies.get(enemyEntity);
+		if (enemy.isInvin) {
+			enemy.invinTimerInMs -= elapsed_ms_since_last_update;
+			if (enemy.invinTimerInMs < 0) {
+				enemy.isInvin = false;
+			}
+		}
+	}
 }
 
 void WorldSystem::stuckTimer(float elapsed_ms_since_last_update, int screen_width, int screen_height) {
