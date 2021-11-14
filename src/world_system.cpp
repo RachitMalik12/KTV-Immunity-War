@@ -647,23 +647,26 @@ void WorldSystem::setResolution() {
 }
 
 void WorldSystem::setPlayersStats() {
-	auto entity = Entity();
-	registry.playerStats.emplace(entity);
-	player_stat = entity;
-	PlayerStat& playerOneStat = registry.playerStats.get(player_stat);
-	int swordDefaultDamage = 2;
-	playerOneStat.damage = swordDefaultDamage;
-	playerOneStat.movementSpeed = playerOneStat.movementSpeed * defaultResolution.scaling;
-	playerOneStat.projectileSpeed = playerOneStat.projectileSpeed * defaultResolution.scaling;
+	setPlayerOneStats();
 	if (twoPlayer.inTwoPlayerMode) {
 		setPlayerTwoStats();
 	}
 }
 
+void WorldSystem::setPlayerOneStats() {
+	auto entity = Entity();
+	player_stat = entity;
+	PlayerStat& playerOneStat = registry.playerStats.emplace(entity);
+	int swordDefaultDamage = 2;
+	playerOneStat.damage = swordDefaultDamage;
+	playerOneStat.movementSpeed = playerOneStat.movementSpeed * defaultResolution.scaling;
+	playerOneStat.projectileSpeed = playerOneStat.projectileSpeed * defaultResolution.scaling;
+}
+
 void WorldSystem::setPlayerTwoStats() {
-	auto entity2 = Entity();
-	PlayerStat& playerTwoStat = registry.playerStats.emplace(entity2);
-	player2_stat = entity2;
+	auto entity = Entity();
+	PlayerStat& playerTwoStat = registry.playerStats.emplace(entity);
+	player2_stat = entity;
 	playerTwoStat.movementSpeed = playerTwoStat.movementSpeed * defaultResolution.scaling;
 	playerTwoStat.projectileSpeed = playerTwoStat.projectileSpeed * defaultResolution.scaling;
 }

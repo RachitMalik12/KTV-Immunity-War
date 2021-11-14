@@ -51,6 +51,7 @@ private:
 	void setupLevel(int levelNum); 
 	void restartLevel();
 	void setPlayersStats();
+	void setPlayerOneStats();
 	void setPlayerTwoStats();
 	// OpenGL window handle
 	GLFWwindow* window;
