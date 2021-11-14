@@ -44,6 +44,8 @@ Revised Project Proposal:
 
 feature changes:
 
+-We are pushing audio feedback to milestone 4 and doing keyframe animation instead.
+
 -We are bringing pre-game cutscene (5 custom feature points) to this milestone.
 
 -We are implementing custom feature graphic menu which we believe is worth 10 custom feature points. 
