@@ -257,20 +257,20 @@ void RenderSystem::draw()
 void RenderSystem::playerOneTransition(bool leaveShop) {
 	int screenWidth, screenHeight;
 	glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
-	vec2 player2Pos = registry.motions.get(registry.players.entities[1]).position;
-	Entity player2Entity = registry.players.entities[1];
+	vec2 player1Pos = registry.motions.get(registry.players.entities[1]).position;
+	Entity player1Entity = registry.players.entities[1];
 	if (leaveShop) {
-		registry.inShops.remove(player2Entity);
+		registry.inShops.remove(player1Entity);
 	} else {
-		registry.inShops.emplace(player2Entity);
+		registry.inShops.emplace(player1Entity);
 	}
-	registry.motions.get(player2Entity).velocity = vec2(0, 0);
-	if (registry.mouseDestinations.has(player2Entity))
-		registry.mouseDestinations.get(player2Entity).position = player2Pos;
+	registry.motions.get(player1Entity).velocity = vec2(0, 0);
+	if (registry.mouseDestinations.has(player1Entity))
+		registry.mouseDestinations.get(player1Entity).position = player1Pos;
 	if (leaveShop) {
-		registry.motions.get(player2Entity).position = vec2(screenWidth + SHOP_BUFFER_ZONE, screenHeight - SHOP_BUFFER_ZONE * 3);
+		registry.motions.get(player1Entity).position = vec2(screenWidth + SHOP_BUFFER_ZONE, screenHeight - SHOP_BUFFER_ZONE * 3);
 	} else {
-		registry.motions.get(player2Entity).position = vec2(screenWidth + SHOP_BUFFER_ZONE, screenHeight + SHOP_BUFFER_ZONE * 3);
+		registry.motions.get(player1Entity).position = vec2(screenWidth + SHOP_BUFFER_ZONE, screenHeight + SHOP_BUFFER_ZONE * 3);
 	}
 }
 
