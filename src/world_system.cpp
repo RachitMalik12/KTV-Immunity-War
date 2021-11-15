@@ -517,7 +517,6 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 			// 1 player
 			if (mouse_position.x > xpos[0] && mouse_position.x < xpos[1]) {
 				if ( mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
-					std::cout << "1P";
 					menuMode.onLoad = false;
 					menuMode.onHelp = false;
 					menuMode.on2P = false;
@@ -530,7 +529,6 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 					ynum = motion.position.y + BL_BUTTONPOS.y * defaultResolution.scaling;
 					ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
 					if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
-						std::cout << "2P";
 						menuMode.on2P = true;
 					}
 				}
@@ -543,7 +541,6 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 				// Load
 				if (mouse_position.x > xpos[0] && mouse_position.x < xpos[1]) {
 					if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
-						std::cout << "Load";
 						menuMode.on2P = false;
 						menuMode.onHelp = false;
 						menuMode.on1P = false;
@@ -553,7 +550,6 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 						ynum = motion.position.y + BR_BUTTONPOS.y * defaultResolution.scaling;
 						ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
 						if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
-							std::cout << "Help";
 							menuMode.on2P = false;
 							menuMode.onLoad = false;
 							menuMode.on1P = false;
@@ -562,7 +558,6 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 					}
 				}
 				else {
-					std::cout << "False";
 					menuMode.onLoad = false;
 					menuMode.onHelp = false;
 					menuMode.on1P = false;
