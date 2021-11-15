@@ -719,7 +719,6 @@ void WorldSystem::handlePlayerOneAttack(float elapsed_ms_since_last_update) {
 			angle = M_PI * 3 / 2;
 			break;
 		case 1: // left
-			// no action
 			angle = M_PI;
 			break;
 		case 2: // down
