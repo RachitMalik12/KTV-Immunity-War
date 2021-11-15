@@ -32,7 +32,9 @@ Memory and Performance profiling (BS):
 
 Updating Window Title Improvement (BS):
 
-Bug and feature fixes: Pathfinding enemy fix (FC):
+Bug and feature fixes: 
+
+Pathfinding enemy fix (FC):
 
 adaptive resolution fix (BZ): Changed from prompting user to select resolution to auto detecting user's primary monitor resolution and setting the game resolution accordingly.
 
