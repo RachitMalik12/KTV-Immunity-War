@@ -42,7 +42,7 @@ Entity createKnight(RenderSystem* renderer, vec2 position) {
 	registry.meshPtrs.emplace(entity, &mesh);
 	registry.animations.emplace(entity);
 	Animation& animation = registry.animations.get(entity);
-	animation.numOfFrames = 9;
+	animation.numOfFrames = 8;
 
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);

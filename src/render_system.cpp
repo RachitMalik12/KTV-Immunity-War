@@ -112,7 +112,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 		glBindTexture(GL_TEXTURE_2D, texture_id);
 
-		Animation& playerOneAnimation = registry.animations.get(registry.animations.entities.front());
+		Animation& playerOneAnimation = registry.animations.get(registry.players.entities.front());
 
 		GLint xFrame = glGetUniformLocation(program, "xFrame");
 		GLint yFrame = glGetUniformLocation(program, "yFrame");
