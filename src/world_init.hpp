@@ -32,11 +32,11 @@ const float STORY_BB_HEIGHT = 0.5*1668.f;
 const float BUTTON_BB_WIDTH = 0.5 * 459.f;
 const float BUTTON_BB_HEIGHT = 0.5 * 140.f;
 // top buttons (top left, top right)
-const vec2 TL_BUTTONPOS = {0.5*150.f, 0.5 * 1233.f};
-const vec2 TR_BUTTONPOS = { 0.5 * 717.f, 0.5 * 1233.f};
+const vec2 TL_BUTTONPOS = { -0.5 * 585.f, 0.5 * 398.f};
+const vec2 TR_BUTTONPOS = { -0.5 * 18.f, 0.5 * 398.f};
 // bottom buttons 
-const vec2 BL_BUTTONPOS = { 0.5 * 150.f, 0.5 * 1410.f};
-const vec2 BR_BUTTONPOS = { 0.5 * 717.f, 0.5 * 1410.f};
+const vec2 BL_BUTTONPOS = { -0.5 * 585.f, 0.5 * 575.f};
+const vec2 BR_BUTTONPOS = { -0.5 * 18.f, 0.5 * 575.f};
 
 
 

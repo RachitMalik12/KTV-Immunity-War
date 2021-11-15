@@ -508,10 +508,15 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	if (menuMode.menuType == 1) {
 		for (Entity entity : registry.menuModes.entities) {
 			Motion &motion = registry.motions.get(entity);
-			vec2 xpos = { motion.position.x -STORY_BB_WIDTH, motion.position.x + STORY_BB_WIDTH };
-			vec2 ypos = { motion.position.y - STORY_BB_HEIGHT, motion.position.y + STORY_BB_HEIGHT};
-			if (mouse_position.x < xpos[1] && mouse_position.x > xpos[0]) {
-				if (mouse_position.y < ypos[1] && mouse_position.y > ypos[0]) {
+			/*float xscale = motion.position.x/ STORY_BB_WIDTH;
+			float yscale = motion.position.y/STORY_BB_HEIGHT;*/
+			float xnum = motion.position.x + TL_BUTTONPOS.x * defaultResolution.scaling;
+			float ynum = motion.position.y + TL_BUTTONPOS.y * defaultResolution.scaling;
+			vec2 xpos = {xnum - BUTTON_BB_WIDTH * defaultResolution.scaling , xnum };
+			vec2 ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
+			if (mouse_position.x > xpos[0] && mouse_position.x < xpos[1]) {
+				if ( mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
+					std::cout << "topleft";
 
 				}
 			}
