@@ -514,12 +514,47 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 			float ynum = motion.position.y + TL_BUTTONPOS.y * defaultResolution.scaling;
 			vec2 xpos = {xnum - BUTTON_BB_WIDTH * defaultResolution.scaling , xnum };
 			vec2 ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
+			// 1 player
 			if (mouse_position.x > xpos[0] && mouse_position.x < xpos[1]) {
 				if ( mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
-					std::cout << "topleft";
+					std::cout << "1P";
 
 				}
 			}
+			xnum = motion.position.x + BL_BUTTONPOS.x * defaultResolution.scaling;
+			ynum = motion.position.y + BL_BUTTONPOS.y * defaultResolution.scaling;
+			xpos = { xnum - BUTTON_BB_WIDTH * defaultResolution.scaling , xnum };
+			ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
+			// 2 player
+			if (mouse_position.x > xpos[0] && mouse_position.x < xpos[1]) {
+				if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
+					std::cout << "2P";
+
+				}
+			}
+			xnum = motion.position.x + TR_BUTTONPOS.x * defaultResolution.scaling;
+			ynum = motion.position.y + TR_BUTTONPOS.y * defaultResolution.scaling;
+			xpos = { xnum - BUTTON_BB_WIDTH * defaultResolution.scaling , xnum };
+			ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
+			// Load
+			if (mouse_position.x > xpos[0] && mouse_position.x < xpos[1]) {
+				if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
+					std::cout << "Load";
+
+				}
+			}
+			xnum = motion.position.x + BR_BUTTONPOS.x * defaultResolution.scaling;
+			ynum = motion.position.y + BR_BUTTONPOS.y * defaultResolution.scaling;
+			xpos = { xnum - BUTTON_BB_WIDTH * defaultResolution.scaling , xnum };
+			ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
+			// Load
+			if (mouse_position.x > xpos[0] && mouse_position.x < xpos[1]) {
+				if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
+					std::cout << "Help";
+
+				}
+			}
+			//
 		}
 
 	}

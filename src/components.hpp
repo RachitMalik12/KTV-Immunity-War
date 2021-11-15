@@ -151,7 +151,13 @@ struct MenuMode {
 	// 1 = first, main menu // 2 = other in game menu
 	bool inMenuMode = true;
 	int menuType = 1;
-	int twoPlayerJoined = false;
+	int onLoad = false;
+	int on1P = false;
+	int on2P = false;
+	int onHelp = false;
+	int onJoinLeave = false;
+	int onSave = false;
+	int onRestart = false;
 };
 extern MenuMode menuMode;
 
