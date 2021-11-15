@@ -518,46 +518,61 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 			if (mouse_position.x > xpos[0] && mouse_position.x < xpos[1]) {
 				if ( mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
 					std::cout << "1P";
-
+					menuMode.onLoad = false;
+					menuMode.onHelp = false;
+					menuMode.on2P = false;
+					menuMode.on1P = true;
+				}
+				else {
+					menuMode.onLoad = false;
+					menuMode.onHelp = false;
+					menuMode.on1P = false;
+					ynum = motion.position.y + BL_BUTTONPOS.y * defaultResolution.scaling;
+					ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
+					if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
+						std::cout << "2P";
+						menuMode.on2P = true;
+					}
 				}
 			}
-			xnum = motion.position.x + BL_BUTTONPOS.x * defaultResolution.scaling;
-			ynum = motion.position.y + BL_BUTTONPOS.y * defaultResolution.scaling;
-			xpos = { xnum - BUTTON_BB_WIDTH * defaultResolution.scaling , xnum };
-			ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
-			// 2 player
-			if (mouse_position.x > xpos[0] && mouse_position.x < xpos[1]) {
-				if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
-					std::cout << "2P";
-
+			else {
+				xnum = motion.position.x + TR_BUTTONPOS.x * defaultResolution.scaling;
+				ynum = motion.position.y + TR_BUTTONPOS.y * defaultResolution.scaling;
+				xpos = { xnum - BUTTON_BB_WIDTH * defaultResolution.scaling , xnum };
+				ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
+				// Load
+				if (mouse_position.x > xpos[0] && mouse_position.x < xpos[1]) {
+					if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
+						std::cout << "Load";
+						menuMode.on2P = false;
+						menuMode.onHelp = false;
+						menuMode.on1P = false;
+						menuMode.onLoad = true;
+					}
+					else {
+						ynum = motion.position.y + BR_BUTTONPOS.y * defaultResolution.scaling;
+						ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
+						if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
+							std::cout << "Help";
+							menuMode.on2P = false;
+							menuMode.onLoad = false;
+							menuMode.on1P = false;
+							menuMode.onHelp = true;
+						}
+					}
+				}
+				else {
+					std::cout << "False";
+					menuMode.onLoad = false;
+					menuMode.onHelp = false;
+					menuMode.on1P = false;
+					menuMode.on2P = false;
 				}
 			}
-			xnum = motion.position.x + TR_BUTTONPOS.x * defaultResolution.scaling;
-			ynum = motion.position.y + TR_BUTTONPOS.y * defaultResolution.scaling;
-			xpos = { xnum - BUTTON_BB_WIDTH * defaultResolution.scaling , xnum };
-			ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
-			// Load
-			if (mouse_position.x > xpos[0] && mouse_position.x < xpos[1]) {
-				if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
-					std::cout << "Load";
-
-				}
-			}
-			xnum = motion.position.x + BR_BUTTONPOS.x * defaultResolution.scaling;
-			ynum = motion.position.y + BR_BUTTONPOS.y * defaultResolution.scaling;
-			xpos = { xnum - BUTTON_BB_WIDTH * defaultResolution.scaling , xnum };
-			ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
-			// Load
-			if (mouse_position.x > xpos[0] && mouse_position.x < xpos[1]) {
-				if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
-					std::cout << "Help";
-
-				}
-			}
-			//
 		}
-
+		
 	}
+
 	// menu is in game
 	if (menuMode.menuType == 2) {
 
@@ -595,6 +610,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			}
 		}
 	}
+	bool left_clicked = (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_LEFT);
 	// menu is in-game menu
 	if (menuMode.menuType == 2) {
 
@@ -602,17 +618,54 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 
 	// menu is main menu
 	if (menuMode.menuType == 1) {
-
-		if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_LEFT) {
-			menuMode.menuType = 0;
-			for (Entity entity : registry.menuModes.entities) {
-				registry.remove_all_components_of(entity);
+		
+		if (left_clicked) {
+			// 1P 
+			if (menuMode.on1P) {
+				menuMode.menuType = 0;
+				for (Entity entity : registry.menuModes.entities) {
+					registry.remove_all_components_of(entity);
+				}
+				if (storyMode.inStoryMode == 0) {
+					storyMode.inStoryMode = 1;
+					createStory();
+				}
 			}
-			if (storyMode.inStoryMode == 0) {
-				storyMode.inStoryMode = 1;
-				createStory();
+			// 2P
+			if (menuMode.on2P) {
+
+				menuMode.menuType = 0;
+				for (Entity entity : registry.menuModes.entities) {
+					registry.remove_all_components_of(entity);
+				}
+				if (storyMode.inStoryMode == 0) {
+					storyMode.inStoryMode = 1;
+					createStory();
+				}
+				// insert code here
+
+
+			}
+			// Load
+			if (menuMode.onLoad) {
+
+				menuMode.menuType = 0;
+				for (Entity entity : registry.menuModes.entities) {
+					registry.remove_all_components_of(entity);
+				}
+				// insert code here
+
+
+			}
+			// Help
+			if (menuMode.onHelp) {
+				std::cout << "help clicked!";
+				// insert code here
+
 			}
 		}
+
+
 	}
 }
 
