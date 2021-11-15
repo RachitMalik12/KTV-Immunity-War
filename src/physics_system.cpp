@@ -23,14 +23,37 @@ void PhysicsSystem::handle_collision() {
 				Enemy& enemyCom = registry.enemies.get(entity_other);
 				Player& playerCom = registry.players.get(registry.projectiles.get(entity).belongToPlayer);
 				PlayerStat& playerStatCom = registry.playerStats.get(playerCom.playerStat);
-				Motion& projectileMotionCom = registry.motions.get(entity);
 				registry.remove_all_components_of(entity);
-				enemyCom.hp -= playerStatCom.damage;
-				if (enemyCom.hp <= 0) {
-					playerStatCom.money += enemyCom.loot;
-					registry.remove_all_components_of(entity_other);
-				} else {
-					// TODO:: Implement some kind of enemy hit handling
+				if (!enemyCom.isInvin) {
+					enemyCom.hp -= playerStatCom.damage;
+					if (enemyCom.hp <= 0) {
+						playerStatCom.money += enemyCom.loot;
+						registry.remove_all_components_of(entity_other);
+					} else {
+						// TODO:: Implement some kind of enemy hit handling
+						enemyCom.isInvin = true;
+						enemyCom.invinTimerInMs = enemyCom.invinFrame;
+					}
+				}
+			}
+		}
+
+		if (registry.swords.has(entity)) {
+			if (registry.enemies.has(entity_other)) {
+				Enemy& enemyCom = registry.enemies.get(entity_other);
+				Player& playerCom = registry.players.get(registry.swords.get(entity).belongToPlayer);
+				PlayerStat& playerStatCom = registry.playerStats.get(playerCom.playerStat);
+				if (!enemyCom.isInvin) {
+					enemyCom.hp -= playerStatCom.damage;
+					if (enemyCom.hp <= 0) {
+						playerStatCom.money += enemyCom.loot;
+						registry.remove_all_components_of(entity_other);
+					}
+					else {
+						// TODO:: Implement some kind of enemy hit handling
+						enemyCom.isInvin = true;
+						enemyCom.invinTimerInMs = enemyCom.invinFrame;
+					}
 				}
 			}
 		}
@@ -58,18 +81,16 @@ void PhysicsSystem::handle_collision() {
 		if (registry.players.has(entity)) {
 			Player& player = registry.players.get(entity);
 			// Check Player - Enemy collisions 
-			if (registry.enemies.has(entity_other) && !registry.powerups.has(entity_other)) {
-				if (!player.isInvin) {
-					player.hp -= registry.enemies.get(entity_other).damage;
-					// if hp - 1 is <= 0 then initiate death unless already dying 
-					if (player.hp <= 0) {
-						player.hp = 0;
-						player.isDead = true;
-					}
-					else {
-						player.isInvin = true;
-						player.invinTimerInMs = player.invinFrame;
-					}
+			if (registry.enemies.has(entity_other)) {
+				int enemyDamage = registry.enemies.get(entity_other).damage;
+				resolvePlayerDamage(player, enemyDamage);
+			}
+			else if (registry.enemyProjectiles.has(entity_other)) {
+				Entity enemyEntity = registry.enemyProjectiles.get(entity_other).belongToEnemy;
+				if (registry.enemies.has(enemyEntity)) {
+					int enemyDamage = registry.enemies.get(enemyEntity).damage;
+					resolvePlayerDamage(player, enemyDamage);
+					registry.remove_all_components_of(entity_other);
 				}
 			}
 		}
@@ -77,6 +98,22 @@ void PhysicsSystem::handle_collision() {
 
 	// Remove all collisions from this simulation step
 	registry.collisions.clear();
+}
+
+void PhysicsSystem::resolvePlayerDamage(Player& player, int enemyDamage) {
+	if (!player.isInvin) {
+		player.hp -= enemyDamage;
+		// if hp - 1 is <= 0 then initiate death unless already dying 
+		if (player.hp <= 0) {
+			player.hp = 0;
+			player.isDead = true;
+		}
+		else {
+			player.isInvin = true;
+			player.invinTimerInMs = player.invinFrame;
+			// TODO: Implement player hit handling
+		}
+	}
 }
 
 // Returns the local bounding coordinates scaled by the current size of the entity
@@ -254,7 +291,7 @@ void PhysicsSystem::bounceEnemies(Entity curEntity, bool hitABlock) {
 	// check if fireball/projectile hit a wall/block, if so remove it
 		// if enemy hit a wall/block, revert moving direction
 	if (hitABlock) {
-		if (registry.projectiles.has(curEntity)) {
+		if (registry.projectiles.has(curEntity) || registry.enemyProjectiles.has(curEntity)) {
 			registry.remove_all_components_of(curEntity);
 		}
 		else if (registry.enemyBlobs.has(curEntity)) {
@@ -285,13 +322,9 @@ void PhysicsSystem::bounceEnemies(Entity curEntity, bool hitABlock) {
 				}
 			}
 		}
-		else if (registry.enemyHunters.has(curEntity)) {
-			Motion& hunterMotion = registry.motions.get(curEntity);
-			hunterMotion.velocity = vec2(hunterMotion.velocity.x * -1.f, hunterMotion.velocity.y);
-		}
-		else if (registry.enemyBacterias.has(curEntity)) {
-			Motion& bacteriaMotion = registry.motions.get(curEntity);
-			bacteriaMotion.velocity = vec2(bacteriaMotion.velocity.x * -1.f, bacteriaMotion.velocity.y);
+		else if (registry.enemies.has(curEntity)) {
+			Motion& motion = registry.motions.get(curEntity);
+			motion.velocity = vec2(motion.velocity.x * -0.5f, motion.velocity.y * -0.5f);
 		}
 
 	}
@@ -329,6 +362,32 @@ void PhysicsSystem::moveEntities(float elapsed_ms) {
 		}
 		bounceEnemies(entity, hitABlock);
 		bounceEnemyRun(entity);
+		rotateSword(entity, elapsed_ms);
+	}
+}
+
+void PhysicsSystem::rotateSword(Entity entity, float elapsed_ms) {
+	float pivot_distance_modifier = 3.f / 4.f;
+	float step_seconds = 1.0f * (elapsed_ms / 1000.f);
+	for (Entity entity : registry.swords.entities) {
+		Sword& sword = registry.swords.get(entity);
+		Motion& parent_motion = registry.motions.get(sword.belongToPlayer);
+		Motion& motion = registry.motions.get(entity);
+		vec2 pivot = parent_motion.position;
+		pivot.x += SWORD_BB_WIDTH * pivot_distance_modifier;
+		motion.angle += sword.angular_velocity * step_seconds;
+		Transform T;
+		T.translate(parent_motion.position);
+		Transform R;
+		R.rotate(motion.angle);
+		Transform T_inv;
+		T_inv.translate(-parent_motion.position);
+		mat3 matrix = T.mat * R.mat * T_inv.mat;
+		vec3 world_coord = matrix * vec3(pivot.x, pivot.y, 1);
+		motion.position = vec2(world_coord.x, world_coord.y);
+		sword.distance_traveled += sword.angular_velocity * step_seconds;
+		if (sword.distance_traveled > sword.max_distance)
+			registry.remove_all_components_of(entity);
 	}
 }
 

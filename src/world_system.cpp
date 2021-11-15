@@ -21,8 +21,6 @@ WorldSystem::WorldSystem()
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
 	setupWindowScaling();
-	auto entity = Entity();
-	registry.animations.emplace(entity);
 }
 
 WorldSystem::~WorldSystem() {
@@ -51,14 +49,6 @@ namespace {
 // World initialization
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer
 GLFWwindow* WorldSystem::create_window(int width, int height) {
-	///////////////////////////////////////
-	// Initialize GLFW
-	glfwSetErrorCallback(glfw_err_cb);
-	if (!glfwInit()) {
-		fprintf(stderr, "Failed to initialize GLFW");
-		return nullptr;
-	}
-
 	//-------------------------------------------------------------------------
 	// If you are on Linux or Windows, you can change these 2 numbers to 4 and 3 and
 	// enable the glDebugMessageCallback to have OpenGL catch your mistakes for you.
@@ -138,7 +128,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	int screen_width, screen_height;
 	glfwGetFramebufferSize(window, &screen_width, &screen_height);
 
-	animateKnight(elapsed_ms_since_last_update);
+	animateStep(elapsed_ms_since_last_update);
 	updateWindowTitle();
 	levelCompletionCheck();
 	resolveMouseControl();
@@ -160,11 +150,13 @@ void WorldSystem::deathHandling() {
 			Motion& player1Motion = registry.motions.get(player_wizard);
 			player1Motion.velocity = vec2(0, 0);
 			registry.renderRequests.remove(player_wizard);
+			// TODO: Implement player death animation
 		}
 		if (player2.isDead) {
 			Motion& player2Motion = registry.motions.get(player2_wizard);
 			player2Motion.velocity = vec2(0, 0);
 			registry.renderRequests.remove(player2_wizard);
+			// TODO: Implement player death animation
 		}
 		if (player1.isDead && player2.isDead) {
 			setupLevel(level_number);
@@ -199,7 +191,7 @@ void WorldSystem::restart_game() {
 	// reset player stats
 	while (registry.playerStats.entities.size() > 0)
 		registry.remove_all_components_of(registry.playerStats.entities.back());
-	setPlayerStats();
+	setPlayersStats();
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
@@ -222,15 +214,14 @@ bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
 }
 
-int WorldSystem::frame_counter(float elapsed_ms, float animationSpeed, int frame, int num_frames)
+void WorldSystem::frame_counter(float elapsed_ms, Entity entity)
 {
-	Animation& playerOneAnimation = registry.animations.get(registry.animations.entities.front());
+	Animation& playerOneAnimation = registry.animations.get(entity);
 	playerOneAnimation.animationTimer += elapsed_ms;
-	if (playerOneAnimation.animationTimer > animationSpeed) {
-		frame = (frame + 1) % num_frames;
+	if (playerOneAnimation.animationTimer > playerOneAnimation.animationSpeed) {
+		playerOneAnimation.xFrame = (playerOneAnimation.xFrame + 1) % playerOneAnimation.numOfFrames;
 		playerOneAnimation.animationTimer = 0;
 	}
-	return frame;
 }
 
 // On key callback
@@ -270,6 +261,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 		if (action == GLFW_RELEASE && key == GLFW_KEY_W) {
 			playerOneAnimation.pressed = false;
+			playerOneAnimation.xFrame = 0;
 			player1motion.velocity = vec2(currentVelocity.x, 0);
 		}
 
@@ -288,6 +280,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 		if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
 			playerOneAnimation.pressed = false;
+			playerOneAnimation.xFrame = 0;
 			player1motion.velocity = vec2(currentVelocity.x, 0);
 		}
 
@@ -305,6 +298,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 		if (action == GLFW_RELEASE && key == GLFW_KEY_A) {
 			playerOneAnimation.pressed = false;
+			playerOneAnimation.xFrame = 0;
 			player1motion.velocity = vec2(0, currentVelocity.y);
 
 		}
@@ -324,6 +318,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 		if (action == GLFW_RELEASE && key == GLFW_KEY_D) {
 			playerOneAnimation.pressed = false;
+			playerOneAnimation.xFrame = 0;
 			player1motion.velocity = vec2(0, currentVelocity.y);
 		}
 
@@ -349,9 +344,56 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}	
 
+	if (action == GLFW_PRESS && key == GLFW_KEY_K) {
+		// Save current level. 
+		dataManager.setLevelNumber(level_number); 
+		if (twoPlayer.inTwoPlayerMode) {
+			dataManager.setPlayerStatEntity(player_stat, player2_stat);
+			dataManager.saveFile(2);
+		}
+		else {
+			dataManager.setPlayerStatEntity(player_stat); 
+			dataManager.saveFile(1); 
+		}
+		
+	}
+
 	// level loading
 	if (action == GLFW_PRESS && key == GLFW_KEY_L) {
-		setupLevel(level_number); 
+		// Update player mode based on savefile
+		dataManager.setPlayerModeFromFile();
+		int player_mode_file = dataManager.getPlayerMode();
+		if (player_mode_file == 1) {
+			twoPlayer.inTwoPlayerMode = false;
+		}
+		else {
+			twoPlayer.inTwoPlayerMode = true;
+		}
+		setPlayersStats(); 
+
+		if (twoPlayer.inTwoPlayerMode) {
+			dataManager.setPlayerStatEntity(player_stat, player2_stat); 
+		}
+		else {
+			dataManager.setPlayerStatEntity(player_stat);
+		}
+		bool loadFile = dataManager.loadFile();
+		if (!loadFile) {
+			// If load failed due to file missing,load level 1 with 1 player. 
+			twoPlayer.inTwoPlayerMode = false;
+			setupLevel(1);
+		}
+		else {
+			level_number = dataManager.getLevelNumber();
+			int playerModeFile = dataManager.getPlayerMode();
+			if (playerModeFile == 1) {
+				twoPlayer.inTwoPlayerMode = false;
+			}
+			else {
+				twoPlayer.inTwoPlayerMode = true;
+			}
+			setupLevel(level_number);
+		}
 	}
 	// load level 1
 	if (action == GLFW_PRESS && key == GLFW_KEY_1) {
@@ -366,6 +408,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// load level 3
 	if (action == GLFW_PRESS && key == GLFW_KEY_3) {
 		level_number = 3;
+		setupLevel(level_number);
+	}
+	// load level 4
+	if (action == GLFW_PRESS && key == GLFW_KEY_4) {
+		level_number = 4;
 		setupLevel(level_number);
 	}
 	
@@ -393,12 +440,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// Switch between one player/two player
 	if (action == GLFW_PRESS && key == GLFW_KEY_X) {
-		if (twoPlayer.inTwoPlayerMode) {
-			twoPlayer.inTwoPlayerMode = false;
-		} else {
-			twoPlayer.inTwoPlayerMode = true;
-		}
-		restart_game();
+		playerTwoJoinOrLeave();
 	}
 
 	// Control if in help mode or not
@@ -690,69 +732,64 @@ void WorldSystem::createWalls(int screenWidth, int screenHeight) {
 	createWall(middleWallRightPos, shopWallScale);
 }
 
-void WorldSystem::setPlayerMode() {
-	int playerMode;
-	do {
-		std::string input;
-		printf("Input 1 for 1 player mode and 2 for 2 players mode.\n");
-		std::cin >> input;
-		try {
-			playerMode = std::stoi(input);
-		}
-		catch (...) {
-			playerMode = 0;
-		}
-	} while (playerMode != 1 && playerMode != 2);
-	if (playerMode == 1) {
-		twoPlayer.inTwoPlayerMode = false;
-	}
-	else {
-		twoPlayer.inTwoPlayerMode = true;
-	}
-}
-
 void WorldSystem::setResolution() {
+	// Initialize GLFW
+	glfwSetErrorCallback(glfw_err_cb);
+	if (!glfwInit()) {
+		fprintf(stderr, "Failed to initialize GLFW");
+	}
 	int resolutionSelection;
-	do {
-		std::string input;
-		printf("Input 1 for 2400 by 1600, 2 for 1200 by 800 and 3 for 600 by 400.\n");
-		std::cin >> input;
-		try {
-			resolutionSelection = std::stoi(input);
-		}
-		catch (...) {
-			resolutionSelection = 0;
-		}
-	} while (resolutionSelection != 1 && resolutionSelection != 2 && resolutionSelection != 3);
-
-	if (resolutionSelection == 1) {
+	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+	if (mode->width <= 3840 && mode->width > 2560) {
+		// 4k resolution (3840 x 2160)
 		defaultResolution.width = 2400;
 		defaultResolution.height = 1600;
 		defaultResolution.scaling = 2;
-	} else if (resolutionSelection == 2) {
+	}
+	else if (mode->width <= 2560 && mode->width > 1920) {
+		// 1440p resolution (2560 x 1440)
+		defaultResolution.width = 1800;
+		defaultResolution.height = 1200;
+		defaultResolution.scaling = 1.5;
+	}
+	else if (mode->width <=  1920 && mode->width > 1280) {
+		// 1080p resolution (1920 x 1080)
 		defaultResolution.width = 1200;
 		defaultResolution.height = 800;
 		defaultResolution.scaling = 1;
-	} else {
+	}
+	else {
+		// 720p resolution (1280 x 720)
 		defaultResolution.width = 600;
 		defaultResolution.height = 400;
 		defaultResolution.scaling = 0.5;
 	}
 }
 
-void WorldSystem::setPlayerStats() {
-	auto entity = Entity();
-	registry.playerStats.emplace(entity);
-	player_stat = entity;
-	PlayerStat& playerOneStat = registry.playerStats.get(player_stat);
-	playerOneStat.movementSpeed = playerOneStat.movementSpeed * defaultResolution.scaling;
+void WorldSystem::setPlayersStats() {
+	setPlayerOneStats();
 	if (twoPlayer.inTwoPlayerMode) {
-		auto entity2 = Entity();
-		registry.playerStats.emplace(entity2);
-		player2_stat = entity2;
-		PlayerStat& playerTwoStat = registry.playerStats.get(player2_stat);
-		playerTwoStat.movementSpeed = playerTwoStat.movementSpeed * defaultResolution.scaling;
+		setPlayerTwoStats();
 	}
+}
+
+void WorldSystem::setPlayerOneStats() {
+	auto entity = Entity();
+	player_stat = entity;
+	PlayerStat& playerOneStat = registry.playerStats.emplace(entity);
+	int swordDefaultDamage = 2;
+	playerOneStat.damage = swordDefaultDamage;
+	playerOneStat.movementSpeed = playerOneStat.movementSpeed * defaultResolution.scaling;
+	playerOneStat.projectileSpeed = playerOneStat.projectileSpeed * defaultResolution.scaling;
+}
+
+void WorldSystem::setPlayerTwoStats() {
+	auto entity = Entity();
+	PlayerStat& playerTwoStat = registry.playerStats.emplace(entity);
+	player2_stat = entity;
+	playerTwoStat.movementSpeed = playerTwoStat.movementSpeed * defaultResolution.scaling;
+	playerTwoStat.projectileSpeed = playerTwoStat.projectileSpeed * defaultResolution.scaling;
 }
 
 void WorldSystem::handlePlayerTwoProjectile(float elapsed_ms_since_last_update) {
@@ -763,7 +800,7 @@ void WorldSystem::handlePlayerTwoProjectile(float elapsed_ms_since_last_update) 
 		Player& player2 = registry.players.get(player2_wizard);
 		PlayerStat& playerTwoStat = registry.playerStats.get(player2.playerStat);
 		if (player2.isFiringProjectile && next_projectile_fire_player2 < 0.f) {
-			next_projectile_fire_player2 = playerTwoStat.projectileFireRate;
+			next_projectile_fire_player2 = playerTwoStat.attackDelay;
 			double x, y;
 			glfwGetCursorPos(window, &x, &y);
 			if (registry.inShops.has(player2_wizard)) {
@@ -772,34 +809,39 @@ void WorldSystem::handlePlayerTwoProjectile(float elapsed_ms_since_last_update) 
 			float dx = (float)x - player2Motion.position.x;
 			float dy = (float)y - player2Motion.position.y;
 			float h = sqrtf(powf(dx, 2) + powf(dy, 2));
-			float scale = playerTwoStat.projectileSpeed * defaultResolution.scaling / h;
-			createProjectile(renderer, player2Motion.position, { dx * scale, dy * scale }, player2_wizard);
+			float scale = playerTwoStat.projectileSpeed / h;
+			float th = atan2(dy, dx);
+			createProjectile(renderer, player2Motion.position, { dx * scale, dy * scale }, th, player2_wizard);
 		}
 	}
 }
 
 void WorldSystem::handlePlayerOneProjectile(float elapsed_ms_since_last_update) {
 	// handle player1 projectiles
+	float angle = 0;
+	float offset = -M_PI / 3.f;
 	next_projectile_fire_player1 -= elapsed_ms_since_last_update;
 	Player& player1 = registry.players.get(player_wizard);
 	PlayerStat& playerOneStat = registry.playerStats.get(player1.playerStat);
 	Motion playerMotion = registry.motions.get(player_wizard);
 	if (player1.isFiringProjectile && next_projectile_fire_player1 < 0.f) {
-		next_projectile_fire_player1 = playerOneStat.projectileFireRate;
+		next_projectile_fire_player1 = playerOneStat.attackDelay;
+		
 		switch (player1.firingDirection) {
 		case 0: // up
-			createProjectile(renderer, playerMotion.position, { 0, -1.f * playerOneStat.projectileSpeed * defaultResolution.scaling }, player_wizard);
+			angle = M_PI * 3 / 2;
 			break;
 		case 1: // right
-			createProjectile(renderer, playerMotion.position, { playerOneStat.projectileSpeed * defaultResolution.scaling, 0 }, player_wizard);
+			// no action
 			break;
 		case 2: // down
-			createProjectile(renderer, playerMotion.position, { 0, playerOneStat.projectileSpeed * defaultResolution.scaling }, player_wizard);
+			angle = M_PI / 2;
 			break;
 		case 3: // left
-			createProjectile(renderer, playerMotion.position, { -1.f * playerOneStat.projectileSpeed * defaultResolution.scaling, 0 }, player_wizard);
+			angle = M_PI;
 			break;
 		}
+		createSword(renderer, angle + offset, player_wizard);
 	}
 }
 
@@ -812,6 +854,15 @@ void WorldSystem::invincibilityTimer(float elapsed_ms_since_last_update) {
 				player.isInvin = false;
 			}
 
+		}
+	}
+	for (Entity enemyEntity : registry.enemies.entities) {
+		Enemy& enemy = registry.enemies.get(enemyEntity);
+		if (enemy.isInvin) {
+			enemy.invinTimerInMs -= elapsed_ms_since_last_update;
+			if (enemy.invinTimerInMs < 0) {
+				enemy.isInvin = false;
+			}
 		}
 	}
 }
@@ -871,10 +922,8 @@ void WorldSystem::updateWindowTitle() {
 	hp_p1 = registry.players.get(player_wizard).hp;
 	if (twoPlayer.inTwoPlayerMode) {
 		hp_p2 = registry.players.get(player2_wizard).hp;
-	}
-	if (twoPlayer.inTwoPlayerMode) {
-		title_ss << " P1 Money: " << registry.playerStats.get(registry.players.get(player_wizard).playerStat).money << " Health: " << hp_p1
-			<< " & P2 Money: " << registry.playerStats.get(registry.players.get(player2_wizard).playerStat).money << " Health: " << hp_p2;
+		title_ss << " P1 Money: " << registry.playerStats.get(player_stat).money << " Health: " << hp_p1
+			<< " & P2 Money: " << registry.playerStats.get(player2_stat).money << " Health: " << hp_p2;
 	}
 	else {
 		title_ss << " Money: " << registry.playerStats.get(registry.players.get(player_wizard).playerStat).money << " & Health P1 " << hp_p1;
@@ -882,18 +931,24 @@ void WorldSystem::updateWindowTitle() {
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 }
 
-void WorldSystem::animateKnight(float elapsed_ms_since_last_update) {
-	Animation& playerOneAnimation = registry.animations.get(registry.animations.entities.front());
+void WorldSystem::animateStep(float elapsed_ms_since_last_update) {
 	//animate
-	if (playerOneAnimation.pressed) {
-		playerOneAnimation.xFrame =
-			frame_counter(elapsed_ms_since_last_update, playerOneAnimation.animationSpeed, playerOneAnimation.xFrame, playerOneAnimation.numOfFrames);
-		registry.renderRequests.remove(player_wizard);
-		registry.renderRequests.insert(
-			player_wizard,
-			{ TEXTURE_ASSET_ID::KNIGHT,
-				EFFECT_ASSET_ID::KNIGHT,
-				GEOMETRY_BUFFER_ID::SPRITE }, false);
+	for (Entity entity : registry.animations.entities) {
+		Animation& animation = registry.animations.get(entity);
+		if (animation.pressed) {
+			float prev_frame = animation.xFrame;
+			frame_counter(elapsed_ms_since_last_update, entity);
+			if (entity.getId() == player_wizard.getId() && animation.xFrame == 0)
+				animation.xFrame = 1;
+			if (entity.getId() == player_wizard.getId()) {
+				registry.renderRequests.remove(entity);
+				registry.renderRequests.insert(
+					entity,
+					{ TEXTURE_ASSET_ID::KNIGHT,
+						EFFECT_ASSET_ID::KNIGHT,
+						GEOMETRY_BUFFER_ID::SPRITE }, false);
+			}
+		}
 	}
 }
 
@@ -906,6 +961,8 @@ void WorldSystem::setupLevel(int levelNum) {
 		registry.remove_all_components_of(registry.players.entities.back());
 	while (registry.projectiles.entities.size() > 0)
 		registry.remove_all_components_of(registry.projectiles.entities.back());
+	while (registry.enemyProjectiles.entities.size() > 0)
+		registry.remove_all_components_of(registry.enemyProjectiles.entities.back());
 	while (registry.enemies.entities.size() > 0)
 		registry.remove_all_components_of(registry.enemies.entities.back());
 	while (registry.blocks.entities.size() > 0)
@@ -946,6 +1003,9 @@ void WorldSystem::setupLevel(int levelNum) {
 	if (twoPlayer.inTwoPlayerMode) {
 		player2_wizard = createWizard(renderer, level.player2_position * defaultResolution.scaling);
 		Player& player2 = registry.players.get(player2_wizard);
+		if (!registry.playerStats.has(player2_stat)) {
+			setPlayerTwoStats();
+		}
 		player2.playerStat = player2_stat;
 		PlayerStat& playerTwoStat = registry.playerStats.get(player2_stat);
 		player2.hp = playerTwoStat.maxHp;
@@ -960,6 +1020,22 @@ void WorldSystem::setupLevel(int levelNum) {
 	}
 	// Update state 
 	isLevelOver = false;
+}
+
+void WorldSystem::playerTwoJoinOrLeave() {
+	helpMode.inHelpMode = true;
+	while (stepProgress.stepInProgress);
+	if (twoPlayer.inTwoPlayerMode) {
+		twoPlayer.inTwoPlayerMode = false;
+		registry.remove_all_components_of(player2_wizard);
+		registry.remove_all_components_of(player2_stat);
+	}
+	else {
+		twoPlayer.inTwoPlayerMode = true;
+		setupLevel(level_number);
+	}
+	helpMode.inHelpMode = false;
+}
 }
 
 Entity WorldSystem::createMenu() {

@@ -1,35 +1,56 @@
-Milestone 2 Team 6 KTV
-Grace Days Used: 1
+Milestone 3 Team 6 KTV
 
 Milestone Feature Descriptions:
-Gameplay 1 (BZ, FC, LT): We load the map and spawn all the enemies on screen and the players have to kill them all to advance to the next level. The stats of players and enemies are implemented. Stats are damage, max hp, movement speed and projectile speed/firing speed.
 
-Adaptive Resolution (BZ): We offer player a choice between 3 resolution when the game is launched. 2400 x 1600, 1200 x 800 and 600 x 400. Everything in game that involve position and velocity is scaled accordingly. 
+Required Features:
 
-State Machine (BZ): Implemented a state machine enemy "hunter". Hunter has three states: wondering mode, hunting mode and fleeing mode. In wondering mode, hunter wonders randomly until it gets close enough to a player. Then in hunting mode it chases after the player. Then finally, after its HP gets low, it gets into fleeing mode, which runs horizontally across the map at a high speed.
+-Gameplay II (ALL):
 
-Precise Collision (BS): Implemented precise collision detection by means of a coarse mesh "hitbox" overlayed on a sprite. Current detection works by checking if one entity's hitbox collides with another entity's bounding box. Currently, the player, all enemies, the projectile and trees have mesh hitboxes.
+-Behaviour Tree (FC):
 
-Simple Path Finding (FC): Implemented a BFS enemy "bacteria". The enemy updates it's path to what the current player (or one of the players, if there are two players) position is. It calculates it's path using BFS with a queue, where the map is separated into an 8x8 grid as "nodes", using it's predecessor nodes to find a path to the player it is hunting. 
+-Swarm Behaviour (BZ): Implemented swarm behaviour enemies. Swarm will spawn in triplets surrounding the same location. Each update each swarm enemy will detect the closest swarm enemy, calculate the vector to the other enemy, reverse the x and y of that vector then normalize it. Finally we multiply swarm enemy's speed to this normalized directional vector to set its new velocity. The result is that each swarm will try to spread out as much as possible. Swarm enemmies attack the player via a projectile fireball attack, so the swarms benefit from spreading out because the enemy projectiles will then attack the players from many directions.
 
-Animation (BZ & JK): Created sprite animations for player 1. The player has an idle phase when it's not moving (stays still) and moves when a direction is given. Also has 4 directions of idle and walking phases.
+-Keyframe animation (LT):
 
-External library integration (RM): Integrated the library https://github.com/open-source-parsers/jsoncpp to parse json files. Modified the cmake and made sure 
-it runs on all devices of our team. 
+-Articulated motion (BS):
 
-Level loading (RM): Implemented level loading mechanism that loads an arbitrary number of levels from data/levels json file (level_design.json). 
-The level has information for the number, kind of enemies, positions of enemies, the player positions and the barrier/block positions that is all customizable. 
-JSON parsing is done through the library JSONcpp integrated in the external lib. feature. There are 3 levels in the game with varying levels of difficulty 
-and the player progresses to the next level when they kill all enemies on screen and if they stay alive.
-There is also a dev mode where you can reload a level or change to a specific level using the keys 1, 2 or 3.
+-Advanced fragment shader (LT):
 
-Help Menu (LT): Implemented ability to toggle "P" to display help menu and pause game while in help menu. Once exits help menu, the game will resume as normal. Designed help menu with features needed for game play.
+-Save and Reload (RM):
 
-Graphics assets (JK): JK is drawing our assets and she will continue to do so throughout the semester. Added animation for three states (in gif format, will be in spritesheet format), background level art, and power up art for health and speed. Also converted existing assets to black SVGs for future use with precise collisions. Drive of svgs here (not uploading to gothub until we confirm the svgs we need for collision https://drive.google.com/drive/folders/1RMY-Er0lNkpCaKGdewZKahAb429XdHNp?usp=sharing)
+-Story (JK):
 
-Additional Enemy (LT): Added additional enemy that chases player 1 by default. If player 1 dies, all of these enemies will switch to chase player 2. 
-This group of enemies will also avoid each other (if it is within a certain distance, it will move in the opposite direction as the direction from it to another enemy of its type for a set number of seconds (this is changeable by the user)).
+Custom Features:
+
+-Graphic Menu (10 points)(JK):
+
+-Pre-game cutscene (5 points)(JK):
+
+Memory Management:
+
+Memory and Performance profiling (BS):
+
+Updating Window Title Improvement (BS):
+
+Bug and feature fixes: Pathfinding enemy fix (FC):
+
+adaptive resolution fix (BZ): Changed from prompting user to select resolution to auto detecting user's primary monitor resolution and setting the game resolution accordingly.
+
+Animation Sliding fix:
+
+Graphics assets (JK):
 
 Revised Project Proposal:
-Feature changes:
--Swarm behaviour was pushed to milestone 3 in favour of library integration for this milestone
+
+feature changes:
+
+-We are pushing audio feedback to milestone 4 and doing keyframe animation instead.
+
+-We are bringing pre-game cutscene (5 custom feature points) to this milestone.
+
+-We are implementing custom feature graphic menu which we believe is worth 10 custom feature points. 
+
+-We plan to implement heads-up display (HUD) for 5 custom feature points in milestone 4.
+
+-We plan to implement a final boss for 10 custom feature points in milestone 4.
+

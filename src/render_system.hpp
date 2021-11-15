@@ -30,7 +30,8 @@ class RenderSystem {
 		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::RUNNER, mesh_path("runner_hitbox.obj")),
 		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::WATERBALL, mesh_path("waterball_hitbox.obj")),
 		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::TREE, mesh_path("TREE_hitbox.obj")),
-		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::BACTERIA, mesh_path("yellow-bacteria_hitbox.obj"))
+		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::BACTERIA, mesh_path("yellow-bacteria_hitbox.obj")),
+		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::SWORD, mesh_path("sword_hitbox.obj"))
 		  // specify meshes of other assets here
 	};
 
@@ -58,6 +59,9 @@ class RenderSystem {
 			textures_path("Frame_4.png"),
 			textures_path("Frame_5.png"),
 			textures_path("Frame_6.png"),
+			textures_path("swarm1.png"),
+			textures_path("fireball.png"),
+			textures_path("sword.png")
 			textures_path("main_menu.png")
 	};
 

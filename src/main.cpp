@@ -16,6 +16,7 @@ DefaultResolution defaultResolution;
 TwoPlayer twoPlayer;
 HelpMode helpMode;
 StoryMode storyMode;
+Step stepProgress;
 MenuMode menuMode;
 
 // Entry point
@@ -23,12 +24,10 @@ int main()
 {
 	// Global systems
 	WorldSystem world;
-	world.setPlayerMode();
 	world.setResolution();
 
 	RenderSystem renderer;
 	PhysicsSystem physics;
-	AISystem ai;
 
 	// Initializing window
 	GLFWwindow* window = world.create_window(defaultResolution.width, defaultResolution.height);
@@ -44,6 +43,7 @@ int main()
 	glfwGetWindowSize(window, &w, &h);
 	renderer.init(w, h, window);
 	world.init(&renderer);
+	AISystem ai(&renderer);
 	// variable timestep loop
 	auto t = Clock::now();
 	while (!world.is_over()) {
@@ -66,10 +66,12 @@ int main()
 		}
 
 		if (!helpMode.inHelpMode && !storyMode.firstLoad && menuMode.menuType == 0) {
+			stepProgress.stepInProgress = true;
 			world.step(elapsed_ms);
 			ai.step(elapsed_ms, (float)width, (float)height);
 			physics.step(elapsed_ms, (float)width, (float)height);
 			physics.handle_collision();
+			stepProgress.stepInProgress = false;
 		}
 
 		renderer.draw();
