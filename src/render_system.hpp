@@ -61,7 +61,7 @@ class RenderSystem {
 			textures_path("Frame_6.png"),
 			textures_path("swarm1.png"),
 			textures_path("fireball.png"),
-			textures_path("sword.png")
+			textures_path("sword.png"),
 			textures_path("main_menu.png")
 	};
 

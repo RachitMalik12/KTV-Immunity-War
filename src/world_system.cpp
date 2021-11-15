@@ -1036,7 +1036,7 @@ void WorldSystem::playerTwoJoinOrLeave() {
 	}
 	helpMode.inHelpMode = false;
 }
-}
+
 
 Entity WorldSystem::createMenu() {
 //
