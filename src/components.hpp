@@ -259,7 +259,7 @@ struct Level {
 struct Animation {
 	int xFrame = 0;
 	int yFrame = 0;
-	bool pressed = 0;
+	bool moving = 0;
 	int numOfFrames = 0;
 	int animationSpeed = 100;
 	int animationTimer = 0;
