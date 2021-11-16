@@ -275,15 +275,28 @@ struct KnightAnimation {
 	int yFrame = 0;
 	bool moving = 0;
 	int numOfFrames = 8;
-	int animationSpeed = 100;
-	int animationTimer = 0;
+	float msPerFrame = 100.f;
+	float animationTimer = 0.f;
 };
 
 struct WizardAnimation {
-	int xFrame = 0;
-	int numOfAttackFrames = 4;
+	int frameIdle = 0;
+	int frameWalk = 0;
+	int frameAttack = 0;
 	int numOfIdleFrames = 3;
-	bool isInvincible = false;
+	int numOfWalkFrames = 2;
+	int numOfAttackFrames = 3;
+	float idleMsPerFrame = 200.f;
+	float idleTimer = 0.f;
+	float walkMsPerFrame = 150.f;
+	float walkTimer = 0.f;
+	float attackMsPerFrame = 100.f;
+	float attackTimer = 0.f;
+	int animationMode = 0;
+	int idleMode = 0;
+	int walkMode = 1;
+	int attackMode = 2;
+	bool isAnimatingHurt = false;
 };
 
 struct Sword {
@@ -371,7 +384,8 @@ enum class TEXTURE_ASSET_ID {
 	SWORD = FIREBALL + 1,
 	WIZARDATTACK = SWORD + 1,
 	WIZARDIDLE = WIZARDATTACK + 1,
-	GERM = WIZARDIDLE + 1,
+	WIZARDWALK = WIZARDIDLE + 1,
+	GERM = WIZARDWALK,
 	TEXTURE_COUNT = GERM + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
@@ -382,7 +396,8 @@ enum class EFFECT_ASSET_ID {
 	TEXTURED = LINE + 1,
 	WATER = TEXTURED + 1,
 	KNIGHT = WATER + 1,
-	EFFECT_COUNT = KNIGHT + 1
+	WIZARD = KNIGHT + 1,
+	EFFECT_COUNT = WIZARD + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 

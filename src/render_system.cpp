@@ -40,33 +40,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	// Input data location as in the vertex buffer
 	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED)
 	{
-		GLint in_position_loc = glGetAttribLocation(program, "in_position");
-		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
-		gl_has_errors();
-		assert(in_texcoord_loc >= 0);
-
-		int vertexSize = 3;
-		glEnableVertexAttribArray(in_position_loc);
-		glVertexAttribPointer(in_position_loc, vertexSize, GL_FLOAT, GL_FALSE,
-							  sizeof(TexturedVertex), (void *)0);
-		gl_has_errors();
-
-		int texCoordSize = 2;
-		glEnableVertexAttribArray(in_texcoord_loc);
-		glVertexAttribPointer(
-			in_texcoord_loc, texCoordSize, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
-			(void *)sizeof(
-				vec3)); // note the stride to skip the preceeding vertex position
-		// Enabling and binding texture to slot 0
-		glActiveTexture(GL_TEXTURE0);
-		gl_has_errors();
-
-		assert(registry.renderRequests.has(entity));
-		GLuint texture_id =
-			texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];
-
-		glBindTexture(GL_TEXTURE_2D, texture_id);
-		gl_has_errors();
+		textureEffectSetup(program,entity);
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::LINE)
 	{
@@ -87,38 +61,25 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::KNIGHT)
 	{
-		GLint in_position_loc = glGetAttribLocation(program, "in_position");
-		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
-		gl_has_errors();
-		assert(in_texcoord_loc >= 0);
-
-		glEnableVertexAttribArray(in_position_loc);
-		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
-			sizeof(TexturedVertex), (void *)0);
-		gl_has_errors();
-
-		glEnableVertexAttribArray(in_texcoord_loc);
-		glVertexAttribPointer(
-			in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
-			(void *)sizeof(
-				vec3)); // note the stride to skip the preceeding vertex position
-		// Enabling and binding texture to slot 0
-		glActiveTexture(GL_TEXTURE0);
-		gl_has_errors();
-
-		assert(registry.renderRequests.has(entity));
-		GLuint texture_id =
-			texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];
-
-		glBindTexture(GL_TEXTURE_2D, texture_id);
-
-		KnightAnimation& playerOneAnimation = registry.knightAnimations.get(registry.players.entities.front());
-
+		textureEffectSetup(program, entity);
+		KnightAnimation& knightAnimation = registry.knightAnimations.get(registry.players.entities.front());
 		GLint xFrame = glGetUniformLocation(program, "xFrame");
 		GLint yFrame = glGetUniformLocation(program, "yFrame");
-		glUniform1i(xFrame, playerOneAnimation.xFrame);
-		glUniform1i(yFrame, playerOneAnimation.yFrame);
+		glUniform1i(xFrame, knightAnimation.xFrame);
+		glUniform1i(yFrame, knightAnimation.yFrame);
 		gl_has_errors();
+	}
+	else if (render_request.used_effect == EFFECT_ASSET_ID::WIZARD) {
+		textureEffectSetup(program, entity);
+		WizardAnimation& wizardAnimation = registry.wizardAnimations.get(registry.players.entities.back());
+		GLint frameWalk = glGetUniformLocation(program, "frameWalk");
+		GLint frameIdle = glGetUniformLocation(program, "frameIdle");
+		GLint frameAttack = glGetUniformLocation(program, "frameAttack");
+		GLint animationMode = glGetUniformLocation(program, "animationMode");
+		glUniform1i(frameWalk, wizardAnimation.frameWalk);
+		glUniform1i(frameIdle, wizardAnimation.frameIdle);
+		glUniform1i(frameAttack, wizardAnimation.frameAttack);
+		glUniform1i(animationMode, wizardAnimation.animationMode);
 	}
 	else
 	{
@@ -367,4 +328,34 @@ mat3 RenderSystem::createProjectionMatrix(float left, float top)
 		}
 	}
 	return projMat;
+}
+
+void RenderSystem::textureEffectSetup(const GLuint program, Entity entity) {
+	GLint in_position_loc = glGetAttribLocation(program, "in_position");
+	GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
+	gl_has_errors();
+	assert(in_texcoord_loc >= 0);
+
+	int vertexSize = 3;
+	glEnableVertexAttribArray(in_position_loc);
+	glVertexAttribPointer(in_position_loc, vertexSize, GL_FLOAT, GL_FALSE,
+		sizeof(TexturedVertex), (void *)0);
+	gl_has_errors();
+
+	int texCoordSize = 2;
+	glEnableVertexAttribArray(in_texcoord_loc);
+	glVertexAttribPointer(
+		in_texcoord_loc, texCoordSize, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
+		(void *)sizeof(
+			vec3)); // note the stride to skip the preceeding vertex position
+	// Enabling and binding texture to slot 0
+	glActiveTexture(GL_TEXTURE0);
+	gl_has_errors();
+
+	assert(registry.renderRequests.has(entity));
+	GLuint texture_id =
+		texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];
+
+	glBindTexture(GL_TEXTURE_2D, texture_id);
+	gl_has_errors();
 }

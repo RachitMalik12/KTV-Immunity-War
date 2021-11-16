@@ -125,7 +125,7 @@ void PhysicsSystem::resolvePlayerDamage(Entity playerEntity, int enemyDamage) {
 					{ TEXTURE_ASSET_ID::WIZARDHURT,
 						EFFECT_ASSET_ID::TEXTURED,
 						GEOMETRY_BUFFER_ID::SPRITE });
-				registry.wizardAnimations.get(playerEntity).isInvincible = true;
+				registry.wizardAnimations.get(playerEntity).isAnimatingHurt = true;
 			}
 			else {
 				// TODO: Implement knight hit animation with fragment shader
