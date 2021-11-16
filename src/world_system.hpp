@@ -90,6 +90,7 @@ private:
 	void resolveMouseControl();
 	void levelCompletionCheck();
 	void animateKnight(float elapsed_ms_since_last_update);
+	void animateWizard(float elpased_ms_since_last_update);
 	void checkIfKnightIsMoving();
 	// misc
 	void playerTwoJoinOrLeave();

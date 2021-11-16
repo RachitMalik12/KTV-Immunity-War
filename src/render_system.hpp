@@ -49,9 +49,13 @@ class RenderSystem {
 			textures_path("tree_yellow.png"),
 			textures_path("waterball.png"),
 			textures_path("wizard.png"),
+			textures_path("wizard_disgust.png"),
 			textures_path("enemy.png"),
 			textures_path("enemyrun.png"),
 			textures_path("hunter1.png"),
+			textures_path("hunter2.png"),
+			textures_path("hunter3.png"),
+			textures_path("hunter4.png"),
 			textures_path("help.png"),
 			textures_path("yellow-bacteria.png"),
 			textures_path("enemychase.png"),
@@ -63,8 +67,11 @@ class RenderSystem {
 			textures_path("Frame_5.png"),
 			textures_path("Frame_6.png"),
 			textures_path("swarm1.png"),
+			textures_path("swarm2.png"),
 			textures_path("fireball.png"),
 			textures_path("sword.png"),
+			textures_path("wizard_attack.png"),
+			textures_path("wizard_idle.png"),
 			textures_path("BTEnemy.png")
 	};
 

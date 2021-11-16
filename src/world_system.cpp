@@ -131,12 +131,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	int screen_width, screen_height;
 	glfwGetFramebufferSize(window, &screen_width, &screen_height);
 
-	checkIfKnightIsMoving();
-	animateKnight(elapsed_ms_since_last_update);
 	levelCompletionCheck();
 	resolveMouseControl();
 	stuckTimer(elapsed_ms_since_last_update, screen_width, screen_height);
 	invincibilityTimer(elapsed_ms_since_last_update);
+	checkIfKnightIsMoving();
+	animateKnight(elapsed_ms_since_last_update);
+	animateWizard(elapsed_ms_since_last_update);
 	handlePlayerOneAttack(elapsed_ms_since_last_update);
 	handlePlayerTwoProjectile(elapsed_ms_since_last_update);
 	deathHandling();
@@ -218,7 +219,7 @@ bool WorldSystem::is_over() const {
 
 void WorldSystem::frame_counter(float elapsed_ms, Entity entity)
 {
-	Animation& playerOneAnimation = registry.animations.get(entity);
+	KnightAnimation& playerOneAnimation = registry.knightAnimations.get(entity);
 	playerOneAnimation.animationTimer += elapsed_ms;
 	if (playerOneAnimation.animationTimer > playerOneAnimation.animationSpeed) {
 		playerOneAnimation.xFrame = (playerOneAnimation.xFrame + 1) % playerOneAnimation.numOfFrames;
@@ -249,7 +250,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	Motion& player1motion = registry.motions.get(player_knight);
 	Player& player = registry.players.get(player_knight);
 	PlayerStat& playerOneStat = registry.playerStats.get(player.playerStat);
-	Animation& playerOneAnimation = registry.animations.get(registry.animations.entities.front());
+	KnightAnimation& playerOneAnimation = registry.knightAnimations.get(registry.knightAnimations.entities.front());
 
 	if (!player.isDead) {
 		vec2 currentVelocity = vec2(player1motion.velocity.x, player1motion.velocity.y);
@@ -807,7 +808,7 @@ void WorldSystem::levelCompletionCheck() {
 }
 
 void WorldSystem::animateKnight(float elapsed_ms_since_last_update) {
-	Animation& animation = registry.animations.get(player_knight);
+	KnightAnimation& animation = registry.knightAnimations.get(player_knight);
 	if (animation.moving) {
 		float prev_frame = animation.xFrame;
 		frame_counter(elapsed_ms_since_last_update, player_knight);
@@ -817,6 +818,22 @@ void WorldSystem::animateKnight(float elapsed_ms_since_last_update) {
 			{ TEXTURE_ASSET_ID::KNIGHT,
 				EFFECT_ASSET_ID::KNIGHT,
 				GEOMETRY_BUFFER_ID::SPRITE }, false);
+	}
+}
+
+void WorldSystem::animateWizard(float elpased_ms_since_last_update) {
+	if (twoPlayer.inTwoPlayerMode) {
+		WizardAnimation& animation = registry.wizardAnimations.get(player2_wizard);
+		Player& player = registry.players.get(player2_wizard);
+		if (animation.isInvincible && !player.isInvin) {
+			registry.renderRequests.remove(player2_wizard);
+			registry.renderRequests.insert(
+				player2_wizard,
+				{ TEXTURE_ASSET_ID::WIZARD,
+					EFFECT_ASSET_ID::TEXTURED,
+					GEOMETRY_BUFFER_ID::SPRITE });
+			animation.isInvincible = false;
+		}
 	}
 }
 
@@ -908,7 +925,7 @@ void WorldSystem::playerTwoJoinOrLeave() {
 
 void WorldSystem::checkIfKnightIsMoving() {
 	Motion& knightMotion = registry.motions.get(player_knight);
-	Animation& playerOneAnimation = registry.animations.get(player_knight);
+	KnightAnimation& playerOneAnimation = registry.knightAnimations.get(player_knight);
 	if (knightMotion.velocity.x == 0 && knightMotion.velocity.y == 0) {
 		playerOneAnimation.moving = false;
 		playerOneAnimation.xFrame = 0;

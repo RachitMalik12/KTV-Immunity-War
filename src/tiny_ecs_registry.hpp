@@ -41,7 +41,8 @@ public:
 	ComponentContainer<Mesh*> hitboxes;
 	ComponentContainer<HelpMode> helpModes;
 	ComponentContainer<Step> steps;
-	ComponentContainer<Animation> animations;
+	ComponentContainer<KnightAnimation> knightAnimations;
+	ComponentContainer<WizardAnimation> wizardAnimations;
 	ComponentContainer<StoryMode> storyModes;
 	ComponentContainer<Sword> swords;
 	ComponentContainer<Title> titles;
@@ -81,7 +82,8 @@ public:
 		registry_list.push_back(&hitboxes);
 		registry_list.push_back(&helpModes);
 		registry_list.push_back(&steps);
-		registry_list.push_back(&animations);
+		registry_list.push_back(&knightAnimations);
+		registry_list.push_back(&wizardAnimations);
 		registry_list.push_back(&storyModes);
 		registry_list.push_back(&swords);
 		registry_list.push_back(&titles);

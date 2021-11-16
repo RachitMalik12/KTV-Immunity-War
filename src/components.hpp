@@ -53,7 +53,7 @@ struct Enemy
 	int damage;
 	int loot;
 	float speed;
-	float invinFrame = 1000.f;
+	float invinFrame = 500.f;
 	float invinTimerInMs = 0;
 	bool isInvin = false;
 };
@@ -94,6 +94,7 @@ struct EnemyHunter
 	bool timeToUpdateAi = true;
 	bool isFleeing = false;
 	float huntingRange = 500.f;
+	bool isAnimatingHurt = false;
 };
 
 // BFS Enemy
@@ -127,6 +128,7 @@ struct EnemySwarm {
 	bool timeToUpdateAi = false;
 	float projectileSpeed = 200.f;
 	float spreadOutDistance = 200.f;
+	bool isAnimatingHurt = false;
 };
 
 struct Powerup 
@@ -266,13 +268,20 @@ struct Level {
 	vec2 player2_position = vec2(50, 200);
 };
 
-struct Animation {
+struct KnightAnimation {
 	int xFrame = 0;
 	int yFrame = 0;
 	bool moving = 0;
-	int numOfFrames = 0;
+	int numOfFrames = 8;
 	int animationSpeed = 100;
 	int animationTimer = 0;
+};
+
+struct WizardAnimation {
+	int xFrame = 0;
+	int numOfAttackFrames = 4;
+	int numOfIdleFrames = 3;
+	bool isInvincible = false;
 };
 
 struct Sword {
@@ -337,10 +346,14 @@ enum class TEXTURE_ASSET_ID {
 	TREE_YELLOW = TREE_ORANGE + 1,
 	WATERBALL = TREE_YELLOW + 1,
 	WIZARD = WATERBALL + 1,
-	ENEMY = WIZARD + 1,
+	WIZARDHURT = WIZARD + 1,
+	ENEMY = WIZARDHURT + 1,
 	ENEMYRUN = ENEMY + 1,
 	ENEMYHUNTER = ENEMYRUN + 1,
-	HELPPANEL = ENEMYHUNTER + 1,
+	ENEMYHUNTERMAD = ENEMYHUNTER + 1,
+	ENEMYHUNTERHURT = ENEMYHUNTERMAD + 1,
+	ENEMYHUNTERFLEE = ENEMYHUNTERHURT + 1,
+	HELPPANEL = ENEMYHUNTERFLEE + 1,
 	ENEMYBACTERIA = HELPPANEL + 1,
 	ENEMYCHASE = ENEMYBACTERIA + 1,
 	KNIGHT = ENEMYCHASE +1,
@@ -351,9 +364,12 @@ enum class TEXTURE_ASSET_ID {
 	FRAME5 = FRAME4 +1,
 	FRAME6 = FRAME5 +1,
 	ENEMYSWARM = FRAME6 + 1,
-	FIREBALL = ENEMYSWARM + 1,
+	ENEMYSWARMHURT = ENEMYSWARM + 1,
+	FIREBALL = ENEMYSWARMHURT + 1,
 	SWORD = FIREBALL + 1,
-	GERM = SWORD + 1,
+	WIZARDATTACK = SWORD + 1,
+	WIZARDIDLE = WIZARDATTACK + 1,
+	GERM = WIZARDIDLE + 1,
 	TEXTURE_COUNT = GERM + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
