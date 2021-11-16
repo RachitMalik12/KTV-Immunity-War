@@ -348,7 +348,7 @@ void PhysicsSystem::bounceEnemies(Entity curEntity, bool hitABlock) {
 		}
 		else if (registry.enemies.has(curEntity)) {
 			Motion& motion = registry.motions.get(curEntity);
-			motion.velocity = vec2(motion.velocity.x * -0.5f, motion.velocity.y * -0.5f);
+			motion.velocity = vec2(motion.velocity.x * -0.8f, motion.velocity.y * -0.8f);
 		}
 
 	}
