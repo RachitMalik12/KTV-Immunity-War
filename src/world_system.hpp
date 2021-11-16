@@ -93,6 +93,5 @@ private:
 	void checkIfKnightIsMoving();
 	// misc
 	void playerTwoJoinOrLeave();
-	void initializeTitle();
-	void updateTitleLevel(int level);
+	void updateTitle(int level);
 }; 

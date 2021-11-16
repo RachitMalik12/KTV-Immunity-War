@@ -219,17 +219,6 @@ bool GameSaveDataManager::loadFile() {
 		loadPlayerStats(root, 2); 
 	}
 	saveFileRead.close();
-	Title& title = registry.titles.components[0];
-	title.level = levelNumber;
-	Player& player1 = registry.players.components[0];
-	title.p1hp = player1.hp;
-	title.p1money = registry.playerStats.get(player1.playerStat).money;
-	if (twoPlayer.inTwoPlayerMode && registry.players.size() > 1) {
-		Player& player2 = registry.players.components[1];
-		title.p2hp - player2.hp;
-		title.p2money = registry.playerStats.get(player2.playerStat).money;
-	}
-	title.updateWindowTitle();
 	return true; 
 }
 

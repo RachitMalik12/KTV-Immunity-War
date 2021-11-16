@@ -115,6 +115,9 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 	this->renderer = renderer_arg;
 	// Playing background music indefinitely
 	Mix_PlayMusic(background_music, -1);
+	auto entity = Entity();
+	registry.titles.emplace(entity);
+	registry.titles.get(entity).window = window;
     restart_game();
 }
 
@@ -159,14 +162,12 @@ void WorldSystem::deathHandling() {
 		}
 		if (player1.isDead && player2.isDead) {
 			setupLevel(level_number);
-			updateTitleLevel(level_number);
 		}
 	}
 	else {
 		Player& player1 = registry.players.get(player_knight);
 		if (player1.isDead) {
 			setupLevel(level_number);
-			updateTitleLevel(level_number);
 		}
 	}
 }
@@ -200,10 +201,7 @@ void WorldSystem::restart_game() {
 	// Create walls and doors
 	createWalls(screenWidth, screenHeight);
 	createADoor(screenWidth, screenHeight);
-	setupLevel(level_number); 	
-	
-	// initialize title
-	initializeTitle();
+	setupLevel(level_number); 
 }
 
 void WorldSystem::createADoor(int screenWidth, int screenHeight) {
@@ -411,25 +409,21 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (action == GLFW_PRESS && key == GLFW_KEY_1) {
 		level_number = 1; 
 		setupLevel(level_number);
-		updateTitleLevel(level_number);
 	}
 	// load level 2
 	if (action == GLFW_PRESS && key == GLFW_KEY_2) {
 		level_number = 2; 
 		setupLevel(level_number);
-		updateTitleLevel(level_number);
 	}
 	// load level 3
 	if (action == GLFW_PRESS && key == GLFW_KEY_3) {
 		level_number = 3;
 		setupLevel(level_number);
-		updateTitleLevel(level_number);
 	}
 	// load level 4
 	if (action == GLFW_PRESS && key == GLFW_KEY_4) {
 		level_number = 4;
 		setupLevel(level_number);
-		updateTitleLevel(level_number);
 	}
 	
 	if (action == GLFW_RELEASE && (key == GLFW_KEY_F || key == GLFW_KEY_H || key == GLFW_KEY_G || key == GLFW_KEY_T)) {
@@ -669,21 +663,6 @@ void WorldSystem::setPlayersStats() {
 	}
 }
 
-void WorldSystem::initializeTitle() {
-	auto entity = Entity();
-	registry.titles.emplace(entity);
-	Title& title = registry.titles.get(entity);
-	title.window = window;
-	title.level = 1;
-	title.p1hp = registry.players.get(player_knight).hp;
-	title.p1money = registry.playerStats.get(registry.players.get(player_knight).playerStat).money;
-	if (twoPlayer.inTwoPlayerMode) {
-		title.p2hp = registry.players.get(player2_wizard).hp;
-		title.p2money = registry.playerStats.get(registry.players.get(player2_wizard).playerStat).money;
-	}
-	title.updateWindowTitle();
-}
-
 void WorldSystem::setPlayerOneStats() {
 	auto entity = Entity();
 	player_stat = entity;
@@ -819,7 +798,6 @@ void WorldSystem::levelCompletionCheck() {
 		// Only if we have levels left we need to change level 
 		level_number = nextLevel;
 		setupLevel(level_number);
-		updateTitleLevel(level_number);
 	}
 }
 
@@ -904,6 +882,7 @@ void WorldSystem::setupLevel(int levelNum) {
 	}
 	// Update state 
 	isLevelOver = false;
+	updateTitle(levelNum);
 }
 
 void WorldSystem::playerTwoJoinOrLeave() {
@@ -913,13 +892,13 @@ void WorldSystem::playerTwoJoinOrLeave() {
 		twoPlayer.inTwoPlayerMode = false;
 		registry.remove_all_components_of(player2_wizard);
 		registry.remove_all_components_of(player2_stat);
+		updateTitle(level_number);
 	}
 	else {
 		twoPlayer.inTwoPlayerMode = true;
 		setupLevel(level_number);
 	}
 	helpMode.inHelpMode = false;
-	updateTitleLevel(level_number);
 }
 
 void WorldSystem::checkIfKnightIsMoving() {
@@ -931,8 +910,14 @@ void WorldSystem::checkIfKnightIsMoving() {
 	}
 }
 
-void WorldSystem::updateTitleLevel(int level) {
+void WorldSystem::updateTitle(int level) {
 	Title& title = registry.titles.components[0];
-	title.level = level;
+	title.level = level; 
+	title.p1hp = registry.players.get(player_knight).hp;
+	title.p1money = registry.playerStats.get(registry.players.get(player_knight).playerStat).money;
+	if (twoPlayer.inTwoPlayerMode) {
+		title.p2hp = registry.players.get(player2_wizard).hp;
+		title.p2money = registry.playerStats.get(registry.players.get(player2_wizard).playerStat).money;
+	}
 	title.updateWindowTitle();
 }
