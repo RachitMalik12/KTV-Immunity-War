@@ -19,7 +19,7 @@ void main()
 {
 	float walkScale = 1.0 / 2.0;
 	float idleScale = 1.0 / 3.0;
-	float attackScale = 1.0 / 4.0;
+	float attackScale = 1.0 / 3.0;
 	texcoord = in_texcoord;
 	if (animationMode == 0) {
 		texcoord.x = texcoord.x * idleScale;
