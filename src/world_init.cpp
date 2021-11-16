@@ -16,6 +16,7 @@ Entity createWizard(RenderSystem* renderer, vec2 position) {
 	registry.meshPtrs.emplace(entity, &mesh);
 	Mesh& hitbox = renderer->getMesh(GEOMETRY_BUFFER_ID::WIZARD);
 	registry.hitboxes.emplace(entity, &hitbox);
+	registry.wizardAnimations.emplace(entity);
 
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
@@ -40,9 +41,7 @@ Entity createKnight(RenderSystem* renderer, vec2 position) {
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
-	registry.animations.emplace(entity);
-	Animation& animation = registry.animations.get(entity);
-	animation.numOfFrames = 8;
+	registry.knightAnimations.emplace(entity);
 
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
