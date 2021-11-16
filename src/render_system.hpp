@@ -46,9 +46,13 @@ class RenderSystem {
 			textures_path("tree_yellow.png"),
 			textures_path("waterball.png"),
 			textures_path("wizard.png"),
+			textures_path("wizard_disgust.png"),
 			textures_path("enemy.png"),
 			textures_path("enemyrun.png"),
 			textures_path("hunter1.png"),
+			textures_path("hunter2.png"),
+			textures_path("hunter3.png"),
+			textures_path("hunter4.png"),
 			textures_path("help.png"),
 			textures_path("yellow-bacteria.png"),
 			textures_path("enemychase.png"),
@@ -60,8 +64,12 @@ class RenderSystem {
 			textures_path("Frame_5.png"),
 			textures_path("Frame_6.png"),
 			textures_path("swarm1.png"),
+			textures_path("swarm2.png"),
 			textures_path("fireball.png"),
 			textures_path("sword.png"),
+			textures_path("wizard_attack.png"),
+			textures_path("wizard_idle.png"),
+			textures_path("wizard_walk.png"),
 			textures_path("main_menu.png")
 	};
 
@@ -72,7 +80,9 @@ class RenderSystem {
 		shader_path("line"),
 		shader_path("textured"),
 		shader_path("water"),
-		shader_path("knight")};
+		shader_path("knight"),
+		shader_path("wizard")
+	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;
@@ -112,6 +122,7 @@ private:
 	void drawToScreen();
 	void playerOneTransition(bool leaveShop);
 	void playerTwoTransition(bool leaveShop, vec2 player2Pos);
+	void textureEffectSetup(const GLuint program, Entity entity);
 
 	// Window handle
 	GLFWwindow* window;

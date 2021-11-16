@@ -16,6 +16,7 @@ Entity createWizard(RenderSystem* renderer, vec2 position) {
 	registry.meshPtrs.emplace(entity, &mesh);
 	Mesh& hitbox = renderer->getMesh(GEOMETRY_BUFFER_ID::WIZARD);
 	registry.hitboxes.emplace(entity, &hitbox);
+	WizardAnimation& animation = registry.wizardAnimations.emplace(entity);
 
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
@@ -25,11 +26,14 @@ Entity createWizard(RenderSystem* renderer, vec2 position) {
 	motion.scale = vec2({ WIZARD_BB_WIDTH * defaultResolution.scaling, WIZARD_BB_HEIGHT * defaultResolution.scaling });
 
 	registry.players.emplace(entity);
+	animation.animationMode = animation.idleMode;
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::WIZARD,
-			EFFECT_ASSET_ID::TEXTURED,
+		{ TEXTURE_ASSET_ID::WIZARDIDLE,
+			EFFECT_ASSET_ID::WIZARD,
 			GEOMETRY_BUFFER_ID::SPRITE });
+	animation.frameIdle = 0;
+	animation.idleTimer = 0;
 	return entity;
 }
 
@@ -40,9 +44,7 @@ Entity createKnight(RenderSystem* renderer, vec2 position) {
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
-	registry.animations.emplace(entity);
-	Animation& animation = registry.animations.get(entity);
-	animation.numOfFrames = 8;
+	registry.knightAnimations.emplace(entity);
 
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);

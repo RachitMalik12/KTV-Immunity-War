@@ -12,6 +12,7 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 void PhysicsSystem::handle_collision() {
 	// Loop over all collisions detected by the physics system
 	auto& collisionsRegistry = registry.collisions;
+	Title& title = registry.titles.components[0];
 	for (uint i = 0; i < collisionsRegistry.components.size(); i++) {
 		// The entity and its collider
 		Entity entity = collisionsRegistry.entities[i];
@@ -28,11 +29,13 @@ void PhysicsSystem::handle_collision() {
 					enemyCom.hp -= playerStatCom.damage;
 					if (enemyCom.hp <= 0) {
 						playerStatCom.money += enemyCom.loot;
+						title.p2money = playerStatCom.money;
+						title.updateWindowTitle();
 						registry.remove_all_components_of(entity_other);
 					} else {
-						// TODO:: Implement some kind of enemy hit handling
 						enemyCom.isInvin = true;
 						enemyCom.invinTimerInMs = enemyCom.invinFrame;
+						enemyHitHandling(entity_other);
 					}
 				}
 			}
@@ -47,12 +50,14 @@ void PhysicsSystem::handle_collision() {
 					enemyCom.hp -= playerStatCom.damage;
 					if (enemyCom.hp <= 0) {
 						playerStatCom.money += enemyCom.loot;
+						title.p1money = playerStatCom.money;
+						title.updateWindowTitle();
 						registry.remove_all_components_of(entity_other);
 					}
 					else {
-						// TODO:: Implement some kind of enemy hit handling
 						enemyCom.isInvin = true;
 						enemyCom.invinTimerInMs = enemyCom.invinFrame;
+						enemyHitHandling(entity_other);
 					}
 				}
 			}
@@ -75,21 +80,21 @@ void PhysicsSystem::handle_collision() {
 				Player& playerCom = registry.players.get(entity_other);
 				PlayerStat& playerStatCom = registry.playerStats.get(playerCom.playerStat);
 				// TODO: Implement buying power up
+				// TODO: Update player money in title when buying power up
 			}
 		}
 
 		if (registry.players.has(entity)) {
-			Player& player = registry.players.get(entity);
 			// Check Player - Enemy collisions 
 			if (registry.enemies.has(entity_other)) {
 				int enemyDamage = registry.enemies.get(entity_other).damage;
-				resolvePlayerDamage(player, enemyDamage);
+				resolvePlayerDamage(entity, enemyDamage);
 			}
 			else if (registry.enemyProjectiles.has(entity_other)) {
 				Entity enemyEntity = registry.enemyProjectiles.get(entity_other).belongToEnemy;
 				if (registry.enemies.has(enemyEntity)) {
 					int enemyDamage = registry.enemies.get(enemyEntity).damage;
-					resolvePlayerDamage(player, enemyDamage);
+					resolvePlayerDamage(entity, enemyDamage);
 					registry.remove_all_components_of(entity_other);
 				}
 			}
@@ -100,7 +105,9 @@ void PhysicsSystem::handle_collision() {
 	registry.collisions.clear();
 }
 
-void PhysicsSystem::resolvePlayerDamage(Player& player, int enemyDamage) {
+void PhysicsSystem::resolvePlayerDamage(Entity playerEntity, int enemyDamage) {
+	Title& title = registry.titles.components[0];
+	Player& player = registry.players.get(playerEntity);
 	if (!player.isInvin) {
 		player.hp -= enemyDamage;
 		// if hp - 1 is <= 0 then initiate death unless already dying 
@@ -111,9 +118,26 @@ void PhysicsSystem::resolvePlayerDamage(Player& player, int enemyDamage) {
 		else {
 			player.isInvin = true;
 			player.invinTimerInMs = player.invinFrame;
-			// TODO: Implement player hit handling
+			if (twoPlayer.inTwoPlayerMode && playerEntity.getId() == registry.players.entities.back().getId()) {
+				registry.renderRequests.remove(playerEntity);
+				registry.renderRequests.insert(
+					playerEntity,
+					{ TEXTURE_ASSET_ID::WIZARDHURT,
+						EFFECT_ASSET_ID::TEXTURED,
+						GEOMETRY_BUFFER_ID::SPRITE });
+				registry.wizardAnimations.get(playerEntity).isAnimatingHurt = true;
+			}
+			else {
+				// TODO: Implement knight hit animation with fragment shader
+			}
 		}
 	}
+	if (playerEntity.getId() == registry.players.entities[0].getId()) 
+		title.p1hp = player.hp;
+	else if (twoPlayer.inTwoPlayerMode)
+		title.p2hp = player.hp;
+	
+	title.updateWindowTitle();
 }
 
 // Returns the local bounding coordinates scaled by the current size of the entity
@@ -324,7 +348,8 @@ void PhysicsSystem::bounceEnemies(Entity curEntity, bool hitABlock) {
 		}
 		else if (registry.enemies.has(curEntity)) {
 			Motion& motion = registry.motions.get(curEntity);
-			motion.velocity = vec2(motion.velocity.x * -0.5f, motion.velocity.y * -0.5f);
+			float wallBounceVelocityDecreaseFactor = -0.8f;
+			motion.velocity = vec2(motion.velocity.x * wallBounceVelocityDecreaseFactor, motion.velocity.y * wallBounceVelocityDecreaseFactor);
 		}
 
 	}
@@ -438,5 +463,29 @@ void PhysicsSystem::checkForCollision() {
 				registry.collisions.emplace_with_duplicates(other_entity, entity);
 			}
 		}
+	}
+}
+
+void PhysicsSystem::enemyHitHandling(Entity enemyEntity) {
+	if (registry.enemyHunters.has(enemyEntity)) {
+		registry.renderRequests.remove(enemyEntity);
+		registry.renderRequests.insert(
+			enemyEntity,
+			{ TEXTURE_ASSET_ID::ENEMYHUNTERHURT,
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE });
+		registry.enemyHunters.get(enemyEntity).isAnimatingHurt = true;
+	}
+	else if (registry.enemySwarms.has(enemyEntity)) {
+		registry.renderRequests.remove(enemyEntity);
+		registry.renderRequests.insert(
+			enemyEntity,
+			{ TEXTURE_ASSET_ID::ENEMYSWARMHURT,
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE });
+		registry.enemySwarms.get(enemyEntity).isAnimatingHurt = true;
+	}
+	else {
+		// TODO:: Implement enemy hit handling for rest of the enemies with fragment shaders
 	}
 }
