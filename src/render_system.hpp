@@ -72,7 +72,7 @@ class RenderSystem {
 			textures_path("sword.png"),
 			textures_path("wizard_attack.png"),
 			textures_path("wizard_idle.png"),
-			textures_path("wizard_walk.png")
+			textures_path("wizard_walk.png"),
 			textures_path("BTEnemy.png")
 	};
 

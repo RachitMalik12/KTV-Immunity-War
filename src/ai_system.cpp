@@ -1,6 +1,5 @@
 // internal
 #include "ai_system.hpp"
-#include <iostream>
 
 void AISystem::step(float elapsed_ms, float width, float height) {
 	stepEnemyHunter(elapsed_ms);
@@ -231,7 +230,6 @@ void AISystem::stepEnemyGerm(float elapsed_ms) {
 		EnemyGerm& germ = registry.enemyGerms.get(germEntity);
 		germ.next_germ_behaviour_calculation -= elapsed_ms;
 		if (germ.next_germ_behaviour_calculation < 0.f) {
-			std::cout << count++;
 			germ.next_germ_behaviour_calculation = germ.germBehaviourUpdateTime;
 
 			ChasePlayer1 chasePlayer1;
