@@ -22,7 +22,6 @@ public:
 private:
 	RenderSystem* renderer;
 	bool blocksInitialized = false;
-	int count = 0;
 
 	std::vector<int> path;
 	std::pair<int, int> pred[8][8]{};
