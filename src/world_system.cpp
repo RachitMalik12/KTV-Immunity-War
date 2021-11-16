@@ -750,11 +750,11 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 				std::cout << "help clicked!";
 				// insert code here
 				menuMode.menuType = 0;
-				for (Entity entity : registry.menuModes.entities) {
+				/*for (Entity entity : registry.menuModes.entities) {
 					registry.remove_all_components_of(entity);
 					menu = entity;
 				}
-				storyMode.firstLoad = false;
+				storyMode.firstLoad = false;*/
 				createHelp();
 				helpMode.inHelpMode = true;
 				helpMode.menuHelp = true;
