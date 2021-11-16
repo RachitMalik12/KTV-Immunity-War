@@ -990,7 +990,7 @@ void WorldSystem::updateTitle(int level) {
 void WorldSystem::knightFrameSetter(float elapsed_ms, KnightAnimation& knightAnimation)
 {
 	knightAnimation.animationTimer += elapsed_ms;
-	if (knightAnimation.animationTimer > knightAnimation.animationSpeed) {
+	if (knightAnimation.animationTimer > knightAnimation.msPerFrame) {
 		knightAnimation.xFrame = (knightAnimation.xFrame + 1) % knightAnimation.numOfFrames;
 		if (knightAnimation.xFrame == 0) {
 			knightAnimation.xFrame = knightAnimation.numOfFrames;
@@ -1001,7 +1001,7 @@ void WorldSystem::knightFrameSetter(float elapsed_ms, KnightAnimation& knightAni
 
 void WorldSystem::wizardAttackFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation) {
 	wizardAnimation.attackTimer += elapsed_ms;
-	if (wizardAnimation.attackTimer > wizardAnimation.attackAnimationSpeed) {
+	if (wizardAnimation.attackTimer > wizardAnimation.attackMsPerFrame) {
 		wizardAnimation.frameAttack = (wizardAnimation.frameAttack + 1) % wizardAnimation.numOfAttackFrames;
 		wizardAnimation.attackTimer = 0;
 	}
@@ -1010,7 +1010,7 @@ void WorldSystem::wizardAttackFrameSetter(float elapsed_ms, WizardAnimation& wiz
 
 void WorldSystem::wizardWalkFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation) {
 	wizardAnimation.walkTimer += elapsed_ms;
-	if (wizardAnimation.walkTimer > wizardAnimation.walkAnimationSpeed) {
+	if (wizardAnimation.walkTimer > wizardAnimation.walkMsPerFrame) {
 		wizardAnimation.frameWalk = (wizardAnimation.frameWalk + 1) % wizardAnimation.numOfWalkFrames;
 		wizardAnimation.walkTimer = 0;
 	}
@@ -1018,7 +1018,7 @@ void WorldSystem::wizardWalkFrameSetter(float elapsed_ms, WizardAnimation& wizar
 
 void WorldSystem::wizardIdleFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation) {
 	wizardAnimation.idleTimer += elapsed_ms;
-	if (wizardAnimation.idleTimer > wizardAnimation.idleAnimationSpeed) {
+	if (wizardAnimation.idleTimer > wizardAnimation.idleMsPerFrame) {
 		wizardAnimation.frameIdle = (wizardAnimation.frameIdle + 1) % wizardAnimation.numOfIdleFrames;
 		wizardAnimation.idleTimer = 0;
 	}

@@ -263,7 +263,7 @@ struct KnightAnimation {
 	int yFrame = 0;
 	bool moving = 0;
 	int numOfFrames = 8;
-	float animationSpeed = 100.f;
+	float msPerFrame = 100.f;
 	float animationTimer = 0.f;
 };
 
@@ -274,11 +274,11 @@ struct WizardAnimation {
 	int numOfIdleFrames = 3;
 	int numOfWalkFrames = 2;
 	int numOfAttackFrames = 4;
-	float idleAnimationSpeed = 250.f;
+	float idleMsPerFrame = 250.f;
 	float idleTimer = 0.f;
-	float walkAnimationSpeed = 200.f;
+	float walkMsPerFrame = 200.f;
 	float walkTimer = 0.f;
-	float attackAnimationSpeed = 150.f;
+	float attackMsPerFrame = 150.f;
 	float attackTimer = 0.f;
 	int animationMode = 0;
 	int idleMode = 0;
