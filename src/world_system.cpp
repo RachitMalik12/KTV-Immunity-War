@@ -597,6 +597,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 						menuMode.onLoad = true;
 					}
 					else {
+						// Help
 						ynum = motion.position.y + BR_BUTTONPOS.y * defaultResolution.scaling;
 						ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
 						if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
@@ -613,7 +614,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 					menuMode.on1P = false;
 					menuMode.on2P = false;
 				}
-			}
+			} 
 		}
 		
 	}
@@ -658,7 +659,19 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 	bool clicked_once = false;
 	bool left_clicked = (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_LEFT);
 	// menu is in-game menu
-	
+	if (helpMode.clicked == 1) {
+		helpMode.clicked = 2;
+		
+	}
+	else if (helpMode.clicked == 2) {
+		menuMode.menuType = 1;
+		createMenu();
+		helpMode.inHelpMode = false;
+		for (Entity entity : registry.helpModes.entities) {
+			registry.remove_all_components_of(entity);
+		}
+		helpMode.clicked = 0;
+	}
 
 	if (menuMode.menuType == 2) {
 
@@ -748,19 +761,15 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			// Help
 			if (menuMode.onHelp) {
 				std::cout << "help clicked!";
-				// insert code here
 				menuMode.menuType = 0;
-				/*for (Entity entity : registry.menuModes.entities) {
-					registry.remove_all_components_of(entity);
-					menu = entity;
-				}
-				storyMode.firstLoad = false;*/
 				createHelp();
 				helpMode.inHelpMode = true;
 				helpMode.menuHelp = true;
 				helpMode.clicked = 1;
+				menuMode.onHelp = false;
 
 			}
+			
 
 		}
 
