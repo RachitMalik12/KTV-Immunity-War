@@ -274,11 +274,11 @@ struct WizardAnimation {
 	int numOfIdleFrames = 3;
 	int numOfWalkFrames = 2;
 	int numOfAttackFrames = 4;
-	float idleMsPerFrame = 250.f;
+	float idleMsPerFrame = 200.f;
 	float idleTimer = 0.f;
-	float walkMsPerFrame = 200.f;
+	float walkMsPerFrame = 150.f;
 	float walkTimer = 0.f;
-	float attackMsPerFrame = 150.f;
+	float attackMsPerFrame = 100.f;
 	float attackTimer = 0.f;
 	int animationMode = 0;
 	int idleMode = 0;
