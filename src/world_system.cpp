@@ -159,12 +159,14 @@ void WorldSystem::deathHandling() {
 		}
 		if (player1.isDead && player2.isDead) {
 			setupLevel(level_number);
+			updateTitleLevel(level_number);
 		}
 	}
 	else {
 		Player& player1 = registry.players.get(player_knight);
 		if (player1.isDead) {
 			setupLevel(level_number);
+			updateTitleLevel(level_number);
 		}
 	}
 }
