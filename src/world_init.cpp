@@ -78,7 +78,6 @@ Entity createSword(RenderSystem* renderer, float angle, Entity playerEntity) {
 	motion.position = { 0, 0 };
 	motion.scale = vec2({ SWORD_BB_WIDTH * defaultResolution.scaling, SWORD_BB_HEIGHT * defaultResolution.scaling });
 
-	registry.players.emplace(entity);
 	registry.swords.emplace(entity);
 	registry.swords.get(entity).belongToPlayer = playerEntity;
 	registry.renderRequests.insert(
