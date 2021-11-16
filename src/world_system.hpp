@@ -48,8 +48,7 @@ private:
 	void on_mouse_click(int button, int action, int mods);
 	// restart level
 	void restart_game();
-	void setupLevel(int levelNum); 
-	void restartLevel();
+	void setupLevel(int levelNum);
 	void setPlayersStats();
 	void setPlayerOneStats();
 	void setPlayerTwoStats();
@@ -63,7 +62,7 @@ private:
 	RenderSystem* renderer;
 	float next_projectile_fire_player1;
 	float next_projectile_fire_player2;
-	Entity player_wizard;
+	Entity player_knight;
 	Entity player2_wizard;
 	Entity player_stat;
 	Entity player2_stat;
@@ -84,15 +83,15 @@ private:
 	void createADoor(int screenWidth, int screenHeight);
 	// world.step
 	void deathHandling();
-	void handlePlayerOneProjectile(float elapsed_ms_since_last_update);
+	void handlePlayerOneAttack(float elapsed_ms_since_last_update);
 	void handlePlayerTwoProjectile(float elapsed_ms_since_last_update);
 	void invincibilityTimer(float elapsed_ms_since_last_update);
 	void stuckTimer(float elapsed_ms_since_last_update, int screen_width, int screen_height);
 	void resolveMouseControl();
 	void levelCompletionCheck();
-	void updateWindowTitle();
-	void animateStep(float elapsed_ms_since_last_update);
-	void animateSword(float elapsed_ms_since_last_update);
+	void animateKnight(float elapsed_ms_since_last_update);
+	void checkIfKnightIsMoving();
 	// misc
 	void playerTwoJoinOrLeave();
+	void updateTitle(int level);
 }; 

@@ -269,7 +269,7 @@ struct Level {
 struct Animation {
 	int xFrame = 0;
 	int yFrame = 0;
-	bool pressed = 0;
+	bool moving = 0;
 	int numOfFrames = 0;
 	int animationSpeed = 100;
 	int animationTimer = 0;
@@ -282,6 +282,29 @@ struct Sword {
 	float distance_traveled = 0;
 	float angular_velocity = M_PI / 8;
 	mat3 rotation;
+};
+
+struct Title {
+	GLFWwindow* window;
+	int level;
+	int p1hp;
+	int p2hp;
+	int p1money;
+	int p2money;
+	void updateWindowTitle() {
+		// Updating window title with money
+		std::stringstream title_ss;
+		// Get hp of player 1 and player 2 
+		title_ss << "Level: " << level;
+		if (twoPlayer.inTwoPlayerMode) {
+			title_ss << " P1 Money: " << p1money << " Health: " << p1hp
+				<< " & P2 Money: " << p2money << " Health: " << p2hp;
+		}
+		else {
+			title_ss << " Money: " << p1money << " & Health P1 " << p1hp;
+		}
+		glfwSetWindowTitle(window, title_ss.str().c_str());
+	}
 };
 
 /**

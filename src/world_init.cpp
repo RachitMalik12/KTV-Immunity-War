@@ -42,7 +42,7 @@ Entity createKnight(RenderSystem* renderer, vec2 position) {
 	registry.meshPtrs.emplace(entity, &mesh);
 	registry.animations.emplace(entity);
 	Animation& animation = registry.animations.get(entity);
-	animation.numOfFrames = 9;
+	animation.numOfFrames = 8;
 
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
@@ -78,7 +78,6 @@ Entity createSword(RenderSystem* renderer, float angle, Entity playerEntity) {
 	motion.position = { 0, 0 };
 	motion.scale = vec2({ SWORD_BB_WIDTH * defaultResolution.scaling, SWORD_BB_HEIGHT * defaultResolution.scaling });
 
-	registry.players.emplace(entity);
 	registry.swords.emplace(entity);
 	registry.swords.get(entity).belongToPlayer = playerEntity;
 	registry.renderRequests.insert(

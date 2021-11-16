@@ -12,7 +12,7 @@ Required Features:
 
 -Keyframe animation (LT):
 
--Articulated motion (BS):
+-Articulated motion (BS): Implemented a swinging sword attack via articulated motion. Instead of rotating the sword around its own frame, it will rotate with respect to the knight's (its wielder's) object frame. Swords behave similarly to projectiles with a few exceptions: They do more damage, do not despawn on contact, and can only be swung in four directions. The sword is meant to be a far more practical weapon in close-quarters, giving the knight certain advantanges over the wizard.
 
 -Advanced fragment shader (LT):
 
@@ -28,15 +28,19 @@ Custom Features:
 
 Memory Management:
 
-Memory and Performance profiling (BS):
+Memory and Performance profiling (BS): Using built-in profiling tools in Visual Studio, there were a few things found that were sources of inefficiency (See reports/PPR.pdf for more details). The first is unnecessarily updating the title every step, which is elaborated below. Second was a memory leak found in ai_system.cpp.
 
-Updating Window Title Improvement (BS):
+Updating Window Title Improvement (BS): One of the improvements made was to only update the window title when necessary (Level switch, changes to player HP and money). Improvement described in the report mentioned above. 
 
-Bug and feature fixes: Pathfinding enemy fix (FC):
+EnemyChase memory and performance improvement (LT): 
+
+Bug and feature fixes: 
+
+Pathfinding enemy fix (FC):
 
 adaptive resolution fix (BZ): Changed from prompting user to select resolution to auto detecting user's primary monitor resolution and setting the game resolution accordingly.
 
-Animation Sliding fix:
+Animation Sliding fix (BZ): Resetting animation frame was tied to releasing the directional movement button. Fixed so that it is tied to player's velocity being 0 instead.
 
 Graphics assets (JK):
 

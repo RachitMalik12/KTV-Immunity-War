@@ -115,6 +115,9 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 	this->renderer = renderer_arg;
 	// Playing background music indefinitely
 	Mix_PlayMusic(background_music, -1);
+	auto entity = Entity();
+	registry.titles.emplace(entity);
+	registry.titles.get(entity).window = window;
     restart_game();
 }
 
@@ -128,13 +131,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	int screen_width, screen_height;
 	glfwGetFramebufferSize(window, &screen_width, &screen_height);
 
-	animateStep(elapsed_ms_since_last_update);
-	updateWindowTitle();
+	checkIfKnightIsMoving();
+	animateKnight(elapsed_ms_since_last_update);
 	levelCompletionCheck();
 	resolveMouseControl();
 	stuckTimer(elapsed_ms_since_last_update, screen_width, screen_height);
 	invincibilityTimer(elapsed_ms_since_last_update);
-	handlePlayerOneProjectile(elapsed_ms_since_last_update);
+	handlePlayerOneAttack(elapsed_ms_since_last_update);
 	handlePlayerTwoProjectile(elapsed_ms_since_last_update);
 	deathHandling();
 
@@ -143,12 +146,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 void WorldSystem::deathHandling() {
 	if (twoPlayer.inTwoPlayerMode) {
-		Player& player1 = registry.players.get(player_wizard);
+		Player& player1 = registry.players.get(player_knight);
 		Player& player2 = registry.players.get(player2_wizard);
 		if (player1.isDead) {
-			Motion& player1Motion = registry.motions.get(player_wizard);
+			Motion& player1Motion = registry.motions.get(player_knight);
 			player1Motion.velocity = vec2(0, 0);
-			registry.renderRequests.remove(player_wizard);
+			registry.renderRequests.remove(player_knight);
 			// TODO: Implement player death animation
 		}
 		if (player2.isDead) {
@@ -162,7 +165,7 @@ void WorldSystem::deathHandling() {
 		}
 	}
 	else {
-		Player& player1 = registry.players.get(player_wizard);
+		Player& player1 = registry.players.get(player_knight);
 		if (player1.isDead) {
 			setupLevel(level_number);
 		}
@@ -219,6 +222,9 @@ void WorldSystem::frame_counter(float elapsed_ms, Entity entity)
 	playerOneAnimation.animationTimer += elapsed_ms;
 	if (playerOneAnimation.animationTimer > playerOneAnimation.animationSpeed) {
 		playerOneAnimation.xFrame = (playerOneAnimation.xFrame + 1) % playerOneAnimation.numOfFrames;
+		if (playerOneAnimation.xFrame == 0) {
+			playerOneAnimation.xFrame = playerOneAnimation.numOfFrames;
+		}
 		playerOneAnimation.animationTimer = 0;
 	}
 }
@@ -240,107 +246,111 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 	
-	Motion& player1motion = registry.motions.get(player_wizard);
-	Player& player = registry.players.get(player_wizard);
+	Motion& player1motion = registry.motions.get(player_knight);
+	Player& player = registry.players.get(player_knight);
 	PlayerStat& playerOneStat = registry.playerStats.get(player.playerStat);
 	Animation& playerOneAnimation = registry.animations.get(registry.animations.entities.front());
 
 	if (!player.isDead) {
 		vec2 currentVelocity = vec2(player1motion.velocity.x, player1motion.velocity.y);
 		if (action == GLFW_PRESS && key == GLFW_KEY_W) {
-			playerOneAnimation.pressed = true;
+			playerOneAnimation.moving = true;
 			player1motion.velocity = vec2(currentVelocity.x, currentVelocity.y - playerOneStat.movementSpeed);
-			playerOneAnimation.xFrame = 0;
+			playerOneAnimation.xFrame = 1;
 			playerOneAnimation.yFrame = 0;
-			registry.renderRequests.remove(player_wizard);
+			registry.renderRequests.remove(player_knight);
 			registry.renderRequests.insert(
-				player_wizard,
+				player_knight,
 				{ TEXTURE_ASSET_ID::KNIGHT,
 					EFFECT_ASSET_ID::KNIGHT,
 					GEOMETRY_BUFFER_ID::SPRITE }, false);
 		}
 		if (action == GLFW_RELEASE && key == GLFW_KEY_W) {
-			playerOneAnimation.pressed = false;
-			playerOneAnimation.xFrame = 0;
 			player1motion.velocity = vec2(currentVelocity.x, 0);
 		}
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_S) {
-			playerOneAnimation.pressed = true;
+			playerOneAnimation.moving = true;
 			player1motion.velocity = vec2(currentVelocity.x, currentVelocity.y + playerOneStat.movementSpeed);
 			int counter = 0;
-			playerOneAnimation.xFrame = 0;
+			playerOneAnimation.xFrame = 1;
 			playerOneAnimation.yFrame = 2;
-			registry.renderRequests.remove(player_wizard);
+			registry.renderRequests.remove(player_knight);
 			registry.renderRequests.insert(
-				player_wizard,
+				player_knight,
 				{ TEXTURE_ASSET_ID::KNIGHT,
 					EFFECT_ASSET_ID::KNIGHT,
 					GEOMETRY_BUFFER_ID::SPRITE }, false);
 		}
 		if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
-			playerOneAnimation.pressed = false;
-			playerOneAnimation.xFrame = 0;
 			player1motion.velocity = vec2(currentVelocity.x, 0);
 		}
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_A) {
-			playerOneAnimation.pressed = true;
+			playerOneAnimation.moving = true;
 			player1motion.velocity = vec2(currentVelocity.x - playerOneStat.movementSpeed, currentVelocity.y);
-			playerOneAnimation.xFrame = 0;
+			playerOneAnimation.xFrame = 1;
 			playerOneAnimation.yFrame = 1;
-			registry.renderRequests.remove(player_wizard);
+			registry.renderRequests.remove(player_knight);
 			registry.renderRequests.insert(
-				player_wizard,
+				player_knight,
 				{ TEXTURE_ASSET_ID::KNIGHT,
 					EFFECT_ASSET_ID::KNIGHT,
 					GEOMETRY_BUFFER_ID::SPRITE }, false);
 		}
 		if (action == GLFW_RELEASE && key == GLFW_KEY_A) {
-			playerOneAnimation.pressed = false;
-			playerOneAnimation.xFrame = 0;
 			player1motion.velocity = vec2(0, currentVelocity.y);
 
 		}
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_D) {
-			playerOneAnimation.pressed = true;
+			playerOneAnimation.moving = true;
 			player1motion.velocity = vec2(currentVelocity.x + playerOneStat.movementSpeed, currentVelocity.y);
-			playerOneAnimation.xFrame = 0;
+			playerOneAnimation.xFrame = 1;
 			playerOneAnimation.yFrame = 3;
-			registry.renderRequests.remove(player_wizard);
+			registry.renderRequests.remove(player_knight);
 			registry.renderRequests.insert(
-				player_wizard,
+				player_knight,
 				{ TEXTURE_ASSET_ID::KNIGHT,
 					EFFECT_ASSET_ID::KNIGHT,
 					GEOMETRY_BUFFER_ID::SPRITE }, false);
 		}
 
 		if (action == GLFW_RELEASE && key == GLFW_KEY_D) {
-			playerOneAnimation.pressed = false;
-			playerOneAnimation.xFrame = 0;
 			player1motion.velocity = vec2(0, currentVelocity.y);
 		}
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_T) {
 			player.isFiringProjectile = true;
 			player.firingDirection = 0;
+			if (!playerOneAnimation.moving) {
+				playerOneAnimation.yFrame = 0;
+			}
 		}
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_G) {
 			player.isFiringProjectile = true;
 			player.firingDirection = 2;
+			if (!playerOneAnimation.moving) {
+				playerOneAnimation.yFrame = 2;
+			}
 		}
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_H) {
 			player.isFiringProjectile = true;
-			player.firingDirection = 1;
+			player.firingDirection = 3;
+			if (!playerOneAnimation.moving) {
+				playerOneAnimation.yFrame = 3;
+			}
 
 		}
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_F) {
 			player.isFiringProjectile = true;
-			player.firingDirection = 3;
+			player.firingDirection = 1;
+			if (!playerOneAnimation.moving) {
+				playerOneAnimation.yFrame = 1;
+			}
 		}
 	}	
 
@@ -683,7 +693,7 @@ void WorldSystem::handlePlayerTwoProjectile(float elapsed_ms_since_last_update) 
 		Motion player2Motion = registry.motions.get(player2_wizard);
 		Player& player2 = registry.players.get(player2_wizard);
 		PlayerStat& playerTwoStat = registry.playerStats.get(player2.playerStat);
-		if (player2.isFiringProjectile && next_projectile_fire_player2 < 0.f) {
+		if (!player2.isDead && player2.isFiringProjectile && next_projectile_fire_player2 < 0.f) {
 			next_projectile_fire_player2 = playerTwoStat.attackDelay;
 			double x, y;
 			glfwGetCursorPos(window, &x, &y);
@@ -700,14 +710,14 @@ void WorldSystem::handlePlayerTwoProjectile(float elapsed_ms_since_last_update) 
 	}
 }
 
-void WorldSystem::handlePlayerOneProjectile(float elapsed_ms_since_last_update) {
+void WorldSystem::handlePlayerOneAttack(float elapsed_ms_since_last_update) {
 	// handle player1 projectiles
 	float angle = 0;
 	float offset = -M_PI / 3.f;
 	next_projectile_fire_player1 -= elapsed_ms_since_last_update;
-	Player& player1 = registry.players.get(player_wizard);
+	Player& player1 = registry.players.get(player_knight);
 	PlayerStat& playerOneStat = registry.playerStats.get(player1.playerStat);
-	Motion playerMotion = registry.motions.get(player_wizard);
+	Motion playerMotion = registry.motions.get(player_knight);
 	if (player1.isFiringProjectile && next_projectile_fire_player1 < 0.f) {
 		next_projectile_fire_player1 = playerOneStat.attackDelay;
 		
@@ -715,17 +725,17 @@ void WorldSystem::handlePlayerOneProjectile(float elapsed_ms_since_last_update) 
 		case 0: // up
 			angle = M_PI * 3 / 2;
 			break;
-		case 1: // right
-			// no action
+		case 1: // left
+			angle = M_PI;
 			break;
 		case 2: // down
 			angle = M_PI / 2;
 			break;
-		case 3: // left
-			angle = M_PI;
+		case 3: // right
+			// no action
 			break;
 		}
-		createSword(renderer, angle + offset, player_wizard);
+		createSword(renderer, angle + offset, player_knight);
 	}
 }
 
@@ -796,43 +806,17 @@ void WorldSystem::levelCompletionCheck() {
 	}
 }
 
-void WorldSystem::updateWindowTitle() {
-	// Updating window title with money
-	std::stringstream title_ss;
-	// Get hp of player 1 and player 2 
-	int hp_p1 = 0;
-	int hp_p2 = 0;
-	title_ss << "Level: " << level_number;
-	hp_p1 = registry.players.get(player_wizard).hp;
-	if (twoPlayer.inTwoPlayerMode) {
-		hp_p2 = registry.players.get(player2_wizard).hp;
-		title_ss << " P1 Money: " << registry.playerStats.get(player_stat).money << " Health: " << hp_p1
-			<< " & P2 Money: " << registry.playerStats.get(player2_stat).money << " Health: " << hp_p2;
-	}
-	else {
-		title_ss << " Money: " << registry.playerStats.get(registry.players.get(player_wizard).playerStat).money << " & Health P1 " << hp_p1;
-	}
-	glfwSetWindowTitle(window, title_ss.str().c_str());
-}
-
-void WorldSystem::animateStep(float elapsed_ms_since_last_update) {
-	//animate
-	for (Entity entity : registry.animations.entities) {
-		Animation& animation = registry.animations.get(entity);
-		if (animation.pressed) {
-			float prev_frame = animation.xFrame;
-			frame_counter(elapsed_ms_since_last_update, entity);
-			if (entity.getId() == player_wizard.getId() && animation.xFrame == 0)
-				animation.xFrame = 1;
-			if (entity.getId() == player_wizard.getId()) {
-				registry.renderRequests.remove(entity);
-				registry.renderRequests.insert(
-					entity,
-					{ TEXTURE_ASSET_ID::KNIGHT,
-						EFFECT_ASSET_ID::KNIGHT,
-						GEOMETRY_BUFFER_ID::SPRITE }, false);
-			}
-		}
+void WorldSystem::animateKnight(float elapsed_ms_since_last_update) {
+	Animation& animation = registry.animations.get(player_knight);
+	if (animation.moving) {
+		float prev_frame = animation.xFrame;
+		frame_counter(elapsed_ms_since_last_update, player_knight);
+		registry.renderRequests.remove(player_knight);
+		registry.renderRequests.insert(
+			player_knight,
+			{ TEXTURE_ASSET_ID::KNIGHT,
+				EFFECT_ASSET_ID::KNIGHT,
+				GEOMETRY_BUFFER_ID::SPRITE }, false);
 	}
 }
 
@@ -878,8 +862,8 @@ void WorldSystem::setupLevel(int levelNum) {
 		createBlock(renderer, block_pos_i * defaultResolution.scaling, block_color_i);
 	}
 
-	player_wizard = createKnight(renderer, level.player_position * defaultResolution.scaling);
-	Player& player1 = registry.players.get(player_wizard);
+	player_knight = createKnight(renderer, level.player_position * defaultResolution.scaling);
+	Player& player1 = registry.players.get(player_knight);
 	player1.playerStat = player_stat;
 	PlayerStat& playerOneStat = registry.playerStats.get(player_stat);
 	player1.hp = playerOneStat.maxHp;
@@ -895,7 +879,7 @@ void WorldSystem::setupLevel(int levelNum) {
 	}
 
 	// Reset player position on level transition
-	Motion& player1Motion = registry.motions.get(player_wizard);
+	Motion& player1Motion = registry.motions.get(player_knight);
 	player1Motion.position = level.player_position * defaultResolution.scaling;
 	if (twoPlayer.inTwoPlayerMode) {
 		Motion& player2Motion = registry.motions.get(player2_wizard);
@@ -903,6 +887,7 @@ void WorldSystem::setupLevel(int levelNum) {
 	}
 	// Update state 
 	isLevelOver = false;
+	updateTitle(levelNum);
 }
 
 void WorldSystem::playerTwoJoinOrLeave() {
@@ -912,10 +897,32 @@ void WorldSystem::playerTwoJoinOrLeave() {
 		twoPlayer.inTwoPlayerMode = false;
 		registry.remove_all_components_of(player2_wizard);
 		registry.remove_all_components_of(player2_stat);
+		updateTitle(level_number);
 	}
 	else {
 		twoPlayer.inTwoPlayerMode = true;
 		setupLevel(level_number);
 	}
 	helpMode.inHelpMode = false;
+}
+
+void WorldSystem::checkIfKnightIsMoving() {
+	Motion& knightMotion = registry.motions.get(player_knight);
+	Animation& playerOneAnimation = registry.animations.get(player_knight);
+	if (knightMotion.velocity.x == 0 && knightMotion.velocity.y == 0) {
+		playerOneAnimation.moving = false;
+		playerOneAnimation.xFrame = 0;
+	}
+}
+
+void WorldSystem::updateTitle(int level) {
+	Title& title = registry.titles.components[0];
+	title.level = level; 
+	title.p1hp = registry.players.get(player_knight).hp;
+	title.p1money = registry.playerStats.get(registry.players.get(player_knight).playerStat).money;
+	if (twoPlayer.inTwoPlayerMode) {
+		title.p2hp = registry.players.get(player2_wizard).hp;
+		title.p2money = registry.playerStats.get(registry.players.get(player2_wizard).playerStat).money;
+	}
+	title.updateWindowTitle();
 }
