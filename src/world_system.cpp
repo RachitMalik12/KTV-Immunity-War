@@ -650,6 +650,8 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 	bool clicked_once = false;
 	bool left_clicked = (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_LEFT);
 	// menu is in-game menu
+	
+
 	if (menuMode.menuType == 2) {
 
 	}
@@ -658,7 +660,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 	if (menuMode.menuType == 1) {
 		
 		if (left_clicked) {
-			clicked_once = true;
+			
 			// 1P 
 			if (menuMode.on1P) {
 				menuMode.menuType = 0;
@@ -740,43 +742,23 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 				std::cout << "help clicked!";
 				// insert code here
 				menuMode.menuType = 0;
-				
 				for (Entity entity : registry.menuModes.entities) {
 					registry.remove_all_components_of(entity);
 					menu = entity;
 				}
+				storyMode.firstLoad = false;
 				createHelp();
 				helpMode.inHelpMode = true;
 				helpMode.menuHelp = true;
+				helpMode.clicked = 1;
 
 			}
 
-			// click to get out of help
-			/*if (helpMode.inHelpMode) {
-				std::cout << "inhelp";
-				helpMode.inHelpMode = false;
-				for (Entity entity : registry.helpModes.entities) {
-					registry.remove_all_components_of(entity);
-				}
-				registry.renderRequests.insert(
-					menu,
-					{ TEXTURE_ASSET_ID::MENU,
-						EFFECT_ASSET_ID::TEXTURED,
-						GEOMETRY_BUFFER_ID::SPRITE }, false);
-			}*/
 		}
 
 
 	}
-
-	/*if (left_clicked &&clicked_once) {
-		clicked_once = false;
-
-		if (helpMode.menuHelp) {
-			menuMode.menuType = 1;
-			helpMode.menuHelp = false;
-		}
-	}*/
+	
 	
 }
 

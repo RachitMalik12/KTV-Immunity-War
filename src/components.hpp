@@ -165,6 +165,7 @@ extern TwoPlayer twoPlayer;
 struct HelpMode {
 	bool inHelpMode = false;
 	bool menuHelp = false;
+	int clicked = 0;
 };
 extern HelpMode helpMode;
 
