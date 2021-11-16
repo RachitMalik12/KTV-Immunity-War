@@ -1,11 +1,13 @@
 // internal
 #include "ai_system.hpp"
+#include <iostream>
 
 void AISystem::step(float elapsed_ms, float width, float height) {
 	stepEnemyHunter(elapsed_ms);
 	stepEnemyBacteria(elapsed_ms, width, height);
 	stepEnemyChase(elapsed_ms);
 	stepEnemySwarm(elapsed_ms);
+	stepEnemyGerm(elapsed_ms);
 }
 
 void AISystem::stepEnemyHunter(float elapsed_ms) {
@@ -45,6 +47,194 @@ void AISystem::stepEnemyHunter(float elapsed_ms) {
 	}
 }
 
+enum class BTState {
+	Running,
+	Success,
+	Failure
+};
+
+// The base class representing any node in our behaviour tree
+class BTNode {
+public:
+	virtual void init(Entity e) {};
+
+	virtual BTState process(Entity e) = 0;
+};
+
+// A composite node that loops through all children and exits when one fails
+class BTRunPair : public BTNode {
+private:
+	int m_index;
+	BTNode* m_children[2];
+
+public:
+	BTRunPair(BTNode* c0, BTNode* c1)
+		: m_index(0) {
+		m_children[0] = c0;
+		m_children[1] = c1;
+	}
+
+	void init(Entity e) override
+	{
+		m_index = 0;
+		// initialize the first child
+		const auto& child = m_children[m_index];
+		child->init(e);
+	}
+
+	BTState process(Entity e) override {
+		if (m_index >= 2)
+			return BTState::Success;
+
+		// process current child
+		BTState state = m_children[m_index]->process(e);
+
+		// select a new active child and initialize its internal state
+		if (state == BTState::Success) {
+			++m_index;
+			if (m_index >= 2) {
+				return BTState::Success;
+			}
+			else {
+				m_children[m_index]->init(e);
+				return BTState::Running;
+			}
+		}
+		else {
+			return state;
+		}
+	}
+};
+
+// A general decorator with lambda condition
+class BTIfCondition : public BTNode
+{
+public:
+	BTIfCondition(BTNode* child, std::function<bool(Entity)> condition)
+		: m_child(child), m_condition(condition) {
+	}
+
+	virtual void init(Entity e) override {
+		m_child->init(e);
+	}
+
+	virtual BTState process(Entity e) override {
+		if (m_condition(e))
+			return m_child->process(e);
+		else
+			return BTState::Success;
+	}
+
+private:
+	BTNode* m_child;
+	std::function<bool(Entity)> m_condition;
+};
+
+class TurnAround : public BTNode {
+private:
+	void init(Entity e) override {
+	}
+
+	BTState process(Entity e) override {
+		// modify world
+		auto& vel = registry.motions.get(e).velocity;
+		vel = vel;
+		std::cout << "turned \n";
+
+
+		// return progress
+		return BTState::Success;
+	}
+};
+
+class ChasePlayer1 : public BTNode {
+private:
+	void init(Entity e) override {
+	}
+
+	BTState process(Entity e) override {
+		// modify world
+		std::cout << "chasing p1 \n";
+
+		float finX = registry.motions.get(registry.players.entities[0]).position.x;
+		float finY = registry.motions.get(registry.players.entities[0]).position.y;
+		float initX = registry.motions.get(e).position.y;
+		float initY = registry.motions.get(e).position.x;
+		vec2 diff = vec2(finX, finY) - vec2(initX, initY);
+		float angle = atan2(diff.y, diff.x);
+		registry.motions.get(e).velocity = vec2(sin(angle) * registry.enemies.get(e).speed, cos(angle) * registry.enemies.get(e).speed);
+		// return progress
+		return BTState::Success;
+	}
+};
+
+
+class ChasePlayer2 : public BTNode {
+private:
+	void init(Entity e) override {
+	}
+	BTState process(Entity e) override {
+		// modify world
+		std::cout << "chasing p2 \n";
+		float finX = registry.motions.get(registry.players.entities[1]).position.x;
+		float finY = registry.motions.get(registry.players.entities[1]).position.y;
+		float initX = registry.motions.get(e).position.y;
+		float initY = registry.motions.get(e).position.x;
+		vec2 diff = vec2(finX, finY) - vec2(initX, initY);
+		float angle = atan2(diff.y, diff.x);
+		registry.motions.get(e).velocity = vec2(cos(angle) * registry.enemies.get(e).speed, sin(angle) * registry.enemies.get(e).speed);
+		// return progress
+		return BTState::Success;
+	}
+};
+
+
+void AISystem::stepEnemyGerm(float elapsed_ms) {
+	for (Entity germEntity : registry.enemyGerms.entities) {
+		EnemyGerm& germ = registry.enemyGerms.get(germEntity);
+		germ.next_germ_behaviour_calculation -= elapsed_ms;
+		if (germ.next_germ_behaviour_calculation < 0.f) {
+			std::cout << count++;
+			germ.next_germ_behaviour_calculation = germ.germBehaviourUpdateTime;
+			TurnAround turn;
+			std::function<bool(Entity)> condition = [](Entity e)
+			{
+				return (registry.players.get(registry.players.entities[0]).isFiringProjectile || registry.players.get(registry.players.entities[1]).isFiringProjectile);
+			};
+			BTIfCondition turn_around = BTIfCondition(&turn, condition);
+
+			ChasePlayer1 chasePlayer1;
+			std::function<bool(Entity)> conditionChasePlayer1 = [](Entity e)
+			{
+				std::cout << "player1 is alive: " << !registry.players.get(registry.players.entities[0]).isDead << "\n";
+				return !registry.players.get(registry.players.entities[0]).isDead;
+			};
+			BTIfCondition chaseP1 = BTIfCondition(&chasePlayer1, conditionChasePlayer1);
+
+			ChasePlayer2 chasePlayer2;
+			std::function<bool(Entity)> conditionChasePlayer2 = [](Entity e)
+			{
+				std::cout << "player2 is chased: " << registry.players.get(registry.players.entities[0]).isDead << "\n";
+				return registry.players.get(registry.players.entities[0]).isDead;
+			};
+
+			BTIfCondition chaseP2 = BTIfCondition(&chasePlayer2, conditionChasePlayer2);
+			BTRunPair root = BTRunPair(&chaseP1, &chaseP2);
+			BTRunPair root_and_turn = BTRunPair(&root, &turn_around);
+			root_and_turn.init(germEntity);
+
+			for (int i = 0; i < 2; i++) {
+				std::cout << "step " << i << '\n';
+				BTState state = root_and_turn.process(germEntity);
+
+				if (state != BTState::Running) {
+					break;
+				}
+			}
+		}
+	}
+}
+
 // separate map into an 8x8 "grid"
 void AISystem::createAdj() {
 	for (int i = 0; i < 8; i++) {
@@ -59,7 +249,6 @@ void AISystem::createAdj() {
 
 void AISystem::stepEnemyBacteria(float elapsed_ms, float width, float height) {
 	for (Entity bacteriaEntity : registry.enemyBacterias.entities) {
-
 		registry.enemyBacterias.get(bacteriaEntity).next_bacteria_BFS_calculation -= elapsed_ms;
 		registry.enemyBacterias.get(bacteriaEntity).next_bacteria_PATH_calculation -= elapsed_ms;
 		auto& motions_registry = registry.motions;

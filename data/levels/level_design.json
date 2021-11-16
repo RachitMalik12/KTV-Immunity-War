@@ -229,6 +229,40 @@
       ],
       "enemy_types": [ 5 ],
       "level_type": 0
+    },
+    {
+      "enemies": [ 1 ],
+      "blocks": 2,
+      "block_positions": [
+        {
+          "x": 300,
+          "y": 500
+        },
+        {
+          "x": 900,
+          "y": 300
+        }
+      ],
+      "player_position": {
+        "x": 600,
+        "y": 400
+      },
+      "player2_position": {
+        "x": 600,
+        "y": 200
+      },
+      "enemy_positions": [
+        [
+          {
+            "x": 900,
+            "y": 550
+          }
+
+        ]
+
+      ],
+      "enemy_types": [ 6 ],
+      "level_type": 0
     }
   ] 
 }

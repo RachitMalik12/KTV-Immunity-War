@@ -22,6 +22,8 @@ public:
 private:
 	RenderSystem* renderer;
 	bool blocksInitialized = false;
+	int count = 0;
+
 	std::vector<int> path;
 	std::pair<int, int> pred[8][8]{};
 	std::pair<int, int> adj[8][8]{};
@@ -35,6 +37,7 @@ private:
 	Entity determineWhichPlayerToChase(Entity hunterEntity);
 	void stepEnemyHunter(float elapsed_ms);
 	void stepEnemyChase(float elapsed_ms);
+	void stepEnemyGerm(float elapsed_ms);
 	void stepEnemyBacteria(float elapsed_ms, const float width, const float height);
 	void stepEnemySwarm(float elapsed_ms);
 	bool handlePath(float width, float height, Entity& bacteriaEntity);
