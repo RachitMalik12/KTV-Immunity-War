@@ -115,6 +115,9 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 	this->renderer = renderer_arg;
 	// Playing background music indefinitely
 	Mix_PlayMusic(background_music, -1);
+	auto entity = Entity();
+	registry.titles.emplace(entity);
+	registry.titles.get(entity).window = window;
     restart_game();
 }
 
@@ -130,7 +133,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	checkIfKnightIsMoving();
 	animateKnight(elapsed_ms_since_last_update);
-	updateWindowTitle();
 	levelCompletionCheck();
 	resolveMouseControl();
 	stuckTimer(elapsed_ms_since_last_update, screen_width, screen_height);
@@ -686,7 +688,7 @@ void WorldSystem::handlePlayerTwoProjectile(float elapsed_ms_since_last_update) 
 		Motion player2Motion = registry.motions.get(player2_wizard);
 		Player& player2 = registry.players.get(player2_wizard);
 		PlayerStat& playerTwoStat = registry.playerStats.get(player2.playerStat);
-		if (player2.isFiringProjectile && next_projectile_fire_player2 < 0.f) {
+		if (!player2.isDead && player2.isFiringProjectile && next_projectile_fire_player2 < 0.f) {
 			next_projectile_fire_player2 = playerTwoStat.attackDelay;
 			double x, y;
 			glfwGetCursorPos(window, &x, &y);
@@ -799,25 +801,6 @@ void WorldSystem::levelCompletionCheck() {
 	}
 }
 
-void WorldSystem::updateWindowTitle() {
-	// Updating window title with money
-	std::stringstream title_ss;
-	// Get hp of player 1 and player 2 
-	int hp_p1 = 0;
-	int hp_p2 = 0;
-	title_ss << "Level: " << level_number;
-	hp_p1 = registry.players.get(player_knight).hp;
-	if (twoPlayer.inTwoPlayerMode) {
-		hp_p2 = registry.players.get(player2_wizard).hp;
-		title_ss << " P1 Money: " << registry.playerStats.get(player_stat).money << " Health: " << hp_p1
-			<< " & P2 Money: " << registry.playerStats.get(player2_stat).money << " Health: " << hp_p2;
-	}
-	else {
-		title_ss << " Money: " << registry.playerStats.get(registry.players.get(player_knight).playerStat).money << " & Health P1 " << hp_p1;
-	}
-	glfwSetWindowTitle(window, title_ss.str().c_str());
-}
-
 void WorldSystem::animateKnight(float elapsed_ms_since_last_update) {
 	Animation& animation = registry.animations.get(player_knight);
 	if (animation.moving) {
@@ -899,6 +882,7 @@ void WorldSystem::setupLevel(int levelNum) {
 	}
 	// Update state 
 	isLevelOver = false;
+	updateTitle(levelNum);
 }
 
 void WorldSystem::playerTwoJoinOrLeave() {
@@ -908,6 +892,7 @@ void WorldSystem::playerTwoJoinOrLeave() {
 		twoPlayer.inTwoPlayerMode = false;
 		registry.remove_all_components_of(player2_wizard);
 		registry.remove_all_components_of(player2_stat);
+		updateTitle(level_number);
 	}
 	else {
 		twoPlayer.inTwoPlayerMode = true;
@@ -923,4 +908,16 @@ void WorldSystem::checkIfKnightIsMoving() {
 		playerOneAnimation.moving = false;
 		playerOneAnimation.xFrame = 0;
 	}
+}
+
+void WorldSystem::updateTitle(int level) {
+	Title& title = registry.titles.components[0];
+	title.level = level; 
+	title.p1hp = registry.players.get(player_knight).hp;
+	title.p1money = registry.playerStats.get(registry.players.get(player_knight).playerStat).money;
+	if (twoPlayer.inTwoPlayerMode) {
+		title.p2hp = registry.players.get(player2_wizard).hp;
+		title.p2money = registry.playerStats.get(registry.players.get(player2_wizard).playerStat).money;
+	}
+	title.updateWindowTitle();
 }

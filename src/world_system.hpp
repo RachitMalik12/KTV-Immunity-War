@@ -48,8 +48,7 @@ private:
 	void on_mouse_click(int button, int action, int mods);
 	// restart level
 	void restart_game();
-	void setupLevel(int levelNum); 
-	void restartLevel();
+	void setupLevel(int levelNum);
 	void setPlayersStats();
 	void setPlayerOneStats();
 	void setPlayerTwoStats();
@@ -90,9 +89,9 @@ private:
 	void stuckTimer(float elapsed_ms_since_last_update, int screen_width, int screen_height);
 	void resolveMouseControl();
 	void levelCompletionCheck();
-	void updateWindowTitle();
 	void animateKnight(float elapsed_ms_since_last_update);
 	void checkIfKnightIsMoving();
 	// misc
 	void playerTwoJoinOrLeave();
+	void updateTitle(int level);
 }; 

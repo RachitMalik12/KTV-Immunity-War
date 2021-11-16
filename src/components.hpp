@@ -274,6 +274,29 @@ struct Sword {
 	mat3 rotation;
 };
 
+struct Title {
+	GLFWwindow* window;
+	int level;
+	int p1hp;
+	int p2hp;
+	int p1money;
+	int p2money;
+	void updateWindowTitle() {
+		// Updating window title with money
+		std::stringstream title_ss;
+		// Get hp of player 1 and player 2 
+		title_ss << "Level: " << level;
+		if (twoPlayer.inTwoPlayerMode) {
+			title_ss << " P1 Money: " << p1money << " Health: " << p1hp
+				<< " & P2 Money: " << p2money << " Health: " << p2hp;
+		}
+		else {
+			title_ss << " Money: " << p1money << " & Health P1 " << p1hp;
+		}
+		glfwSetWindowTitle(window, title_ss.str().c_str());
+	}
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
