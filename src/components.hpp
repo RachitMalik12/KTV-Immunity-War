@@ -118,7 +118,7 @@ struct EnemyGerm
 	float germBehaviourUpdateTime = 2000.f;
 	float next_germ_behaviour_calculation;
 	float mode;
-	float explosionCountDown = 0;
+	float explosionCountDown = 5;
 };
 
 
