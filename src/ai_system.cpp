@@ -18,12 +18,26 @@ void AISystem::stepEnemyHunter(float elapsed_ms) {
 		if (hunter.currentState == hunter.fleeingMode && hunter.isFleeing == false) {
 			registry.motions.get(hunterEntity).velocity = vec2(2.0f * hunterStatus.speed, 0);
 			hunter.isFleeing = true;
+			registry.renderRequests.remove(hunterEntity);
+			registry.renderRequests.insert(
+				hunterEntity,
+				{ TEXTURE_ASSET_ID::ENEMYHUNTERFLEE,
+					EFFECT_ASSET_ID::TEXTURED,
+					GEOMETRY_BUFFER_ID::SPRITE });
+			hunter.isAnimatingHurt = false;
 		}
 		else {
 			if (hunter.timeToUpdateAi) {
 				if (hunter.currentState == hunter.searchingMode) {
 					if (isEnemyInRangeOfThePlayers(hunterEntity)) {
 						hunter.currentState = hunter.huntingMode;
+						registry.renderRequests.remove(hunterEntity);
+						registry.renderRequests.insert(
+							hunterEntity,
+							{ TEXTURE_ASSET_ID::ENEMYHUNTERMAD,
+								EFFECT_ASSET_ID::TEXTURED,
+								GEOMETRY_BUFFER_ID::SPRITE });
+						hunter.isAnimatingHurt = false;
 					}
 					else {
 						setEnemyWonderingRandomly(hunterEntity);
@@ -41,6 +55,41 @@ void AISystem::stepEnemyHunter(float elapsed_ms) {
 					hunter.timeToUpdateAi = true;
 				}
 			}
+		}
+
+		resolveHunterAnimation(hunterEntity, hunterStatus, hunter);
+	}
+}
+
+void AISystem::resolveHunterAnimation(Entity hunterEntity, Enemy& hunterStatus, EnemyHunter& hunter) {
+	if (hunter.isAnimatingHurt && !hunterStatus.isInvin) {
+		if (hunter.currentState == hunter.searchingMode) {
+			registry.renderRequests.remove(hunterEntity);
+			registry.renderRequests.insert(
+				hunterEntity,
+				{ TEXTURE_ASSET_ID::ENEMYHUNTER,
+					EFFECT_ASSET_ID::TEXTURED,
+					GEOMETRY_BUFFER_ID::SPRITE });
+			hunter.isAnimatingHurt = false;
+		}
+		else if (hunter.currentState == hunter.huntingMode) {
+			registry.renderRequests.remove(hunterEntity);
+			registry.renderRequests.insert(
+				hunterEntity,
+				{ TEXTURE_ASSET_ID::ENEMYHUNTERMAD,
+					EFFECT_ASSET_ID::TEXTURED,
+					GEOMETRY_BUFFER_ID::SPRITE });
+			hunter.isAnimatingHurt = false;
+		}
+		else {
+			// hunter.fleeingMode
+			registry.renderRequests.remove(hunterEntity);
+			registry.renderRequests.insert(
+				hunterEntity,
+				{ TEXTURE_ASSET_ID::ENEMYHUNTERFLEE,
+					EFFECT_ASSET_ID::TEXTURED,
+					GEOMETRY_BUFFER_ID::SPRITE });
+			hunter.isAnimatingHurt = false;
 		}
 	}
 }
@@ -362,6 +411,7 @@ Entity AISystem::determineWhichPlayerToChase(Entity enemyEntity) {
 void AISystem::stepEnemySwarm(float elapsed_ms) {
 	for (Entity swarmEntity : registry.enemySwarms.entities) {
 		EnemySwarm& swarm = registry.enemySwarms.get(swarmEntity);
+		Enemy& swarmStatus = registry.enemies.get(swarmEntity);
 		if (swarm.timeToUpdateAi) {
 			swarmSpreadOut(swarmEntity);
 			swarmFireProjectileAtPlayer(swarmEntity);
@@ -373,6 +423,16 @@ void AISystem::stepEnemySwarm(float elapsed_ms) {
 			if (swarm.aiUpdateTimer < 0) {
 				swarm.timeToUpdateAi = true;
 			}
+		}
+
+		if (swarm.isAnimatingHurt && !swarmStatus.isInvin) {
+			registry.renderRequests.remove(swarmEntity);
+			registry.renderRequests.insert(
+				swarmEntity,
+				{ TEXTURE_ASSET_ID::ENEMYSWARM,
+					EFFECT_ASSET_ID::TEXTURED,
+					GEOMETRY_BUFFER_ID::SPRITE });
+			swarm.isAnimatingHurt = false;
 		}
 	}
 }
