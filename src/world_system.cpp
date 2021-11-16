@@ -817,6 +817,7 @@ void WorldSystem::levelCompletionCheck() {
 		// Only if we have levels left we need to change level 
 		level_number = nextLevel;
 		setupLevel(level_number);
+		updateTitleLevel(level_number);
 	}
 }
 

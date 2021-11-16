@@ -80,6 +80,7 @@ void PhysicsSystem::handle_collision() {
 				Player& playerCom = registry.players.get(entity_other);
 				PlayerStat& playerStatCom = registry.playerStats.get(playerCom.playerStat);
 				// TODO: Implement buying power up
+				// TODO: Update player money in title when buying power up
 			}
 		}
 
