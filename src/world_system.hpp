@@ -37,8 +37,6 @@ public:
 	// Should the game be over ?
 	bool is_over()const;
 
-	void WorldSystem::frame_counter(float elapsed_ms, Entity entity);
-
 	void setResolution();
 
 private:
@@ -91,8 +89,13 @@ private:
 	void levelCompletionCheck();
 	void animateKnight(float elapsed_ms_since_last_update);
 	void animateWizard(float elpased_ms_since_last_update);
-	void checkIfKnightIsMoving();
+	void checkIfPlayersAreMoving();
 	// misc
 	void playerTwoJoinOrLeave();
 	void updateTitle(int level);
+	// animation
+	void knightFrameSetter(float elapsed_ms, KnightAnimation& knightAnimation);
+	void wizardAttackFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation);
+	void wizardWalkFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation);
+	void wizardIdleFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation);
 }; 

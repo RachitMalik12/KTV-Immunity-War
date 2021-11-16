@@ -69,6 +69,7 @@ class RenderSystem {
 			textures_path("sword.png"),
 			textures_path("wizard_attack.png"),
 			textures_path("wizard_idle.png"),
+			textures_path("wizard_walk.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -78,7 +79,9 @@ class RenderSystem {
 		shader_path("line"),
 		shader_path("textured"),
 		shader_path("water"),
-		shader_path("knight")};
+		shader_path("knight"),
+		shader_path("wizard")
+	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;
@@ -118,6 +121,7 @@ private:
 	void drawToScreen();
 	void playerOneTransition(bool leaveShop);
 	void playerTwoTransition(bool leaveShop, vec2 player2Pos);
+	void textureEffectSetup(const GLuint program, Entity entity);
 
 	// Window handle
 	GLFWwindow* window;

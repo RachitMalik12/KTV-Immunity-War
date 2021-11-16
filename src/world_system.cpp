@@ -135,7 +135,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	resolveMouseControl();
 	stuckTimer(elapsed_ms_since_last_update, screen_width, screen_height);
 	invincibilityTimer(elapsed_ms_since_last_update);
-	checkIfKnightIsMoving();
+	checkIfPlayersAreMoving();
 	animateKnight(elapsed_ms_since_last_update);
 	animateWizard(elapsed_ms_since_last_update);
 	handlePlayerOneAttack(elapsed_ms_since_last_update);
@@ -215,19 +215,6 @@ void WorldSystem::createADoor(int screenWidth, int screenHeight) {
 // Should the game be over ?
 bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
-}
-
-void WorldSystem::frame_counter(float elapsed_ms, Entity entity)
-{
-	KnightAnimation& playerOneAnimation = registry.knightAnimations.get(entity);
-	playerOneAnimation.animationTimer += elapsed_ms;
-	if (playerOneAnimation.animationTimer > playerOneAnimation.animationSpeed) {
-		playerOneAnimation.xFrame = (playerOneAnimation.xFrame + 1) % playerOneAnimation.numOfFrames;
-		if (playerOneAnimation.xFrame == 0) {
-			playerOneAnimation.xFrame = playerOneAnimation.numOfFrames;
-		}
-		playerOneAnimation.animationTimer = 0;
-	}
 }
 
 // On key callback
@@ -538,8 +525,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// JA: adding flip left action to wizard 2
 	if (twoPlayer.inTwoPlayerMode) {
 		Motion& motion = registry.motions.get(player2_wizard);
 		float deltaX = mouse_position.x - motion.position.x;
@@ -566,6 +551,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 void WorldSystem::on_mouse_click(int button, int action, int mods) {
 	if (twoPlayer.inTwoPlayerMode) {
 		Player& wizard2_player = registry.players.get(player2_wizard);
+		WizardAnimation& animation = registry.wizardAnimations.get(player2_wizard);
 		if (!wizard2_player.isDead) {
 			if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_LEFT) {
 				if (registry.mouseDestinations.has(player2_wizard))
@@ -583,14 +569,47 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 				float scale = playerTwoStat.movementSpeed / h;
 				wizard2_motion.velocity = vec2(dx * scale, dy * scale);
 				registry.mouseDestinations.emplace(player2_wizard, vec2(x, y));
+				if (!animation.isAnimatingHurt && animation.animationMode != animation.attackMode) {
+					animation.animationMode = animation.walkMode;
+					animation.frameWalk = 0;
+					animation.walkTimer = 0;
+					registry.renderRequests.remove(player2_wizard);
+					registry.renderRequests.insert(
+						player2_wizard,
+						{ TEXTURE_ASSET_ID::WIZARDWALK,
+							EFFECT_ASSET_ID::WIZARD,
+							GEOMETRY_BUFFER_ID::SPRITE });
+				}
 			}
 
 			if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_RIGHT) {
 				wizard2_player.isFiringProjectile = true;
+				if (!animation.isAnimatingHurt) {
+					animation.animationMode = animation.attackMode;
+					animation.frameAttack = 0;
+					animation.attackTimer = 0;
+					registry.renderRequests.remove(player2_wizard);
+					registry.renderRequests.insert(
+						player2_wizard,
+						{ TEXTURE_ASSET_ID::WIZARDATTACK,
+							EFFECT_ASSET_ID::WIZARD,
+							GEOMETRY_BUFFER_ID::SPRITE });
+				}
 			}
 
 			if (action == GLFW_RELEASE && button == GLFW_MOUSE_BUTTON_RIGHT) {
 				wizard2_player.isFiringProjectile = false;
+				if (!animation.isAnimatingHurt && !animation.animationMode != animation.walkMode) {
+					animation.animationMode = animation.idleMode;
+					animation.frameIdle = 0;
+					animation.idleTimer = 0;
+					registry.renderRequests.remove(player2_wizard);
+					registry.renderRequests.insert(
+						player2_wizard,
+						{ TEXTURE_ASSET_ID::WIZARDIDLE,
+							EFFECT_ASSET_ID::WIZARD,
+							GEOMETRY_BUFFER_ID::SPRITE });
+				}
 			}
 		}
 	}
@@ -806,7 +825,7 @@ void WorldSystem::animateKnight(float elapsed_ms_since_last_update) {
 	KnightAnimation& animation = registry.knightAnimations.get(player_knight);
 	if (animation.moving) {
 		float prev_frame = animation.xFrame;
-		frame_counter(elapsed_ms_since_last_update, player_knight);
+		knightFrameSetter(elapsed_ms_since_last_update, animation);
 		registry.renderRequests.remove(player_knight);
 		registry.renderRequests.insert(
 			player_knight,
@@ -820,14 +839,28 @@ void WorldSystem::animateWizard(float elpased_ms_since_last_update) {
 	if (twoPlayer.inTwoPlayerMode) {
 		WizardAnimation& animation = registry.wizardAnimations.get(player2_wizard);
 		Player& player = registry.players.get(player2_wizard);
-		if (animation.isInvincible && !player.isInvin) {
+		if (animation.isAnimatingHurt && !player.isInvin) {
+			animation.animationMode = animation.idleMode;
 			registry.renderRequests.remove(player2_wizard);
 			registry.renderRequests.insert(
 				player2_wizard,
-				{ TEXTURE_ASSET_ID::WIZARD,
-					EFFECT_ASSET_ID::TEXTURED,
+				{ TEXTURE_ASSET_ID::WIZARDIDLE,
+					EFFECT_ASSET_ID::WIZARD,
 					GEOMETRY_BUFFER_ID::SPRITE });
-			animation.isInvincible = false;
+			animation.frameIdle = 0;
+			animation.idleTimer = 0;
+			animation.isAnimatingHurt = false;
+		}
+
+		if (animation.animationMode == animation.attackMode) {
+			wizardAttackFrameSetter(elpased_ms_since_last_update, animation);
+		}
+		else if (animation.animationMode == animation.walkMode) {
+			wizardWalkFrameSetter(elpased_ms_since_last_update, animation);
+		}
+		else {
+			// animation.animationMode = animation.idleMode
+   			wizardIdleFrameSetter(elpased_ms_since_last_update, animation);
 		}
 	}
 }
@@ -918,12 +951,27 @@ void WorldSystem::playerTwoJoinOrLeave() {
 	helpMode.inHelpMode = false;
 }
 
-void WorldSystem::checkIfKnightIsMoving() {
+void WorldSystem::checkIfPlayersAreMoving() {
 	Motion& knightMotion = registry.motions.get(player_knight);
-	KnightAnimation& playerOneAnimation = registry.knightAnimations.get(player_knight);
-	if (knightMotion.velocity.x == 0 && knightMotion.velocity.y == 0) {
-		playerOneAnimation.moving = false;
-		playerOneAnimation.xFrame = 0;
+	KnightAnimation& knightAnimation = registry.knightAnimations.get(player_knight);
+	if (knightAnimation.moving && knightMotion.velocity.x == 0 && knightMotion.velocity.y == 0) {
+		knightAnimation.moving = false;
+		knightAnimation.xFrame = 0;
+	}
+	if (twoPlayer.inTwoPlayerMode) {
+		Motion& wizardMotion = registry.motions.get(player2_wizard);
+		WizardAnimation& wizardAnimation = registry.wizardAnimations.get(player2_wizard);
+		if (wizardAnimation.animationMode == wizardAnimation.walkMode && wizardMotion.velocity.x == 0 && wizardMotion.velocity.y == 0) {
+			wizardAnimation.animationMode = wizardAnimation.idleMode;
+			wizardAnimation.frameIdle = 0;
+			wizardAnimation.idleTimer = 0;
+			registry.renderRequests.remove(player2_wizard);
+			registry.renderRequests.insert(
+				player2_wizard,
+				{ TEXTURE_ASSET_ID::WIZARDIDLE,
+					EFFECT_ASSET_ID::WIZARD,
+					GEOMETRY_BUFFER_ID::SPRITE });
+		}
 	}
 }
 
@@ -937,4 +985,41 @@ void WorldSystem::updateTitle(int level) {
 		title.p2money = registry.playerStats.get(registry.players.get(player2_wizard).playerStat).money;
 	}
 	title.updateWindowTitle();
+}
+
+void WorldSystem::knightFrameSetter(float elapsed_ms, KnightAnimation& knightAnimation)
+{
+	knightAnimation.animationTimer += elapsed_ms;
+	if (knightAnimation.animationTimer > knightAnimation.animationSpeed) {
+		knightAnimation.xFrame = (knightAnimation.xFrame + 1) % knightAnimation.numOfFrames;
+		if (knightAnimation.xFrame == 0) {
+			knightAnimation.xFrame = knightAnimation.numOfFrames;
+		}
+		knightAnimation.animationTimer = 0;
+	}
+}
+
+void WorldSystem::wizardAttackFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation) {
+	wizardAnimation.attackTimer += elapsed_ms;
+	if (wizardAnimation.attackTimer > wizardAnimation.attackAnimationSpeed) {
+		wizardAnimation.frameAttack = (wizardAnimation.frameAttack + 1) % wizardAnimation.numOfAttackFrames;
+		wizardAnimation.attackTimer = 0;
+	}
+
+}
+
+void WorldSystem::wizardWalkFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation) {
+	wizardAnimation.walkTimer += elapsed_ms;
+	if (wizardAnimation.walkTimer > wizardAnimation.walkAnimationSpeed) {
+		wizardAnimation.frameWalk = (wizardAnimation.frameWalk + 1) % wizardAnimation.numOfWalkFrames;
+		wizardAnimation.walkTimer = 0;
+	}
+}
+
+void WorldSystem::wizardIdleFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation) {
+	wizardAnimation.idleTimer += elapsed_ms;
+	if (wizardAnimation.idleTimer > wizardAnimation.idleAnimationSpeed) {
+		wizardAnimation.frameIdle = (wizardAnimation.frameIdle + 1) % wizardAnimation.numOfIdleFrames;
+		wizardAnimation.idleTimer = 0;
+	}
 }
