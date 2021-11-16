@@ -42,7 +42,7 @@ Pathfinding Enemy fix (FC):
 
 Adaptive Resolution fix (BZ): Changed from prompting user to select resolution to auto detecting user's primary monitor resolution and setting the game resolution accordingly.
 
-Knight Animation Sliding fix (BZ): Stopping knight's movement animatino was tied to releasing the directional movement button. Fixed so that it is tied to player's velocity being 0 instead.
+Knight Animation Sliding fix (BZ): Stopping knight's movement animation was tied to releasing the directional movement button. Fixed so that it is tied to player's velocity being 0 instead.
 
 Graphics Assets (JK):
 
