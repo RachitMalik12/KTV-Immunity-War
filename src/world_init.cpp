@@ -345,7 +345,7 @@ Entity createEnemyGerm(RenderSystem* renderer, vec2 position) {
 	motion.position = position;
 
 	motion.scale = vec2({ ENEMYGERM_BB_WIDTH * defaultResolution.scaling, ENEMYGERM_BB_HEIGHT * defaultResolution.scaling });
-
+	
 	registry.enemies.emplace(entity);
 	registry.enemyGerms.emplace(entity);
 	// Set enemy attributes
@@ -354,7 +354,8 @@ Entity createEnemyGerm(RenderSystem* renderer, vec2 position) {
 	enemyCom.hp = 5;
 	enemyCom.loot = 4;
 	enemyCom.speed = 200.f * defaultResolution.scaling;
-	auto& bacteria = registry.enemyGerms.get(entity);
+	auto& germ = registry.enemyGerms.get(entity);
+	germ.mode = (rand() % 10) + 1;
 
 	registry.renderRequests.insert(
 		entity,

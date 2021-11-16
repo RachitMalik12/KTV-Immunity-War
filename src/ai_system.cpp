@@ -179,23 +179,6 @@ private:
 	std::function<bool(Entity)> m_condition;
 };
 
-class TurnAround : public BTNode {
-private:
-	void init(Entity e) override {
-	}
-
-	BTState process(Entity e) override {
-		// modify world
-		auto& vel = registry.motions.get(e).velocity;
-		vel = vel;
-		std::cout << "turned \n";
-
-
-		// return progress
-		return BTState::Success;
-	}
-};
-
 class ChasePlayer1 : public BTNode {
 private:
 	void init(Entity e) override {
@@ -203,35 +186,40 @@ private:
 
 	BTState process(Entity e) override {
 		// modify world
-		std::cout << "chasing p1 \n";
-
 		float finX = registry.motions.get(registry.players.entities[0]).position.x;
 		float finY = registry.motions.get(registry.players.entities[0]).position.y;
-		float initX = registry.motions.get(e).position.y;
-		float initY = registry.motions.get(e).position.x;
+		float initX = registry.motions.get(e).position.x;
+		float initY = registry.motions.get(e).position.y;
+
 		vec2 diff = vec2(finX, finY) - vec2(initX, initY);
 		float angle = atan2(diff.y, diff.x);
-		registry.motions.get(e).velocity = vec2(sin(angle) * registry.enemies.get(e).speed, cos(angle) * registry.enemies.get(e).speed);
+		registry.motions.get(e).velocity = vec2(cos(angle) * registry.enemies.get(e).speed, sin(angle) * registry.enemies.get(e).speed);
 		// return progress
 		return BTState::Success;
 	}
 };
 
 
-class ChasePlayer2 : public BTNode {
+class Phase2 : public BTNode {
 private:
 	void init(Entity e) override {
 	}
 	BTState process(Entity e) override {
 		// modify world
-		std::cout << "chasing p2 \n";
-		float finX = registry.motions.get(registry.players.entities[1]).position.x;
-		float finY = registry.motions.get(registry.players.entities[1]).position.y;
-		float initX = registry.motions.get(e).position.y;
-		float initY = registry.motions.get(e).position.x;
-		vec2 diff = vec2(finX, finY) - vec2(initX, initY);
-		float angle = atan2(diff.y, diff.x);
-		registry.motions.get(e).velocity = vec2(cos(angle) * registry.enemies.get(e).speed, sin(angle) * registry.enemies.get(e).speed);
+		if (registry.enemyGerms.get(e).explosionCountDown == 0) {
+			registry.enemyGerms.get(e).explosionCountDown = 5;
+			if (registry.enemyGerms.get(e).mode <= 5) {
+				registry.motions.get(e).velocity.y = 0;
+				registry.motions.get(e).velocity.x = registry.enemies.get(e).speed * 4;
+			}
+			else {
+				registry.motions.get(e).velocity.x = 0;
+				registry.motions.get(e).velocity.y = registry.enemies.get(e).speed * 4;
+			}
+		}
+		else {
+			registry.enemyGerms.get(e).explosionCountDown--;
+		}
 		// return progress
 		return BTState::Success;
 	}
@@ -245,37 +233,26 @@ void AISystem::stepEnemyGerm(float elapsed_ms) {
 		if (germ.next_germ_behaviour_calculation < 0.f) {
 			std::cout << count++;
 			germ.next_germ_behaviour_calculation = germ.germBehaviourUpdateTime;
-			TurnAround turn;
-			std::function<bool(Entity)> condition = [](Entity e)
-			{
-				return (registry.players.get(registry.players.entities[0]).isFiringProjectile || registry.players.get(registry.players.entities[1]).isFiringProjectile);
-			};
-			BTIfCondition turn_around = BTIfCondition(&turn, condition);
 
 			ChasePlayer1 chasePlayer1;
 			std::function<bool(Entity)> conditionChasePlayer1 = [](Entity e)
 			{
-				std::cout << "player1 is alive: " << !registry.players.get(registry.players.entities[0]).isDead << "\n";
 				return !registry.players.get(registry.players.entities[0]).isDead;
 			};
 			BTIfCondition chaseP1 = BTIfCondition(&chasePlayer1, conditionChasePlayer1);
 
-			ChasePlayer2 chasePlayer2;
+			Phase2 phase2Germ;
 			std::function<bool(Entity)> conditionChasePlayer2 = [](Entity e)
 			{
-				std::cout << "player2 is chased: " << registry.players.get(registry.players.entities[0]).isDead << "\n";
 				return registry.players.get(registry.players.entities[0]).isDead;
 			};
 
-			BTIfCondition chaseP2 = BTIfCondition(&chasePlayer2, conditionChasePlayer2);
+			BTIfCondition chaseP2 = BTIfCondition(&phase2Germ, conditionChasePlayer2);
 			BTRunPair root = BTRunPair(&chaseP1, &chaseP2);
-			BTRunPair root_and_turn = BTRunPair(&root, &turn_around);
-			root_and_turn.init(germEntity);
+			root.init(germEntity);
 
 			for (int i = 0; i < 2; i++) {
-				std::cout << "step " << i << '\n';
-				BTState state = root_and_turn.process(germEntity);
-
+				BTState state = root.process(germEntity);
 				if (state != BTState::Running) {
 					break;
 				}
