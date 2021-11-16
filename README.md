@@ -32,6 +32,8 @@ Memory and Performance profiling (BS): Using built-in profiling tools in Visual 
 
 Updating Window Title Improvement (BS): One of the improvements made was to only update the window title when necessary (Level switch, changes to player HP and money). Improvement described in the report mentioned above. 
 
+EnemyChase memory and performance improvement (LT): 
+
 Bug and feature fixes: 
 
 Pathfinding enemy fix (FC):
