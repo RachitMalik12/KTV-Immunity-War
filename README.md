@@ -48,7 +48,7 @@ Graphics Assets (JK):
 
 Reports Folder:
 
-BehaviourTree Enemy (FC): Added an explanation for the implementation of behaviour tree enemy and the BTNodes for future expansion of these functions.
+-BehaviourTree Enemy (FC): Added an explanation for the implementation of behaviour tree enemy and the BTNodes for future expansion of these functions.
 
 Revised Project Proposal:
 
