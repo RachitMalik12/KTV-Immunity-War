@@ -105,7 +105,6 @@ enum class BTState {
 class BTNode {
 public:
 	virtual void init(Entity e) {};
-
 	virtual BTState process(Entity e) = 0;
 };
 
@@ -155,6 +154,8 @@ public:
 };
 
 // A general decorator with lambda condition
+// TAKES IN BTNode and CONDITION.
+// If condition passes, it will run the child process. If not, finish by returning "success" and do not run child process.
 class BTIfCondition : public BTNode
 {
 public:
@@ -178,7 +179,9 @@ private:
 	std::function<bool(Entity)> m_condition;
 };
 
-class ChasePlayer1 : public BTNode {
+
+// LEAF NODE - has a prrocess that will be run if this node is met
+class ChasePlayer : public BTNode {
 private:
 	void init(Entity e) override {
 	}
@@ -187,6 +190,10 @@ private:
 		// modify world
 		float finX = registry.motions.get(registry.players.entities[0]).position.x;
 		float finY = registry.motions.get(registry.players.entities[0]).position.y;
+		if (registry.players.entities.size() > 1 && registry.enemyGerms.get(e).mode <= registry.enemyGerms.get(e).playerChaseThreshold) {
+			finX = registry.motions.get(registry.players.entities[1]).position.x;
+			finY = registry.motions.get(registry.players.entities[1]).position.y;
+		}
 		float initX = registry.motions.get(e).position.x;
 		float initY = registry.motions.get(e).position.y;
 
@@ -198,22 +205,24 @@ private:
 	}
 };
 
-
-class Phase2 : public BTNode {
+// LEAF NODE - has a prrocess that will be run if this node is met
+class Explode : public BTNode {
 private:
 	void init(Entity e) override {
 	}
 	BTState process(Entity e) override {
 		// modify world
 		if (registry.enemyGerms.get(e).explosionCountDown == 0) {
-			registry.enemyGerms.get(e).explosionCountDown = 5;
-			if (registry.enemyGerms.get(e).mode <= 5) {
-				registry.motions.get(e).velocity.y = 0;
-				registry.motions.get(e).velocity.x = registry.enemies.get(e).speed * 4;
+			registry.enemyGerms.get(e).explosionCountDown = registry.enemyGerms.get(e).explosionCountInit;
+			float randomizedSpeedX = (rand() % 6) - 5; // randomized number for randomized velocity multiplier
+			float randomizedSpeedY = (rand() % 6) - 5; // randomized number for randomized velocity multiplier
+			if (registry.enemyGerms.get(e).mode <= registry.enemyGerms.get(e).playerChaseThreshold) {
+				registry.motions.get(e).velocity.y = registry.enemies.get(e).speed * randomizedSpeedY;
+				registry.motions.get(e).velocity.x = registry.enemies.get(e).speed * randomizedSpeedX;
 			}
 			else {
-				registry.motions.get(e).velocity.x = 0;
-				registry.motions.get(e).velocity.y = registry.enemies.get(e).speed * 4;
+				registry.motions.get(e).velocity.x = registry.enemies.get(e).speed * randomizedSpeedX;
+				registry.motions.get(e).velocity.y = registry.enemies.get(e).speed * randomizedSpeedY;
 			}
 		}
 		else {
@@ -232,24 +241,47 @@ void AISystem::stepEnemyGerm(float elapsed_ms) {
 		if (germ.next_germ_behaviour_calculation < 0.f) {
 			germ.next_germ_behaviour_calculation = germ.germBehaviourUpdateTime;
 
-			ChasePlayer1 chasePlayer1;
-			std::function<bool(Entity)> conditionChasePlayer1 = [](Entity e)
-			{
-				return !registry.players.get(registry.players.entities[0]).isDead;
-			};
-			BTIfCondition chaseP1 = BTIfCondition(&chasePlayer1, conditionChasePlayer1);
+			// BTNode (leaf node, a process that will be run if reached)
+			ChasePlayer chasePlayer;
 
-			Phase2 phase2Germ;
-			std::function<bool(Entity)> conditionChasePlayer2 = [](Entity e)
+			// creating condition for chasing player, if player(s) is/are alive
+			std::function<bool(Entity)> conditionChasePlayer = [](Entity e)
 			{
-				return registry.players.get(registry.players.entities[0]).isDead;
+				if (registry.players.entities.size() > 1) {
+					return !registry.players.get(registry.players.entities[0]).isDead && !registry.players.get(registry.players.entities[1]).isDead;
+				}
+				else {
+					return !registry.players.get(registry.players.entities[0]).isDead;
+				}
 			};
 
-			BTIfCondition chaseP2 = BTIfCondition(&phase2Germ, conditionChasePlayer2);
-			BTRunPair root = BTRunPair(&chaseP1, &chaseP2);
+			// BTNode (node that is a condition, and if condition is met, will run the child node that is passed in)
+			BTIfCondition chase = BTIfCondition(&chasePlayer, conditionChasePlayer);
+			
+			// BTNode (leaf node, a process that will be run if reached)
+			Explode explode;
+
+			// creating condition for exploding, if one player has died
+			std::function<bool(Entity)> conditionExplosion = [](Entity e)
+			{
+				if (registry.players.entities.size() > 1) {
+					return registry.players.get(registry.players.entities[0]).isDead || registry.players.get(registry.players.entities[1]).isDead;
+				}
+				else {
+					return registry.players.get(registry.players.entities[0]).isDead;
+				}
+			};
+
+			// BTNode (node that is a condition, and if condition is met, will run the child node that is passed in)
+			BTIfCondition explosion = BTIfCondition(&explode, conditionExplosion);
+
+			// run the two BTNodes 
+			BTRunPair root = BTRunPair(&chase, &explosion);
 			root.init(germEntity);
 
+			// iterate through all the different steps
 			for (int i = 0; i < 2; i++) {
+				// run processes (0 to 1 because there is 2 steps (BTIFCondition for chase and for explode)
 				BTState state = root.process(germEntity);
 				if (state != BTState::Running) {
 					break;

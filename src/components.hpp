@@ -114,10 +114,12 @@ struct EnemyBacteria
 // Behaviour Tree Enemy
 struct EnemyGerm
 {
-	float germBehaviourUpdateTime = 2000.f;
+	float germBehaviourUpdateTime = 1500.f;
 	float next_germ_behaviour_calculation;
 	float mode;
-	float explosionCountDown = 5;
+	float explosionCountDown = 0;
+	float explosionCountInit = 5;
+	float playerChaseThreshold = 5;
 };
 
 
