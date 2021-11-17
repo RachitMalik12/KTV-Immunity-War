@@ -179,6 +179,8 @@ extern TwoPlayer twoPlayer;
 
 struct HelpMode {
 	bool inHelpMode = false;
+	bool menuHelp = false;
+	int clicked = 0;
 };
 extern HelpMode helpMode;
 
@@ -192,6 +194,20 @@ struct StoryMode {
 	bool firstLoad = true;
 };
 extern StoryMode storyMode;
+
+struct MenuMode {
+	// 1 = first, main menu // 2 = other in game menu
+	bool inMenuMode = true;
+	int menuType = 1;
+	int onLoad = false;
+	int on1P = false;
+	int on2P = false;
+	int onHelp = false;
+	int onJoinLeave = false;
+	int onSave = false;
+	int onRestart = false;
+};
+extern MenuMode menuMode;
 
 struct DefaultResolution {
 	int width = 1200;
@@ -387,7 +403,8 @@ enum class TEXTURE_ASSET_ID {
 	WIZARDIDLE = WIZARDATTACK + 1,
 	WIZARDWALK = WIZARDIDLE + 1,
 	GERM = WIZARDWALK + 1,
-	TEXTURE_COUNT = GERM + 1
+	MENU = GERM + 1,
+	TEXTURE_COUNT = MENU + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

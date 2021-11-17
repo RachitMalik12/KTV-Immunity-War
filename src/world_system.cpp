@@ -142,6 +142,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	handlePlayerTwoProjectile(elapsed_ms_since_last_update);
 	deathHandling();
 
+
 	return true;
 }
 
@@ -223,7 +224,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	glfwGetWindowSize(window, &w, &h);
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
-		storyMode.firstLoad = true;
         restart_game();
 	}
 
@@ -462,70 +462,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// storymode
 	if (action == GLFW_RELEASE && key == GLFW_KEY_SPACE && storyMode.firstLoad) {
-		Entity ent;
-		if (storyMode.inStoryMode ==6) {
-			storyMode.inStoryMode = 0;
-			for (Entity entity : registry.storyModes.entities) {
-				registry.remove_all_components_of(entity);
-			}
-			storyMode.firstLoad = false;
-		}
-		else if (storyMode.inStoryMode == 0){
-			storyMode.inStoryMode = 1;
-			createStory();
-		}
-		else if (storyMode.inStoryMode == 1) {
-			storyMode.inStoryMode = 2;
-			ent = registry.storyModes.entities[0];
-			registry.renderRequests.remove(ent);
-			registry.renderRequests.insert(
-				ent,
-				{ TEXTURE_ASSET_ID::FRAME2,
-					EFFECT_ASSET_ID::TEXTURED,
-					GEOMETRY_BUFFER_ID::SPRITE }, false);
-			
-		}
-		else if (storyMode.inStoryMode == 2) {
-			storyMode.inStoryMode = 3;
-			ent = registry.storyModes.entities[0];
-			registry.renderRequests.remove(ent);
-			registry.renderRequests.insert(
-				ent,
-				{ TEXTURE_ASSET_ID::FRAME3,
-					EFFECT_ASSET_ID::TEXTURED,
-					GEOMETRY_BUFFER_ID::SPRITE }, false);
-		}
-		else if (storyMode.inStoryMode == 3) {
-			storyMode.inStoryMode = 4;
-			ent = registry.storyModes.entities[0];
-			registry.renderRequests.remove(ent);
-			registry.renderRequests.insert(
-				ent,
-				{ TEXTURE_ASSET_ID::FRAME4,
-					EFFECT_ASSET_ID::TEXTURED,
-					GEOMETRY_BUFFER_ID::SPRITE }, false);
-		}
-		else if (storyMode.inStoryMode == 4) {
-			storyMode.inStoryMode = 5;
-			ent = registry.storyModes.entities[0];
-			registry.renderRequests.remove(ent);
-			registry.renderRequests.insert(
-				ent,
-				{ TEXTURE_ASSET_ID::FRAME5,
-					EFFECT_ASSET_ID::TEXTURED,
-					GEOMETRY_BUFFER_ID::SPRITE }, false);
-		}
-		else if (storyMode.inStoryMode == 5) {
-			storyMode.inStoryMode = 6;
-			ent = registry.storyModes.entities[0];
-			registry.renderRequests.remove(ent);
-			registry.renderRequests.insert(
-				ent,
-				{ TEXTURE_ASSET_ID::FRAME6,
-					EFFECT_ASSET_ID::TEXTURED,
-					GEOMETRY_BUFFER_ID::SPRITE }, false);
-
-		}
+		storyClicker();
+		
 	}
 }
 
@@ -551,10 +489,19 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 			}
 		}
 	}
+	// menu is main menu
+	if (menuMode.menuType == 1) {
+		createTitleScreen(mouse_position);
+	}
+
+	// menu is in game
+	if (menuMode.menuType == 2) {
+
+	}
 }
 
 void WorldSystem::on_mouse_click(int button, int action, int mods) {
-	if (twoPlayer.inTwoPlayerMode) {
+	if (twoPlayer.inTwoPlayerMode && storyMode.inStoryMode==0) {
 		Player& wizard2_player = registry.players.get(player2_wizard);
 		WizardAnimation& animation = registry.wizardAnimations.get(player2_wizard);
 		if (!wizard2_player.isDead) {
@@ -617,6 +564,201 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 				}
 			}
 		}
+	}
+	bool clicked_once = false;
+	bool left_clicked = (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_LEFT);
+	// menu is in-game menu
+	if (helpMode.clicked == 1) {
+		helpMode.clicked = 2;
+		
+	}
+	else if (helpMode.clicked == 2) {
+		menuMode.menuType = 1;
+		createMenu();
+		helpMode.inHelpMode = false;
+		for (Entity entity : registry.helpModes.entities) {
+			registry.remove_all_components_of(entity);
+		}
+		helpMode.clicked = 0;
+	}
+
+	// menu is main menu
+	if (menuMode.menuType == 1) {
+		if (left_clicked) {
+			menuLogic(1);
+		}
+	}
+	// menu is in game
+	else if (menuMode.menuType == 2) {
+
+	}
+	// story click to progress
+	else if (storyMode.firstLoad && left_clicked&& menuMode.menuType==0) {
+		storyClicker();
+	}
+
+	
+	
+	
+}
+
+void WorldSystem::storyClicker() {
+	Entity ent;
+	if (storyMode.inStoryMode == 6) {
+		storyMode.inStoryMode = 0;
+		for (Entity entity : registry.storyModes.entities) {
+			registry.remove_all_components_of(entity);
+		}
+		storyMode.firstLoad = false;
+	}
+	else if (storyMode.inStoryMode == 1) {
+		storyMode.inStoryMode = 2;
+		ent = registry.storyModes.entities[0];
+		registry.renderRequests.remove(ent);
+		registry.renderRequests.insert(
+			ent,
+			{ TEXTURE_ASSET_ID::FRAME2,
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE }, false);
+
+	}
+	else if (storyMode.inStoryMode == 2) {
+		storyMode.inStoryMode = 3;
+		ent = registry.storyModes.entities[0];
+		registry.renderRequests.remove(ent);
+		registry.renderRequests.insert(
+			ent,
+			{ TEXTURE_ASSET_ID::FRAME3,
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE }, false);
+	}
+	else if (storyMode.inStoryMode == 3) {
+		storyMode.inStoryMode = 4;
+		ent = registry.storyModes.entities[0];
+		registry.renderRequests.remove(ent);
+		registry.renderRequests.insert(
+			ent,
+			{ TEXTURE_ASSET_ID::FRAME4,
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE }, false);
+	}
+	else if (storyMode.inStoryMode == 4) {
+		storyMode.inStoryMode = 5;
+		ent = registry.storyModes.entities[0];
+		registry.renderRequests.remove(ent);
+		registry.renderRequests.insert(
+			ent,
+			{ TEXTURE_ASSET_ID::FRAME5,
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE }, false);
+	}
+	else if (storyMode.inStoryMode == 5) {
+		storyMode.inStoryMode = 6;
+		ent = registry.storyModes.entities[0];
+		registry.renderRequests.remove(ent);
+		registry.renderRequests.insert(
+			ent,
+			{ TEXTURE_ASSET_ID::FRAME6,
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE }, false);
+
+	}
+}
+
+void WorldSystem::menuLogic(int menuType) {
+
+	if (menuType == 1) {
+		// 1P 
+		if (menuMode.on1P) {
+			menuMode.menuType = 0;
+			for (Entity entity : registry.menuModes.entities) {
+				registry.remove_all_components_of(entity);
+			}
+			if (storyMode.inStoryMode == 0) {
+				storyMode.inStoryMode = 1;
+				createStory();
+			}
+			
+		}
+		// 2P
+		if (menuMode.on2P) {
+
+			menuMode.menuType = 0;
+			for (Entity entity : registry.menuModes.entities) {
+				registry.remove_all_components_of(entity);
+			}
+			// insert code here
+			playerTwoJoinOrLeave();
+			if (storyMode.inStoryMode == 0) {
+				storyMode.inStoryMode = 1;
+				createStory();
+			}
+		}
+		// Load
+		if (menuMode.onLoad) {
+
+			menuMode.menuType = 0;
+			for (Entity entity : registry.menuModes.entities) {
+				registry.remove_all_components_of(entity);
+			}
+
+			// No story on Load
+			storyMode.firstLoad = false;
+
+			// Load the game from last save
+			loadGame();
+
+
+		}
+		// Help
+		if (menuMode.onHelp) {
+			std::cout << "help clicked!";
+			menuMode.menuType = 0;
+			createHelp();
+			helpMode.inHelpMode = true;
+			helpMode.menuHelp = true;
+			helpMode.clicked = 1;
+			menuMode.onHelp = false;
+
+		}
+	}
+	
+
+}
+
+void WorldSystem::loadGame() {
+	dataManager.setPlayerModeFromFile();
+	int player_mode_file = dataManager.getPlayerMode();
+	if (player_mode_file == 1) {
+		twoPlayer.inTwoPlayerMode = false;
+	}
+	else {
+		twoPlayer.inTwoPlayerMode = true;
+	}
+	setPlayersStats();
+
+	if (twoPlayer.inTwoPlayerMode) {
+		dataManager.setPlayerStatEntity(player_stat, player2_stat);
+	}
+	else {
+		dataManager.setPlayerStatEntity(player_stat);
+	}
+	bool loadFile = dataManager.loadFile();
+	if (!loadFile) {
+		// If load failed due to file missing,load level 1 with 1 player. 
+		twoPlayer.inTwoPlayerMode = false;
+		setupLevel(1);
+	}
+	else {
+		level_number = dataManager.getLevelNumber();
+		int playerModeFile = dataManager.getPlayerMode();
+		if (playerModeFile == 1) {
+			twoPlayer.inTwoPlayerMode = false;
+		}
+		else {
+			twoPlayer.inTwoPlayerMode = true;
+		}
+		setupLevel(level_number);
 	}
 }
 
@@ -1026,5 +1168,88 @@ void WorldSystem::wizardIdleFrameSetter(float elapsed_ms, WizardAnimation& wizar
 	if (wizardAnimation.idleTimer > wizardAnimation.idleMsPerFrame) {
 		wizardAnimation.frameIdle = (wizardAnimation.frameIdle + 1) % wizardAnimation.numOfIdleFrames;
 		wizardAnimation.idleTimer = 0;
+	}
+}
+
+
+Entity WorldSystem::createMenu() {
+	Entity entity = Entity();
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::MENU,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	// Create motion
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = { defaultResolution.width / 2, defaultResolution.height / 2};
+	motion.scale = vec2({ STORY_BB_WIDTH * defaultResolution.scaling, STORY_BB_HEIGHT * defaultResolution.scaling });
+
+	registry.menuModes.emplace(entity);
+
+	return entity;
+}
+
+void WorldSystem::createTitleScreen(vec2 mouse_position) {
+	for (Entity entity : registry.menuModes.entities) {
+		Motion &motion = registry.motions.get(entity);
+		float xnum = motion.position.x + TL_BUTTONPOS.x * defaultResolution.scaling;
+		float ynum = motion.position.y + TL_BUTTONPOS.y * defaultResolution.scaling;
+		vec2 xpos = { xnum - BUTTON_BB_WIDTH * defaultResolution.scaling , xnum };
+		vec2 ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
+		// 1 player
+		if (mouse_position.x > xpos[0] && mouse_position.x < xpos[1]) {
+			if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
+				menuMode.onLoad = false;
+				menuMode.onHelp = false;
+				menuMode.on2P = false;
+				menuMode.on1P = true;
+			}
+			else {
+				menuMode.onLoad = false;
+				menuMode.onHelp = false;
+				menuMode.on1P = false;
+				ynum = motion.position.y + BL_BUTTONPOS.y * defaultResolution.scaling;
+				ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
+				if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
+					menuMode.on2P = true;
+				}
+			}
+		}
+		else {
+			xnum = motion.position.x + TR_BUTTONPOS.x * defaultResolution.scaling;
+			ynum = motion.position.y + TR_BUTTONPOS.y * defaultResolution.scaling;
+			xpos = { xnum - BUTTON_BB_WIDTH * defaultResolution.scaling , xnum };
+			ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
+			// Load
+			if (mouse_position.x > xpos[0] && mouse_position.x < xpos[1]) {
+				if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
+					menuMode.on2P = false;
+					menuMode.onHelp = false;
+					menuMode.on1P = false;
+					menuMode.onLoad = true;
+				}
+				else {
+					// Help
+					ynum = motion.position.y + BR_BUTTONPOS.y * defaultResolution.scaling;
+					ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
+					if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
+						menuMode.on2P = false;
+						menuMode.onLoad = false;
+						menuMode.on1P = false;
+						menuMode.onHelp = true;
+					}
+				}
+			}
+			else {
+				menuMode.onLoad = false;
+				menuMode.onHelp = false;
+				menuMode.on1P = false;
+				menuMode.on2P = false;
+			}
+		}
 	}
 }

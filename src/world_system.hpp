@@ -39,6 +39,9 @@ public:
 
 	void setResolution();
 
+	// menu
+	Entity createMenu();
+
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
@@ -98,4 +101,11 @@ private:
 	void wizardAttackFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation);
 	void wizardWalkFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation);
 	void wizardIdleFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation);
+	// menu
+	void menuLogic(int menuType);
+	void createTitleScreen(vec2 mouse_position);
+	//load
+	void loadGame();
+	// story
+	void storyClicker();
 }; 

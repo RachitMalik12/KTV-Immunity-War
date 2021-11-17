@@ -46,6 +46,8 @@ public:
 	ComponentContainer<StoryMode> storyModes;
 	ComponentContainer<Sword> swords;
 	ComponentContainer<Title> titles;
+	ComponentContainer<MenuMode> menuModes;
+
 
 
 	// constructor that adds all containers for looping over them
@@ -87,6 +89,7 @@ public:
 		registry_list.push_back(&storyModes);
 		registry_list.push_back(&swords);
 		registry_list.push_back(&titles);
+		registry_list.push_back(&menuModes);
 	}
 
 	void clear_all_components() {
