@@ -103,6 +103,7 @@ private:
 	void wizardIdleFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation);
 	// menu
 	void menuLogic(int menuType);
+	void createTitleScreen(vec2 mouse_position);
 	//load
 	void loadGame();
 	// story
