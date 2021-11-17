@@ -232,13 +232,7 @@ void RenderSystem::drawToScreen()
 
 	// get game over information
 	GLint game_over_uloc = glGetUniformLocation(water_program, "game_over_factor");
-	if (!(game_over_uloc == 0 || game_over_uloc == 1)) {
-		game_over_uloc = 0;
-	}
-	assert(game_over_uloc >= 0);
 
-	// !!! TODO A1: set the game_over shader variable using glUniform1i,
-	// similar to the glUniform1f call below. The 1f or 1i specified the type, here a single int.
 	//if (screen.game_over_factor == 0 || screen.game_over_factor == 1) {
 	glUniform1i(game_over_uloc, screen.game_over_factor);
 	//}
