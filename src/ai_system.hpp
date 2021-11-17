@@ -34,7 +34,9 @@ private:
 	void setEnemyChasingThePlayer(Entity enemyEntity);
 	Entity determineWhichPlayerToChase(Entity hunterEntity);
 	void stepEnemyHunter(float elapsed_ms);
+	void resolveHunterAnimation(Entity hunterEntity, Enemy& hunterStatus, EnemyHunter& hunter);
 	void stepEnemyChase(float elapsed_ms);
+	void stepEnemyGerm(float elapsed_ms);
 	void stepEnemyBacteria(float elapsed_ms, const float width, const float height);
 	void stepEnemySwarm(float elapsed_ms);
 	bool handlePath(float width, float height, Entity& bacteriaEntity);

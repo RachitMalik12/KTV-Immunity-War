@@ -54,7 +54,7 @@ struct Enemy
 	int damage;
 	int loot;
 	float speed;
-	float invinFrame = 1000.f;
+	float invinFrame = 500.f;
 	float invinTimerInMs = 0;
 	bool isInvin = false;
 };
@@ -98,6 +98,7 @@ struct EnemyHunter
 	bool timeToUpdateAi = true;
 	bool isFleeing = false;
 	float huntingRange = 500.f;
+	bool isAnimatingHurt = false;
 };
 
 // BFS Enemy
@@ -118,6 +119,19 @@ struct EnemyBacteria
 	float counter_ms = 800;
 };
 
+// Behaviour Tree Enemy
+struct EnemyGerm
+{
+	float germBehaviourUpdateTime = 1500.f;
+	float next_germ_behaviour_calculation;
+	float mode;
+	float explosionCountDown = 0;
+	float explosionCountInit = 5;
+	float playerChaseThreshold = 5;
+};
+
+
+
 struct EnemySwarm {
 	float aiUpdateTime = 3000.f;
 	// Wait 1000ms before update AI for the first time so it doesn't fire at the player right after level loads
@@ -125,6 +139,7 @@ struct EnemySwarm {
 	bool timeToUpdateAi = false;
 	float projectileSpeed = 200.f;
 	float spreadOutDistance = 200.f;
+	bool isAnimatingHurt = false;
 };
 
 struct Powerup 
@@ -286,13 +301,33 @@ struct Level {
 	vec2 player2_position = vec2(50, 200);
 };
 
-struct Animation {
+struct KnightAnimation {
 	int xFrame = 0;
 	int yFrame = 0;
-	bool pressed = 0;
-	int numOfFrames = 0;
-	int animationSpeed = 100;
-	int animationTimer = 0;
+	bool moving = 0;
+	int numOfFrames = 8;
+	float msPerFrame = 100.f;
+	float animationTimer = 0.f;
+};
+
+struct WizardAnimation {
+	int frameIdle = 0;
+	int frameWalk = 0;
+	int frameAttack = 0;
+	int numOfIdleFrames = 3;
+	int numOfWalkFrames = 2;
+	int numOfAttackFrames = 3;
+	float idleMsPerFrame = 200.f;
+	float idleTimer = 0.f;
+	float walkMsPerFrame = 150.f;
+	float walkTimer = 0.f;
+	float attackMsPerFrame = 100.f;
+	float attackTimer = 0.f;
+	int animationMode = 0;
+	int idleMode = 0;
+	int walkMode = 1;
+	int attackMode = 2;
+	bool isAnimatingHurt = false;
 };
 
 struct Sword {
@@ -304,7 +339,29 @@ struct Sword {
 	mat3 rotation;
 };
 
-// background of the game
+struct Title {
+	GLFWwindow* window;
+	int level;
+	int p1hp;
+	int p2hp;
+	int p1money;
+	int p2money;
+	void updateWindowTitle() {
+		// Updating window title with money
+		std::stringstream title_ss;
+		// Get hp of player 1 and player 2 
+		title_ss << "Level: " << level;
+		if (twoPlayer.inTwoPlayerMode) {
+			title_ss << " P1 Money: " << p1money << " Health: " << p1hp
+				<< " & P2 Money: " << p2money << " Health: " << p2hp;
+		}
+		else {
+			title_ss << " Money: " << p1money << " & Health P1 " << p1hp;
+		}
+		glfwSetWindowTitle(window, title_ss.str().c_str());
+	}
+};
+
 struct Background {
 
 };
@@ -339,10 +396,14 @@ enum class TEXTURE_ASSET_ID {
 	TREE_YELLOW = TREE_ORANGE + 1,
 	WATERBALL = TREE_YELLOW + 1,
 	WIZARD = WATERBALL + 1,
-	ENEMY = WIZARD + 1,
+	WIZARDHURT = WIZARD + 1,
+	ENEMY = WIZARDHURT + 1,
 	ENEMYRUN = ENEMY + 1,
 	ENEMYHUNTER = ENEMYRUN + 1,
-	HELPPANEL = ENEMYHUNTER + 1,
+	ENEMYHUNTERMAD = ENEMYHUNTER + 1,
+	ENEMYHUNTERHURT = ENEMYHUNTERMAD + 1,
+	ENEMYHUNTERFLEE = ENEMYHUNTERHURT + 1,
+	HELPPANEL = ENEMYHUNTERFLEE + 1,
 	ENEMYBACTERIA = HELPPANEL + 1,
 	ENEMYCHASE = ENEMYBACTERIA + 1,
 	KNIGHT = ENEMYCHASE +1,
@@ -353,9 +414,14 @@ enum class TEXTURE_ASSET_ID {
 	FRAME5 = FRAME4 +1,
 	FRAME6 = FRAME5 +1,
 	ENEMYSWARM = FRAME6 + 1,
-	FIREBALL = ENEMYSWARM + 1,
+	ENEMYSWARMHURT = ENEMYSWARM + 1,
+	FIREBALL = ENEMYSWARMHURT + 1,
 	SWORD = FIREBALL + 1,
-	BACKGROUND = SWORD + 1,
+	WIZARDATTACK = SWORD + 1,
+	WIZARDIDLE = WIZARDATTACK + 1,
+	WIZARDWALK = WIZARDIDLE + 1,
+	GERM = WIZARDWALK + 1,
+	BACKGROUND = GERM + 1,
 	TEXTURE_COUNT = BACKGROUND + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
@@ -366,7 +432,8 @@ enum class EFFECT_ASSET_ID {
 	TEXTURED = LINE + 1,
 	WATER = TEXTURED + 1,
 	KNIGHT = WATER + 1,
-	ENEMYRUN = KNIGHT + 1,
+	WIZARD = KNIGHT + 1,
+	ENEMYRUN = WIZARD + 1,
 	EFFECT_COUNT = ENEMYRUN + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
@@ -385,7 +452,8 @@ enum class GEOMETRY_BUFFER_ID {
 	TREE = WATERBALL + 1,
 	BACTERIA = TREE + 1,
 	SWORD = BACTERIA + 1,
-	GEOMETRY_COUNT = SWORD + 1
+	GERM = SWORD + 1,
+	GEOMETRY_COUNT = GERM + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 

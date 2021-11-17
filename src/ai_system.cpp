@@ -6,6 +6,7 @@ void AISystem::step(float elapsed_ms, float width, float height) {
 	stepEnemyBacteria(elapsed_ms, width, height);
 	stepEnemyChase(elapsed_ms);
 	stepEnemySwarm(elapsed_ms);
+	stepEnemyGerm(elapsed_ms);
 }
 
 void AISystem::stepEnemyHunter(float elapsed_ms) {
@@ -18,12 +19,26 @@ void AISystem::stepEnemyHunter(float elapsed_ms) {
 		if (hunter.currentState == hunter.fleeingMode && hunter.isFleeing == false) {
 			registry.motions.get(hunterEntity).velocity = vec2(2.0f * hunterStatus.speed, 0);
 			hunter.isFleeing = true;
+			registry.renderRequests.remove(hunterEntity);
+			registry.renderRequests.insert(
+				hunterEntity,
+				{ TEXTURE_ASSET_ID::ENEMYHUNTERFLEE,
+					EFFECT_ASSET_ID::TEXTURED,
+					GEOMETRY_BUFFER_ID::SPRITE });
+			hunter.isAnimatingHurt = false;
 		}
 		else {
 			if (hunter.timeToUpdateAi) {
 				if (hunter.currentState == hunter.searchingMode) {
 					if (isEnemyInRangeOfThePlayers(hunterEntity)) {
 						hunter.currentState = hunter.huntingMode;
+						registry.renderRequests.remove(hunterEntity);
+						registry.renderRequests.insert(
+							hunterEntity,
+							{ TEXTURE_ASSET_ID::ENEMYHUNTERMAD,
+								EFFECT_ASSET_ID::TEXTURED,
+								GEOMETRY_BUFFER_ID::SPRITE });
+						hunter.isAnimatingHurt = false;
 					}
 					else {
 						setEnemyWonderingRandomly(hunterEntity);
@@ -39,6 +54,237 @@ void AISystem::stepEnemyHunter(float elapsed_ms) {
 				hunter.aiUpdateTimer -= elapsed_ms;
 				if (hunter.aiUpdateTimer < 0) {
 					hunter.timeToUpdateAi = true;
+				}
+			}
+		}
+
+		resolveHunterAnimation(hunterEntity, hunterStatus, hunter);
+	}
+}
+
+void AISystem::resolveHunterAnimation(Entity hunterEntity, Enemy& hunterStatus, EnemyHunter& hunter) {
+	if (hunter.isAnimatingHurt && !hunterStatus.isInvin) {
+		if (hunter.currentState == hunter.searchingMode) {
+			registry.renderRequests.remove(hunterEntity);
+			registry.renderRequests.insert(
+				hunterEntity,
+				{ TEXTURE_ASSET_ID::ENEMYHUNTER,
+					EFFECT_ASSET_ID::TEXTURED,
+					GEOMETRY_BUFFER_ID::SPRITE });
+			hunter.isAnimatingHurt = false;
+		}
+		else if (hunter.currentState == hunter.huntingMode) {
+			registry.renderRequests.remove(hunterEntity);
+			registry.renderRequests.insert(
+				hunterEntity,
+				{ TEXTURE_ASSET_ID::ENEMYHUNTERMAD,
+					EFFECT_ASSET_ID::TEXTURED,
+					GEOMETRY_BUFFER_ID::SPRITE });
+			hunter.isAnimatingHurt = false;
+		}
+		else {
+			// hunter.fleeingMode
+			registry.renderRequests.remove(hunterEntity);
+			registry.renderRequests.insert(
+				hunterEntity,
+				{ TEXTURE_ASSET_ID::ENEMYHUNTERFLEE,
+					EFFECT_ASSET_ID::TEXTURED,
+					GEOMETRY_BUFFER_ID::SPRITE });
+			hunter.isAnimatingHurt = false;
+		}
+	}
+}
+
+enum class BTState {
+	Running,
+	Success,
+	Failure
+};
+
+// The base class representing any node in our behaviour tree
+class BTNode {
+public:
+	virtual void init(Entity e) {};
+	virtual BTState process(Entity e) = 0;
+};
+
+// A composite node that loops through all children and exits when one fails
+class BTRunPair : public BTNode {
+private:
+	int m_index;
+	BTNode* m_children[2];
+
+public:
+	BTRunPair(BTNode* c0, BTNode* c1)
+		: m_index(0) {
+		m_children[0] = c0;
+		m_children[1] = c1;
+	}
+
+	void init(Entity e) override
+	{
+		m_index = 0;
+		// initialize the first child
+		const auto& child = m_children[m_index];
+		child->init(e);
+	}
+
+	BTState process(Entity e) override {
+		if (m_index >= 2)
+			return BTState::Success;
+
+		// process current child
+		BTState state = m_children[m_index]->process(e);
+
+		// select a new active child and initialize its internal state
+		if (state == BTState::Success) {
+			++m_index;
+			if (m_index >= 2) {
+				return BTState::Success;
+			}
+			else {
+				m_children[m_index]->init(e);
+				return BTState::Running;
+			}
+		}
+		else {
+			return state;
+		}
+	}
+};
+
+// A general decorator with lambda condition
+// TAKES IN BTNode and CONDITION.
+// If condition passes, it will run the child process. If not, finish by returning "success" and do not run child process.
+class BTIfCondition : public BTNode
+{
+public:
+	BTIfCondition(BTNode* child, std::function<bool(Entity)> condition)
+		: m_child(child), m_condition(condition) {
+	}
+
+	virtual void init(Entity e) override {
+		m_child->init(e);
+	}
+
+	virtual BTState process(Entity e) override {
+		if (m_condition(e))
+			return m_child->process(e);
+		else
+			return BTState::Success;
+	}
+
+private:
+	BTNode* m_child;
+	std::function<bool(Entity)> m_condition;
+};
+
+
+// LEAF NODE - has a prrocess that will be run if this node is met
+class ChasePlayer : public BTNode {
+private:
+	void init(Entity e) override {
+	}
+
+	BTState process(Entity e) override {
+		// modify world
+		float finX = registry.motions.get(registry.players.entities[0]).position.x;
+		float finY = registry.motions.get(registry.players.entities[0]).position.y;
+		if (registry.players.entities.size() > 1 && registry.enemyGerms.get(e).mode <= registry.enemyGerms.get(e).playerChaseThreshold) {
+			finX = registry.motions.get(registry.players.entities[1]).position.x;
+			finY = registry.motions.get(registry.players.entities[1]).position.y;
+		}
+		float initX = registry.motions.get(e).position.x;
+		float initY = registry.motions.get(e).position.y;
+
+		vec2 diff = vec2(finX, finY) - vec2(initX, initY);
+		float angle = atan2(diff.y, diff.x);
+		registry.motions.get(e).velocity = vec2(cos(angle) * registry.enemies.get(e).speed, sin(angle) * registry.enemies.get(e).speed);
+		// return progress
+		return BTState::Success;
+	}
+};
+
+// LEAF NODE - has a prrocess that will be run if this node is met
+class Explode : public BTNode {
+private:
+	void init(Entity e) override {
+	}
+	BTState process(Entity e) override {
+		// modify world
+		if (registry.enemyGerms.get(e).explosionCountDown == 0) {
+			registry.enemyGerms.get(e).explosionCountDown = registry.enemyGerms.get(e).explosionCountInit;
+			float randomizedSpeedX = (rand() % 6) - 5; // randomized number for randomized velocity multiplier
+			float randomizedSpeedY = (rand() % 6) - 5; // randomized number for randomized velocity multiplier
+			if (registry.enemyGerms.get(e).mode <= registry.enemyGerms.get(e).playerChaseThreshold) {
+				registry.motions.get(e).velocity.y = registry.enemies.get(e).speed * randomizedSpeedY;
+				registry.motions.get(e).velocity.x = registry.enemies.get(e).speed * randomizedSpeedX;
+			}
+			else {
+				registry.motions.get(e).velocity.x = registry.enemies.get(e).speed * randomizedSpeedX;
+				registry.motions.get(e).velocity.y = registry.enemies.get(e).speed * randomizedSpeedY;
+			}
+		}
+		else {
+			registry.enemyGerms.get(e).explosionCountDown--;
+		}
+		// return progress
+		return BTState::Success;
+	}
+};
+
+
+void AISystem::stepEnemyGerm(float elapsed_ms) {
+	for (Entity germEntity : registry.enemyGerms.entities) {
+		EnemyGerm& germ = registry.enemyGerms.get(germEntity);
+		germ.next_germ_behaviour_calculation -= elapsed_ms;
+		if (germ.next_germ_behaviour_calculation < 0.f) {
+			germ.next_germ_behaviour_calculation = germ.germBehaviourUpdateTime;
+
+			// BTNode (leaf node, a process that will be run if reached)
+			ChasePlayer chasePlayer;
+
+			// creating condition for chasing player, if player(s) is/are alive
+			std::function<bool(Entity)> conditionChasePlayer = [](Entity e)
+			{
+				if (registry.players.entities.size() > 1) {
+					return !registry.players.get(registry.players.entities[0]).isDead && !registry.players.get(registry.players.entities[1]).isDead;
+				}
+				else {
+					return !registry.players.get(registry.players.entities[0]).isDead;
+				}
+			};
+
+			// BTNode (node that is a condition, and if condition is met, will run the child node that is passed in)
+			BTIfCondition chase = BTIfCondition(&chasePlayer, conditionChasePlayer);
+			
+			// BTNode (leaf node, a process that will be run if reached)
+			Explode explode;
+
+			// creating condition for exploding, if one player has died
+			std::function<bool(Entity)> conditionExplosion = [](Entity e)
+			{
+				if (registry.players.entities.size() > 1) {
+					return registry.players.get(registry.players.entities[0]).isDead || registry.players.get(registry.players.entities[1]).isDead;
+				}
+				else {
+					return registry.players.get(registry.players.entities[0]).isDead;
+				}
+			};
+
+			// BTNode (node that is a condition, and if condition is met, will run the child node that is passed in)
+			BTIfCondition explosion = BTIfCondition(&explode, conditionExplosion);
+
+			// run the two BTNodes 
+			BTRunPair root = BTRunPair(&chase, &explosion);
+			root.init(germEntity);
+
+			// iterate through all the different steps
+			for (int i = 0; i < 2; i++) {
+				// run processes (0 to 1 because there is 2 steps (BTIFCondition for chase and for explode)
+				BTState state = root.process(germEntity);
+				if (state != BTState::Running) {
+					break;
 				}
 			}
 		}
@@ -59,7 +305,6 @@ void AISystem::createAdj() {
 
 void AISystem::stepEnemyBacteria(float elapsed_ms, float width, float height) {
 	for (Entity bacteriaEntity : registry.enemyBacterias.entities) {
-
 		registry.enemyBacterias.get(bacteriaEntity).next_bacteria_BFS_calculation -= elapsed_ms;
 		registry.enemyBacterias.get(bacteriaEntity).next_bacteria_PATH_calculation -= elapsed_ms;
 		auto& motions_registry = registry.motions;
@@ -362,6 +607,7 @@ Entity AISystem::determineWhichPlayerToChase(Entity enemyEntity) {
 void AISystem::stepEnemySwarm(float elapsed_ms) {
 	for (Entity swarmEntity : registry.enemySwarms.entities) {
 		EnemySwarm& swarm = registry.enemySwarms.get(swarmEntity);
+		Enemy& swarmStatus = registry.enemies.get(swarmEntity);
 		if (swarm.timeToUpdateAi) {
 			swarmSpreadOut(swarmEntity);
 			swarmFireProjectileAtPlayer(swarmEntity);
@@ -373,6 +619,16 @@ void AISystem::stepEnemySwarm(float elapsed_ms) {
 			if (swarm.aiUpdateTimer < 0) {
 				swarm.timeToUpdateAi = true;
 			}
+		}
+
+		if (swarm.isAnimatingHurt && !swarmStatus.isInvin) {
+			registry.renderRequests.remove(swarmEntity);
+			registry.renderRequests.insert(
+				swarmEntity,
+				{ TEXTURE_ASSET_ID::ENEMYSWARM,
+					EFFECT_ASSET_ID::TEXTURED,
+					GEOMETRY_BUFFER_ID::SPRITE });
+			swarm.isAnimatingHurt = false;
 		}
 	}
 }

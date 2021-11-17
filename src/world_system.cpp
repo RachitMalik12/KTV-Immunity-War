@@ -115,6 +115,9 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 	this->renderer = renderer_arg;
 	// Playing background music indefinitely
 	Mix_PlayMusic(background_music, -1);
+	auto entity = Entity();
+	registry.titles.emplace(entity);
+	registry.titles.get(entity).window = window;
     restart_game();
 }
 
@@ -128,14 +131,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	int screen_width, screen_height;
 	glfwGetFramebufferSize(window, &screen_width, &screen_height);
 
-	animateStep(elapsed_ms_since_last_update);
-	updateWindowTitle();
 	progressBrightenScreen(elapsed_ms_since_last_update);
 	levelCompletionCheck(elapsed_ms_since_last_update);
 	resolveMouseControl();
 	stuckTimer(elapsed_ms_since_last_update, screen_width, screen_height);
 	invincibilityTimer(elapsed_ms_since_last_update);
-	handlePlayerOneProjectile(elapsed_ms_since_last_update);
+	checkIfPlayersAreMoving();
+	animateKnight(elapsed_ms_since_last_update);
+	animateWizard(elapsed_ms_since_last_update);
+	handlePlayerOneAttack(elapsed_ms_since_last_update);
 	handlePlayerTwoProjectile(elapsed_ms_since_last_update);
 	deathHandling();
 	progressGameEndEffect(elapsed_ms_since_last_update);
@@ -146,12 +150,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 void WorldSystem::deathHandling() {
 	ScreenState& screen = registry.screenStates.components[0];
 	if (twoPlayer.inTwoPlayerMode) {
-		Player& player1 = registry.players.get(player_wizard);
+		Player& player1 = registry.players.get(player_knight);
 		Player& player2 = registry.players.get(player2_wizard);
 		if (player1.isDead) {
-			Motion& player1Motion = registry.motions.get(player_wizard);
+			Motion& player1Motion = registry.motions.get(player_knight);
 			player1Motion.velocity = vec2(0, 0);
-			registry.renderRequests.remove(player_wizard);
+			registry.renderRequests.remove(player_knight);
 			// TODO: Implement player death animation
 		}
 		if (player2.isDead) {
@@ -167,7 +171,7 @@ void WorldSystem::deathHandling() {
 		}
 	}
 	else {
-		Player& player1 = registry.players.get(player_wizard);
+		Player& player1 = registry.players.get(player_knight);
 		if (player1.isDead) {
 			//setupLevel(level_number);
 			isGameOver = true;
@@ -247,16 +251,6 @@ bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
 }
 
-void WorldSystem::frame_counter(float elapsed_ms, Entity entity)
-{
-	Animation& playerOneAnimation = registry.animations.get(entity);
-	playerOneAnimation.animationTimer += elapsed_ms;
-	if (playerOneAnimation.animationTimer > playerOneAnimation.animationSpeed) {
-		playerOneAnimation.xFrame = (playerOneAnimation.xFrame + 1) % playerOneAnimation.numOfFrames;
-		playerOneAnimation.animationTimer = 0;
-	}
-}
-
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
 	int w, h;
@@ -274,107 +268,111 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 	
-	Motion& player1motion = registry.motions.get(player_wizard);
-	Player& player = registry.players.get(player_wizard);
+	Motion& player1motion = registry.motions.get(player_knight);
+	Player& player = registry.players.get(player_knight);
 	PlayerStat& playerOneStat = registry.playerStats.get(player.playerStat);
-	Animation& playerOneAnimation = registry.animations.get(registry.animations.entities.front());
+	KnightAnimation& playerOneAnimation = registry.knightAnimations.get(registry.knightAnimations.entities.front());
 
 	if (!player.isDead) {
 		vec2 currentVelocity = vec2(player1motion.velocity.x, player1motion.velocity.y);
 		if (action == GLFW_PRESS && key == GLFW_KEY_W) {
-			playerOneAnimation.pressed = true;
+			playerOneAnimation.moving = true;
 			player1motion.velocity = vec2(currentVelocity.x, currentVelocity.y - playerOneStat.movementSpeed);
-			playerOneAnimation.xFrame = 0;
+			playerOneAnimation.xFrame = 1;
 			playerOneAnimation.yFrame = 0;
-			registry.renderRequests.remove(player_wizard);
+			registry.renderRequests.remove(player_knight);
 			registry.renderRequests.insert(
-				player_wizard,
+				player_knight,
 				{ TEXTURE_ASSET_ID::KNIGHT,
 					EFFECT_ASSET_ID::KNIGHT,
 					GEOMETRY_BUFFER_ID::SPRITE }, false);
 		}
 		if (action == GLFW_RELEASE && key == GLFW_KEY_W) {
-			playerOneAnimation.pressed = false;
-			playerOneAnimation.xFrame = 0;
 			player1motion.velocity = vec2(currentVelocity.x, 0);
 		}
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_S) {
-			playerOneAnimation.pressed = true;
+			playerOneAnimation.moving = true;
 			player1motion.velocity = vec2(currentVelocity.x, currentVelocity.y + playerOneStat.movementSpeed);
 			int counter = 0;
-			playerOneAnimation.xFrame = 0;
+			playerOneAnimation.xFrame = 1;
 			playerOneAnimation.yFrame = 2;
-			registry.renderRequests.remove(player_wizard);
+			registry.renderRequests.remove(player_knight);
 			registry.renderRequests.insert(
-				player_wizard,
+				player_knight,
 				{ TEXTURE_ASSET_ID::KNIGHT,
 					EFFECT_ASSET_ID::KNIGHT,
 					GEOMETRY_BUFFER_ID::SPRITE }, false);
 		}
 		if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
-			playerOneAnimation.pressed = false;
-			playerOneAnimation.xFrame = 0;
 			player1motion.velocity = vec2(currentVelocity.x, 0);
 		}
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_A) {
-			playerOneAnimation.pressed = true;
+			playerOneAnimation.moving = true;
 			player1motion.velocity = vec2(currentVelocity.x - playerOneStat.movementSpeed, currentVelocity.y);
-			playerOneAnimation.xFrame = 0;
+			playerOneAnimation.xFrame = 1;
 			playerOneAnimation.yFrame = 1;
-			registry.renderRequests.remove(player_wizard);
+			registry.renderRequests.remove(player_knight);
 			registry.renderRequests.insert(
-				player_wizard,
+				player_knight,
 				{ TEXTURE_ASSET_ID::KNIGHT,
 					EFFECT_ASSET_ID::KNIGHT,
 					GEOMETRY_BUFFER_ID::SPRITE }, false);
 		}
 		if (action == GLFW_RELEASE && key == GLFW_KEY_A) {
-			playerOneAnimation.pressed = false;
-			playerOneAnimation.xFrame = 0;
 			player1motion.velocity = vec2(0, currentVelocity.y);
 
 		}
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_D) {
-			playerOneAnimation.pressed = true;
+			playerOneAnimation.moving = true;
 			player1motion.velocity = vec2(currentVelocity.x + playerOneStat.movementSpeed, currentVelocity.y);
-			playerOneAnimation.xFrame = 0;
+			playerOneAnimation.xFrame = 1;
 			playerOneAnimation.yFrame = 3;
-			registry.renderRequests.remove(player_wizard);
+			registry.renderRequests.remove(player_knight);
 			registry.renderRequests.insert(
-				player_wizard,
+				player_knight,
 				{ TEXTURE_ASSET_ID::KNIGHT,
 					EFFECT_ASSET_ID::KNIGHT,
 					GEOMETRY_BUFFER_ID::SPRITE }, false);
 		}
 
 		if (action == GLFW_RELEASE && key == GLFW_KEY_D) {
-			playerOneAnimation.pressed = false;
-			playerOneAnimation.xFrame = 0;
 			player1motion.velocity = vec2(0, currentVelocity.y);
 		}
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_T) {
 			player.isFiringProjectile = true;
 			player.firingDirection = 0;
+			if (!playerOneAnimation.moving) {
+				playerOneAnimation.yFrame = 0;
+			}
 		}
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_G) {
 			player.isFiringProjectile = true;
 			player.firingDirection = 2;
+			if (!playerOneAnimation.moving) {
+				playerOneAnimation.yFrame = 2;
+			}
 		}
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_H) {
 			player.isFiringProjectile = true;
-			player.firingDirection = 1;
+			player.firingDirection = 3;
+			if (!playerOneAnimation.moving) {
+				playerOneAnimation.yFrame = 3;
+			}
 
 		}
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_F) {
 			player.isFiringProjectile = true;
-			player.firingDirection = 3;
+			player.firingDirection = 1;
+			if (!playerOneAnimation.moving) {
+				playerOneAnimation.yFrame = 1;
+			}
 		}
 	}	
 
@@ -447,6 +445,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// load level 4
 	if (action == GLFW_PRESS && key == GLFW_KEY_4) {
 		level_number = 4;
+		setupLevel(level_number);
+	}
+
+	if (action == GLFW_PRESS && key == GLFW_KEY_5) {
+		level_number = 5;
 		setupLevel(level_number);
 	}
 	
@@ -561,8 +564,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// JA: adding flip left action to wizard 2
 	if (twoPlayer.inTwoPlayerMode) {
 		Motion& motion = registry.motions.get(player2_wizard);
 		float deltaX = mouse_position.x - motion.position.x;
@@ -589,6 +590,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 void WorldSystem::on_mouse_click(int button, int action, int mods) {
 	if (twoPlayer.inTwoPlayerMode) {
 		Player& wizard2_player = registry.players.get(player2_wizard);
+		WizardAnimation& animation = registry.wizardAnimations.get(player2_wizard);
 		if (!wizard2_player.isDead) {
 			if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_LEFT) {
 				if (registry.mouseDestinations.has(player2_wizard))
@@ -606,14 +608,47 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 				float scale = playerTwoStat.movementSpeed / h;
 				wizard2_motion.velocity = vec2(dx * scale, dy * scale);
 				registry.mouseDestinations.emplace(player2_wizard, vec2(x, y));
+				if (!animation.isAnimatingHurt && animation.animationMode != animation.attackMode) {
+					animation.animationMode = animation.walkMode;
+					animation.frameWalk = 0;
+					animation.walkTimer = 0;
+					registry.renderRequests.remove(player2_wizard);
+					registry.renderRequests.insert(
+						player2_wizard,
+						{ TEXTURE_ASSET_ID::WIZARDWALK,
+							EFFECT_ASSET_ID::WIZARD,
+							GEOMETRY_BUFFER_ID::SPRITE });
+				}
 			}
 
 			if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_RIGHT) {
 				wizard2_player.isFiringProjectile = true;
+				if (!animation.isAnimatingHurt) {
+					animation.animationMode = animation.attackMode;
+					animation.frameAttack = 0;
+					animation.attackTimer = 0;
+					registry.renderRequests.remove(player2_wizard);
+					registry.renderRequests.insert(
+						player2_wizard,
+						{ TEXTURE_ASSET_ID::WIZARDATTACK,
+							EFFECT_ASSET_ID::WIZARD,
+							GEOMETRY_BUFFER_ID::SPRITE });
+				}
 			}
 
 			if (action == GLFW_RELEASE && button == GLFW_MOUSE_BUTTON_RIGHT) {
 				wizard2_player.isFiringProjectile = false;
+				if (!animation.isAnimatingHurt && !animation.animationMode != animation.walkMode) {
+					animation.animationMode = animation.idleMode;
+					animation.frameIdle = 0;
+					animation.idleTimer = 0;
+					registry.renderRequests.remove(player2_wizard);
+					registry.renderRequests.insert(
+						player2_wizard,
+						{ TEXTURE_ASSET_ID::WIZARDIDLE,
+							EFFECT_ASSET_ID::WIZARD,
+							GEOMETRY_BUFFER_ID::SPRITE });
+				}
 			}
 		}
 	}
@@ -712,7 +747,7 @@ void WorldSystem::handlePlayerTwoProjectile(float elapsed_ms_since_last_update) 
 		Motion player2Motion = registry.motions.get(player2_wizard);
 		Player& player2 = registry.players.get(player2_wizard);
 		PlayerStat& playerTwoStat = registry.playerStats.get(player2.playerStat);
-		if (player2.isFiringProjectile && next_projectile_fire_player2 < 0.f) {
+		if (!player2.isDead && player2.isFiringProjectile && next_projectile_fire_player2 < 0.f) {
 			next_projectile_fire_player2 = playerTwoStat.attackDelay;
 			double x, y;
 			glfwGetCursorPos(window, &x, &y);
@@ -729,14 +764,14 @@ void WorldSystem::handlePlayerTwoProjectile(float elapsed_ms_since_last_update) 
 	}
 }
 
-void WorldSystem::handlePlayerOneProjectile(float elapsed_ms_since_last_update) {
+void WorldSystem::handlePlayerOneAttack(float elapsed_ms_since_last_update) {
 	// handle player1 projectiles
 	float angle = 0;
 	float offset = -M_PI / 3.f;
 	next_projectile_fire_player1 -= elapsed_ms_since_last_update;
-	Player& player1 = registry.players.get(player_wizard);
+	Player& player1 = registry.players.get(player_knight);
 	PlayerStat& playerOneStat = registry.playerStats.get(player1.playerStat);
-	Motion playerMotion = registry.motions.get(player_wizard);
+	Motion playerMotion = registry.motions.get(player_knight);
 	if (player1.isFiringProjectile && next_projectile_fire_player1 < 0.f) {
 		next_projectile_fire_player1 = playerOneStat.attackDelay;
 		
@@ -744,17 +779,17 @@ void WorldSystem::handlePlayerOneProjectile(float elapsed_ms_since_last_update) 
 		case 0: // up
 			angle = M_PI * 3 / 2;
 			break;
-		case 1: // right
-			// no action
+		case 1: // left
+			angle = M_PI;
 			break;
 		case 2: // down
 			angle = M_PI / 2;
 			break;
-		case 3: // left
-			angle = M_PI;
+		case 3: // right
+			// no action
 			break;
 		}
-		createSword(renderer, angle + offset, player_wizard);
+		createSword(renderer, angle + offset, player_knight);
 	}
 }
 
@@ -905,42 +940,48 @@ void WorldSystem::progressBrightenScreen(float elapsed_ms_since_last_update) {
 	}
 }
 
-void WorldSystem::updateWindowTitle() {
-	// Updating window title with money
-	std::stringstream title_ss;
-	// Get hp of player 1 and player 2 
-	int hp_p1 = 0;
-	int hp_p2 = 0;
-	title_ss << "Level: " << level_number;
-	hp_p1 = registry.players.get(player_wizard).hp;
-	if (twoPlayer.inTwoPlayerMode) {
-		hp_p2 = registry.players.get(player2_wizard).hp;
-		title_ss << " P1 Money: " << registry.playerStats.get(player_stat).money << " Health: " << hp_p1
-			<< " & P2 Money: " << registry.playerStats.get(player2_stat).money << " Health: " << hp_p2;
+
+
+void WorldSystem::animateKnight(float elapsed_ms_since_last_update) {
+	KnightAnimation& animation = registry.knightAnimations.get(player_knight);
+	if (animation.moving) {
+		float prev_frame = animation.xFrame;
+		knightFrameSetter(elapsed_ms_since_last_update, animation);
+		registry.renderRequests.remove(player_knight);
+		registry.renderRequests.insert(
+			player_knight,
+			{ TEXTURE_ASSET_ID::KNIGHT,
+				EFFECT_ASSET_ID::KNIGHT,
+				GEOMETRY_BUFFER_ID::SPRITE }, false);
 	}
-	else {
-		title_ss << " Money: " << registry.playerStats.get(registry.players.get(player_wizard).playerStat).money << " & Health P1 " << hp_p1;
-	}
-	glfwSetWindowTitle(window, title_ss.str().c_str());
 }
 
-void WorldSystem::animateStep(float elapsed_ms_since_last_update) {
-	//animate
-	for (Entity entity : registry.animations.entities) {
-		Animation& animation = registry.animations.get(entity);
-		if (animation.pressed) {
-			float prev_frame = animation.xFrame;
-			frame_counter(elapsed_ms_since_last_update, entity);
-			if (entity.getId() == player_wizard.getId() && animation.xFrame == 0)
-				animation.xFrame = 1;
-			if (entity.getId() == player_wizard.getId()) {
-				registry.renderRequests.remove(entity);
-				registry.renderRequests.insert(
-					entity,
-					{ TEXTURE_ASSET_ID::KNIGHT,
-						EFFECT_ASSET_ID::KNIGHT,
-						GEOMETRY_BUFFER_ID::SPRITE }, false);
-			}
+void WorldSystem::animateWizard(float elpased_ms_since_last_update) {
+	if (twoPlayer.inTwoPlayerMode) {
+		WizardAnimation& animation = registry.wizardAnimations.get(player2_wizard);
+		Player& player = registry.players.get(player2_wizard);
+		if (animation.isAnimatingHurt && !player.isInvin) {
+			animation.animationMode = animation.idleMode;
+			registry.renderRequests.remove(player2_wizard);
+			registry.renderRequests.insert(
+				player2_wizard,
+				{ TEXTURE_ASSET_ID::WIZARDIDLE,
+					EFFECT_ASSET_ID::WIZARD,
+					GEOMETRY_BUFFER_ID::SPRITE });
+			animation.frameIdle = 0;
+			animation.idleTimer = 0;
+			animation.isAnimatingHurt = false;
+		}
+
+		if (animation.animationMode == animation.attackMode) {
+			wizardAttackFrameSetter(elpased_ms_since_last_update, animation);
+		}
+		else if (animation.animationMode == animation.walkMode) {
+			wizardWalkFrameSetter(elpased_ms_since_last_update, animation);
+		}
+		else {
+			// animation.animationMode = animation.idleMode
+   			wizardIdleFrameSetter(elpased_ms_since_last_update, animation);
 		}
 	}
 }
@@ -991,8 +1032,8 @@ void WorldSystem::setupLevel(int levelNum) {
 		createBlock(renderer, block_pos_i * defaultResolution.scaling, block_color_i);
 	}
 
-	player_wizard = createKnight(renderer, level.player_position * defaultResolution.scaling);
-	Player& player1 = registry.players.get(player_wizard);
+	player_knight = createKnight(renderer, level.player_position * defaultResolution.scaling);
+	Player& player1 = registry.players.get(player_knight);
 	player1.playerStat = player_stat;
 	PlayerStat& playerOneStat = registry.playerStats.get(player_stat);
 	player1.hp = playerOneStat.maxHp;
@@ -1008,7 +1049,7 @@ void WorldSystem::setupLevel(int levelNum) {
 	}
 
 	// Reset player position on level transition
-	Motion& player1Motion = registry.motions.get(player_wizard);
+	Motion& player1Motion = registry.motions.get(player_knight);
 	player1Motion.position = level.player_position * defaultResolution.scaling;
 	if (twoPlayer.inTwoPlayerMode) {
 		Motion& player2Motion = registry.motions.get(player2_wizard);
@@ -1016,6 +1057,7 @@ void WorldSystem::setupLevel(int levelNum) {
 	}
 	// Update state 
 	isLevelOver = false;
+	updateTitle(levelNum);
 	startingNewLevel = true;
 }
 
@@ -1026,10 +1068,84 @@ void WorldSystem::playerTwoJoinOrLeave() {
 		twoPlayer.inTwoPlayerMode = false;
 		registry.remove_all_components_of(player2_wizard);
 		registry.remove_all_components_of(player2_stat);
+		updateTitle(level_number);
 	}
 	else {
 		twoPlayer.inTwoPlayerMode = true;
 		setupLevel(level_number);
 	}
 	helpMode.inHelpMode = false;
+}
+
+void WorldSystem::checkIfPlayersAreMoving() {
+	Motion& knightMotion = registry.motions.get(player_knight);
+	KnightAnimation& knightAnimation = registry.knightAnimations.get(player_knight);
+	if (knightAnimation.moving && knightMotion.velocity.x == 0 && knightMotion.velocity.y == 0) {
+		knightAnimation.moving = false;
+		knightAnimation.xFrame = 0;
+	}
+	if (twoPlayer.inTwoPlayerMode) {
+		Motion& wizardMotion = registry.motions.get(player2_wizard);
+		WizardAnimation& wizardAnimation = registry.wizardAnimations.get(player2_wizard);
+		if (wizardAnimation.animationMode == wizardAnimation.walkMode && wizardMotion.velocity.x == 0 && wizardMotion.velocity.y == 0) {
+			wizardAnimation.animationMode = wizardAnimation.idleMode;
+			wizardAnimation.frameIdle = 0;
+			wizardAnimation.idleTimer = 0;
+			registry.renderRequests.remove(player2_wizard);
+			registry.renderRequests.insert(
+				player2_wizard,
+				{ TEXTURE_ASSET_ID::WIZARDIDLE,
+					EFFECT_ASSET_ID::WIZARD,
+					GEOMETRY_BUFFER_ID::SPRITE });
+		}
+	}
+}
+
+void WorldSystem::updateTitle(int level) {
+	Title& title = registry.titles.components[0];
+	title.level = level; 
+	title.p1hp = registry.players.get(player_knight).hp;
+	title.p1money = registry.playerStats.get(registry.players.get(player_knight).playerStat).money;
+	if (twoPlayer.inTwoPlayerMode) {
+		title.p2hp = registry.players.get(player2_wizard).hp;
+		title.p2money = registry.playerStats.get(registry.players.get(player2_wizard).playerStat).money;
+	}
+	title.updateWindowTitle();
+}
+
+void WorldSystem::knightFrameSetter(float elapsed_ms, KnightAnimation& knightAnimation)
+{
+	knightAnimation.animationTimer += elapsed_ms;
+	if (knightAnimation.animationTimer > knightAnimation.msPerFrame) {
+		knightAnimation.xFrame = (knightAnimation.xFrame + 1) % knightAnimation.numOfFrames;
+		if (knightAnimation.xFrame == 0) {
+			knightAnimation.xFrame = knightAnimation.numOfFrames;
+		}
+		knightAnimation.animationTimer = 0;
+	}
+}
+
+void WorldSystem::wizardAttackFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation) {
+	wizardAnimation.attackTimer += elapsed_ms;
+	if (wizardAnimation.attackTimer > wizardAnimation.attackMsPerFrame) {
+		wizardAnimation.frameAttack = (wizardAnimation.frameAttack + 1) % wizardAnimation.numOfAttackFrames;
+		wizardAnimation.attackTimer = 0;
+	}
+
+}
+
+void WorldSystem::wizardWalkFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation) {
+	wizardAnimation.walkTimer += elapsed_ms;
+	if (wizardAnimation.walkTimer > wizardAnimation.walkMsPerFrame) {
+		wizardAnimation.frameWalk = (wizardAnimation.frameWalk + 1) % wizardAnimation.numOfWalkFrames;
+		wizardAnimation.walkTimer = 0;
+	}
+}
+
+void WorldSystem::wizardIdleFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation) {
+	wizardAnimation.idleTimer += elapsed_ms;
+	if (wizardAnimation.idleTimer > wizardAnimation.idleMsPerFrame) {
+		wizardAnimation.frameIdle = (wizardAnimation.frameIdle + 1) % wizardAnimation.numOfIdleFrames;
+		wizardAnimation.idleTimer = 0;
+	}
 }

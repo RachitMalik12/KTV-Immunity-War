@@ -37,8 +37,6 @@ public:
 	// Should the game be over ?
 	bool is_over()const;
 
-	void WorldSystem::frame_counter(float elapsed_ms, Entity entity);
-
 	void setResolution();
 
 private:
@@ -48,8 +46,7 @@ private:
 	void on_mouse_click(int button, int action, int mods);
 	// restart level
 	void restart_game();
-	void setupLevel(int levelNum); 
-	void restartLevel();
+	void setupLevel(int levelNum);
 	void setPlayersStats();
 	void setPlayerOneStats();
 	void setPlayerTwoStats();
@@ -67,7 +64,7 @@ private:
 	RenderSystem* renderer;
 	float next_projectile_fire_player1;
 	float next_projectile_fire_player2;
-	Entity player_wizard;
+	Entity player_knight;
 	Entity player2_wizard;
 	Entity player_stat;
 	Entity player2_stat;
@@ -88,19 +85,26 @@ private:
 	void createADoor(int screenWidth, int screenHeight);
 	// world.step
 	void deathHandling();
-	void progressGameEndEffect(float elapsed_ms_since_last_update);
-	void handlePlayerOneProjectile(float elapsed_ms_since_last_update);
+	void handlePlayerOneAttack(float elapsed_ms_since_last_update);
 	void handlePlayerTwoProjectile(float elapsed_ms_since_last_update);
 	void invincibilityTimer(float elapsed_ms_since_last_update);
 	void stuckTimer(float elapsed_ms_since_last_update, int screen_width, int screen_height);
 	void resolveMouseControl();
-	void progressBrightenScreen(float elapsed_ms_since_last_update);
 	void levelCompletionCheck(float elapsed_ms_since_last_update);
-	void updateWindowTitle();
-	void animateStep(float elapsed_ms_since_last_update);
-	void animateSword(float elapsed_ms_since_last_update);
-	void lightUpEnemyRunTimer(float elapsed_ms_since_last_update);
-	void lightUpEnemyBacteriaTimer(float elapsed_ms_since_last_update);
+	void animateKnight(float elapsed_ms_since_last_update);
+	void animateWizard(float elpased_ms_since_last_update);
+	void checkIfPlayersAreMoving();
 	// misc
 	void playerTwoJoinOrLeave();
+	void updateTitle(int level);
+	// animation
+	void knightFrameSetter(float elapsed_ms, KnightAnimation& knightAnimation);
+	void wizardAttackFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation);
+	void wizardWalkFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation);
+	void wizardIdleFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation);
+	// fragment shader
+	void progressGameEndEffect(float elapsed_ms_since_last_update);
+	void progressBrightenScreen(float elapsed_ms_since_last_update);
+	void lightUpEnemyRunTimer(float elapsed_ms_since_last_update);
+	void lightUpEnemyBacteriaTimer(float elapsed_ms_since_last_update);
 }; 

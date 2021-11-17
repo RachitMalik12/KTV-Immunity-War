@@ -42,6 +42,7 @@ Entity createWizard(RenderSystem* renderer, vec2 position) {
 	registry.meshPtrs.emplace(entity, &mesh);
 	Mesh& hitbox = renderer->getMesh(GEOMETRY_BUFFER_ID::WIZARD);
 	registry.hitboxes.emplace(entity, &hitbox);
+	WizardAnimation& animation = registry.wizardAnimations.emplace(entity);
 
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
@@ -51,11 +52,14 @@ Entity createWizard(RenderSystem* renderer, vec2 position) {
 	motion.scale = vec2({ WIZARD_BB_WIDTH * defaultResolution.scaling, WIZARD_BB_HEIGHT * defaultResolution.scaling });
 
 	registry.players.emplace(entity);
+	animation.animationMode = animation.idleMode;
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::WIZARD,
-			EFFECT_ASSET_ID::TEXTURED,
+		{ TEXTURE_ASSET_ID::WIZARDIDLE,
+			EFFECT_ASSET_ID::WIZARD,
 			GEOMETRY_BUFFER_ID::SPRITE });
+	animation.frameIdle = 0;
+	animation.idleTimer = 0;
 	return entity;
 }
 
@@ -66,9 +70,7 @@ Entity createKnight(RenderSystem* renderer, vec2 position) {
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
-	registry.animations.emplace(entity);
-	Animation& animation = registry.animations.get(entity);
-	animation.numOfFrames = 9;
+	registry.knightAnimations.emplace(entity);
 
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
@@ -104,7 +106,6 @@ Entity createSword(RenderSystem* renderer, float angle, Entity playerEntity) {
 	motion.position = { 0, 0 };
 	motion.scale = vec2({ SWORD_BB_WIDTH * defaultResolution.scaling, SWORD_BB_HEIGHT * defaultResolution.scaling });
 
-	registry.players.emplace(entity);
 	registry.swords.emplace(entity);
 	registry.swords.get(entity).belongToPlayer = playerEntity;
 	registry.renderRequests.insert(
@@ -210,6 +211,9 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, int enemyType) {
 			break;
 		case 5:
 			curEnemy = createEnemySwarmTriplet(renderer, position);
+			break;
+		case 6:
+			curEnemy = createEnemyGerm(renderer, position);
 			break;
 	}
 	return curEnemy;
@@ -356,6 +360,40 @@ Entity createEnemyBacteria(RenderSystem* renderer, vec2 position) {
 		entity,
 		{ TEXTURE_ASSET_ID::ENEMYBACTERIA,
 			EFFECT_ASSET_ID::ENEMYRUN,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
+Entity createEnemyGerm(RenderSystem* renderer, vec2 position) {
+	auto entity = Entity();
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+	Mesh& hitbox = renderer->getMesh(GEOMETRY_BUFFER_ID::GERM);
+	registry.hitboxes.emplace(entity, &hitbox);
+
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = vec2(0, 0);
+	motion.position = position;
+
+	motion.scale = vec2({ ENEMYGERM_BB_WIDTH * defaultResolution.scaling, ENEMYGERM_BB_HEIGHT * defaultResolution.scaling });
+	
+	registry.enemies.emplace(entity);
+	registry.enemyGerms.emplace(entity);
+	// Set enemy attributes
+	auto& enemyCom = registry.enemies.get(entity);
+	enemyCom.damage = 1;
+	enemyCom.hp = 5;
+	enemyCom.loot = 4;
+	enemyCom.speed = 200.f * defaultResolution.scaling;
+	auto& germ = registry.enemyGerms.get(entity);
+	germ.mode = (rand() % 10) + 1;
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::GERM,
+			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
