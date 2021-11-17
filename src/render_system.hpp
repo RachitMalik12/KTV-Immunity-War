@@ -61,7 +61,8 @@ class RenderSystem {
 			textures_path("Frame_6.png"),
 			textures_path("swarm1.png"),
 			textures_path("fireball.png"),
-			textures_path("sword.png")
+			textures_path("sword.png"),
+			textures_path("background.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -71,7 +72,8 @@ class RenderSystem {
 		shader_path("line"),
 		shader_path("textured"),
 		shader_path("water"),
-		shader_path("knight")};
+		shader_path("knight"),
+		shader_path("enemyrun") };
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;

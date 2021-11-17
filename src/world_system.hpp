@@ -59,6 +59,10 @@ private:
 	std::vector<Level> levels; 
 	// to start with true. 
 	bool isLevelOver;
+	// is a new level being loaded
+	bool startingNewLevel = false;
+	// is one or both players dead (so is game over?)
+	bool isGameOver = false;
 	// Game state
 	RenderSystem* renderer;
 	float next_projectile_fire_player1;
@@ -84,15 +88,19 @@ private:
 	void createADoor(int screenWidth, int screenHeight);
 	// world.step
 	void deathHandling();
+	void progressGameEndEffect(float elapsed_ms_since_last_update);
 	void handlePlayerOneProjectile(float elapsed_ms_since_last_update);
 	void handlePlayerTwoProjectile(float elapsed_ms_since_last_update);
 	void invincibilityTimer(float elapsed_ms_since_last_update);
 	void stuckTimer(float elapsed_ms_since_last_update, int screen_width, int screen_height);
 	void resolveMouseControl();
-	void levelCompletionCheck();
+	void progressBrightenScreen(float elapsed_ms_since_last_update);
+	void levelCompletionCheck(float elapsed_ms_since_last_update);
 	void updateWindowTitle();
 	void animateStep(float elapsed_ms_since_last_update);
 	void animateSword(float elapsed_ms_since_last_update);
+	void lightUpEnemyRunTimer(float elapsed_ms_since_last_update);
+	void lightUpEnemyBacteriaTimer(float elapsed_ms_since_last_update);
 	// misc
 	void playerTwoJoinOrLeave();
 }; 

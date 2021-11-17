@@ -36,6 +36,8 @@ void PhysicsSystem::handle_collision() {
 					}
 				}
 			}
+
+			
 		}
 
 		if (registry.swords.has(entity)) {
@@ -56,6 +58,19 @@ void PhysicsSystem::handle_collision() {
 					}
 				}
 			}
+
+			if (registry.enemiesrun.has(entity_other)) {
+				if (!registry.enemiesrun.get(entity_other).encounter) {
+					registry.enemiesrun.get(entity_other).encounter = 1;
+				}
+			}
+
+			if (registry.enemyBacterias.has(entity_other)) {
+				if (!registry.enemyBacterias.get(entity_other).encounter) {
+					registry.enemyBacterias.get(entity_other).encounter = 1;
+				}
+			}
+
 		}
 
 		// Checking collision of enemies or enemies run with walls or blocks

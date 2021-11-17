@@ -130,18 +130,21 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	animateStep(elapsed_ms_since_last_update);
 	updateWindowTitle();
-	levelCompletionCheck();
+	progressBrightenScreen(elapsed_ms_since_last_update);
+	levelCompletionCheck(elapsed_ms_since_last_update);
 	resolveMouseControl();
 	stuckTimer(elapsed_ms_since_last_update, screen_width, screen_height);
 	invincibilityTimer(elapsed_ms_since_last_update);
 	handlePlayerOneProjectile(elapsed_ms_since_last_update);
 	handlePlayerTwoProjectile(elapsed_ms_since_last_update);
 	deathHandling();
+	progressGameEndEffect(elapsed_ms_since_last_update);
 
 	return true;
 }
 
 void WorldSystem::deathHandling() {
+	ScreenState& screen = registry.screenStates.components[0];
 	if (twoPlayer.inTwoPlayerMode) {
 		Player& player1 = registry.players.get(player_wizard);
 		Player& player2 = registry.players.get(player2_wizard);
@@ -158,13 +161,44 @@ void WorldSystem::deathHandling() {
 			// TODO: Implement player death animation
 		}
 		if (player1.isDead && player2.isDead) {
-			setupLevel(level_number);
+			//setupLevel(level_number);
+			isGameOver = true;
+			screen.game_over_factor = 1;
 		}
 	}
 	else {
 		Player& player1 = registry.players.get(player_wizard);
 		if (player1.isDead) {
+			//setupLevel(level_number);
+			isGameOver = true;
+			screen.game_over_factor = 1;
+		}
+	}
+}
+
+void WorldSystem::progressGameEndEffect(float elapsed_ms_since_last_update) {
+	// Check level completion 
+	if (isGameOver == true) {
+		isGameOver = false;
+		auto entity1 = Entity();
+		registry.deathTimers.emplace(entity1);
+	}
+
+	ScreenState& screen = registry.screenStates.components[0];
+	float min_counter_ms = 3000.f;
+	for (Entity entity : registry.deathTimers.entities) {
+		// progress timer
+		DeathTimer& counter = registry.deathTimers.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+		if (counter.counter_ms < min_counter_ms) {
+			min_counter_ms = counter.counter_ms;
+		}
+
+		// stop shake effect and move onto next level once timer expires
+		if (counter.counter_ms < 0) {
+			registry.deathTimers.remove(entity);
 			setupLevel(level_number);
+			screen.game_over_factor = 0;
 		}
 	}
 }
@@ -766,6 +800,35 @@ void WorldSystem::stuckTimer(float elapsed_ms_since_last_update, int screen_widt
 	}
 }
 
+void WorldSystem::lightUpEnemyRunTimer(float elapsed_ms_since_last_update) {
+	for (Entity entity : registry.enemiesrun.entities) {
+		if (registry.enemiesrun.get(entity).encounter == 1) {
+			registry.enemiesrun.get(entity).counter_ms -= elapsed_ms_since_last_update;
+			// reset timer and encounter variable when timer expires and set light up to false
+			if (registry.enemiesrun.get(entity).counter_ms < 0) {
+				
+				registry.enemiesrun.get(entity).encounter == 0;
+				registry.enemiesrun.get(entity).counter_ms = 800;
+			}
+		}
+	}
+}
+
+void WorldSystem::lightUpEnemyBacteriaTimer(float elapsed_ms_since_last_update) {
+	for (Entity entity : registry.enemyBacterias.entities) {
+		if (registry.enemyBacterias.get(entity).encounter == 1) {
+			registry.enemyBacterias.get(entity).counter_ms -= elapsed_ms_since_last_update;
+			// reset timer and encounter variable when timer expires and set light up to false
+			if (registry.enemyBacterias.get(entity).counter_ms < 0) {
+
+				registry.enemyBacterias.get(entity).encounter == 0;
+				registry.enemyBacterias.get(entity).counter_ms = 800;
+			}
+		}
+	}
+}
+
+
 void WorldSystem::resolveMouseControl() {
 	if (twoPlayer.inTwoPlayerMode && registry.mouseDestinations.has(player2_wizard)) {
 		Motion& motion = registry.motions.get(player2_wizard);
@@ -773,21 +836,72 @@ void WorldSystem::resolveMouseControl() {
 
 		if (abs(motion.position.x - mouseDestination.position.x) < 1.f && abs(motion.position.y - mouseDestination.position.y) < 1.f) {
 			registry.mouseDestinations.remove(player2_wizard);
+			registry.mouseDestinations.remove(player2_wizard);
 			motion.velocity = vec2(0, 0);
 		}
 	}
 }
 
-void WorldSystem::levelCompletionCheck() {
+void WorldSystem::levelCompletionCheck(float elapsed_ms_since_last_update) {
 	// Check level completion 
-	if (registry.enemies.size() == 0) {
+	if (registry.enemies.size() == 0 && isLevelOver != true) {
 		isLevelOver = true;
+		auto entity1 = Entity();
+		registry.endLevelTimers.emplace(entity1);
 	}
-	int nextLevel = level_number + 1;
-	if (isLevelOver && nextLevel <= levels.size()) {
-		// Only if we have levels left we need to change level 
-		level_number = nextLevel;
-		setupLevel(level_number);
+
+	ScreenState& screen = registry.screenStates.components[0];
+	float min_counter_ms = 3000.f;
+	for (Entity entity : registry.endLevelTimers.entities) {
+		// progress timer
+		EndLevelTimer& counter = registry.endLevelTimers.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+		if (counter.counter_ms < min_counter_ms) {
+			min_counter_ms = counter.counter_ms;
+		}
+
+		// move on to next level the game once the end level timer expired
+		if (counter.counter_ms < 0) {
+			registry.endLevelTimers.remove(entity);
+			screen.darken_screen_factor = 0;
+			int nextLevel = level_number + 1;
+			if (isLevelOver && nextLevel <= levels.size()) {
+				// Only if we have levels left we need to change level 
+				level_number = nextLevel;
+				setupLevel(level_number);
+			}
+		}
+	}
+
+	// reduce window brightness if the level is ending
+	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
+}
+
+void WorldSystem::progressBrightenScreen(float elapsed_ms_since_last_update) {
+	// Check level completion 
+	if (startingNewLevel == true) {
+		startingNewLevel = false;
+		auto entity1 = Entity();
+		registry.startLevelTimers.emplace(entity1);
+	}
+
+	ScreenState& screen = registry.screenStates.components[0];
+	float min_counter_ms = 3000.f;
+	for (Entity entity : registry.startLevelTimers.entities) {
+		// progress timer
+		StartLevelTimer& counter = registry.startLevelTimers.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+		if (counter.counter_ms < min_counter_ms) {
+			min_counter_ms = counter.counter_ms;
+		}
+
+		// move on to next level the game once the end level timer expired
+		if (counter.counter_ms < 0) {
+			registry.startLevelTimers.remove(entity);
+			screen.brighten_screen_factor = 0;
+		}
+		// increase window brightness if the level is starting
+		screen.brighten_screen_factor = 0 + min_counter_ms / 3000;
 	}
 }
 
@@ -845,6 +959,10 @@ void WorldSystem::setupLevel(int levelNum) {
 		registry.remove_all_components_of(registry.enemies.entities.back());
 	while (registry.blocks.entities.size() > 0)
 		registry.remove_all_components_of(registry.blocks.entities.back());
+	while (registry.backgrounds.entities.size() > 0)
+		registry.remove_all_components_of(registry.backgrounds.entities.back());
+
+	createBackground(renderer, vec2(screen_width / 2 * defaultResolution.scaling, screen_height / 2 * defaultResolution.scaling));
 
 	int index = levelNum - 1;
 	Level level = levels[index];
@@ -898,6 +1016,7 @@ void WorldSystem::setupLevel(int levelNum) {
 	}
 	// Update state 
 	isLevelOver = false;
+	startingNewLevel = true;
 }
 
 void WorldSystem::playerTwoJoinOrLeave() {

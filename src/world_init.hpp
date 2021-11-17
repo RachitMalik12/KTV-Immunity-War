@@ -33,6 +33,11 @@ const float STORY_BB_WIDTH = 0.5*2388.f;
 const float STORY_BB_HEIGHT = 0.5*1668.f;
 const float ENEMYSWARM_BB_WIDTH = 0.14 * 553.f;
 const float ENEMYSWARM_BB_HEIGHT = 0.14 * 411.f;
+const float BACKGROUND_BB_WIDTH = 1200.f;
+const float BACKGROUND_BB_HEIGHT = 800.f;
+
+// background
+Entity createBackground(RenderSystem* renderer, vec2 pos);
 
 // the player
 Entity createWizard(RenderSystem* renderer, vec2 pos);

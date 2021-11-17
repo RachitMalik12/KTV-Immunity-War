@@ -120,6 +120,64 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glUniform1i(yFrame, playerOneAnimation.yFrame);
 		gl_has_errors();
 	}
+	else if (render_request.used_effect == EFFECT_ASSET_ID::ENEMYRUN)
+	{
+		GLint in_position_loc = glGetAttribLocation(program, "in_position");
+		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
+		gl_has_errors();
+		assert(in_texcoord_loc >= 0);
+
+		glEnableVertexAttribArray(in_position_loc);
+		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+			sizeof(TexturedVertex), (void*)0);
+		gl_has_errors();
+
+		glEnableVertexAttribArray(in_texcoord_loc);
+		glVertexAttribPointer(
+			in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
+			(void*)sizeof(
+				vec3)); // note the stride to skip the preceeding vertex position
+		// Enabling and binding texture to slot 0
+		glActiveTexture(GL_TEXTURE0);
+		gl_has_errors();
+
+		assert(registry.renderRequests.has(entity));
+		GLuint texture_id =
+			texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];
+
+		glBindTexture(GL_TEXTURE_2D, texture_id);
+		gl_has_errors();
+
+
+		// Light up?
+		GLint light_up_uloc = glGetUniformLocation(program, "light_up");
+		assert(light_up_uloc >= 0);
+
+		// !!! TODO A1: set the light_up shader variable using glUniform1i,
+		// similar to the glUniform1f call below. The 1f or 1i specified the type, here a single int.
+		int light_up_cond = 0;
+		if (registry.enemiesrun.has(entity)) {
+			light_up_cond = registry.enemiesrun.get(entity).encounter;
+		}
+		else if (registry.enemyBacterias.has(entity)){
+			light_up_cond = registry.enemyBacterias.get(entity).encounter;
+		}
+		//const int light_up_cond = registry.enemiesrun.get(entity).encounter;
+		glUniform1i(light_up_uloc, light_up_cond);
+		gl_has_errors();
+
+		// Get the Light up scale for enemy right now
+		GLuint light_up_scale_uloc = glGetUniformLocation(program, "light_up_scale");
+		assert(light_up_scale_uloc >= 0);
+
+		// !!! TODO A1: set the light_up shader variable using glUniform1f,
+		// similar to the glUniform1f call below. The 1f or 1i specified the type, here a single int.
+		const int light_up_scale_cond = (registry.enemies.get(entity).max_hp - registry.enemies.get(entity).hp) / registry.enemies.get(entity).max_hp;
+		glUniform1f(light_up_scale_uloc, light_up_scale_cond);
+		gl_has_errors();
+
+
+	}
 	else
 	{
 		assert(false && "Type of render request not supported");
@@ -186,15 +244,17 @@ void RenderSystem::drawToScreen()
 	// Set clock
 	GLuint time_uloc = glGetUniformLocation(water_program, "time");
 	GLuint dead_timer_uloc = glGetUniformLocation(water_program, "darken_screen_factor");
+	GLuint brighten_timer_uloc = glGetUniformLocation(water_program, "brighten_screen_factor");
 	glUniform1f(time_uloc, (float)(glfwGetTime() * 10.0f));
-	ScreenState &screen = registry.screenStates.get(screen_state_entity);
+	ScreenState& screen = registry.screenStates.get(screen_state_entity);
 	glUniform1f(dead_timer_uloc, screen.darken_screen_factor);
+	glUniform1f(brighten_timer_uloc, screen.brighten_screen_factor);
 	gl_has_errors();
 	// Set the vertex position and vertex texture coordinates (both stored in the
 	// same VBO)
 	GLint in_position_loc = glGetAttribLocation(water_program, "in_position");
 	glEnableVertexAttribArray(in_position_loc);
-	glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), (void *)0);
+	glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), (void*)0);
 	gl_has_errors();
 
 	// Bind our texture in Texture Unit 0
@@ -207,6 +267,21 @@ void RenderSystem::drawToScreen()
 		GL_TRIANGLES, 3, GL_UNSIGNED_SHORT,
 		nullptr); // one triangle = 3 vertices; nullptr indicates that there is
 				  // no offset from the bound index buffer
+	gl_has_errors();
+
+	// get game over information
+	GLint game_over_uloc = glGetUniformLocation(water_program, "game_over_factor");
+	if (!(game_over_uloc == 0 || game_over_uloc == 1)) {
+		game_over_uloc = 0;
+	}
+	assert(game_over_uloc >= 0);
+
+	// !!! TODO A1: set the game_over shader variable using glUniform1i,
+	// similar to the glUniform1f call below. The 1f or 1i specified the type, here a single int.
+	//if (screen.game_over_factor == 0 || screen.game_over_factor == 1) {
+	glUniform1i(game_over_uloc, screen.game_over_factor);
+	//}
+	assert(game_over_uloc >= 0);
 	gl_has_errors();
 }
 

@@ -7,6 +7,32 @@
 std::default_random_engine rng = std::default_random_engine(std::random_device()());
 std::uniform_real_distribution<float> uniform_dist;
 
+Entity createBackground(RenderSystem* renderer, vec2 position) {
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+	Mesh& hitbox = renderer->getMesh(GEOMETRY_BUFFER_ID::WIZARD);
+	registry.hitboxes.emplace(entity, &hitbox);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+	motion.scale = vec2({ BACKGROUND_BB_WIDTH * defaultResolution.scaling, BACKGROUND_BB_HEIGHT * defaultResolution.scaling });
+
+	registry.backgrounds.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::BACKGROUND,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	return entity;
+}
+
 Entity createWizard(RenderSystem* renderer, vec2 position) {
 	// Reserve en entity
 	auto entity = Entity();
@@ -213,6 +239,7 @@ Entity createEnemyBlob(RenderSystem* renderer, vec2 position)
 	auto& enemyCom = registry.enemies.get(entity);
 	enemyCom.damage = 1;
 	enemyCom.hp = 3;
+	enemyCom.max_hp = enemyCom.hp;
 	enemyCom.loot = 1;
 	enemyCom.speed = 200.f * defaultResolution.scaling;
 	motion.velocity = vec2(0.f, enemyCom.speed);
@@ -250,6 +277,7 @@ Entity createEnemyRun(RenderSystem* renderer, vec2 position)
 	auto& enemyCom = registry.enemies.get(entity);
 	enemyCom.damage = 1;
 	enemyCom.hp = 2;
+	enemyCom.max_hp = enemyCom.hp;
 	enemyCom.loot = 1;
 	enemyCom.speed = 200.f * defaultResolution.scaling;
 	motion.velocity = vec2(uniform_dist(rng) * enemyCom.speed, uniform_dist(rng) * enemyCom.speed);;
@@ -257,7 +285,7 @@ Entity createEnemyRun(RenderSystem* renderer, vec2 position)
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ENEMYRUN,
-			EFFECT_ASSET_ID::TEXTURED,
+			EFFECT_ASSET_ID::ENEMYRUN,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
@@ -283,6 +311,7 @@ Entity createEnemyHunter(RenderSystem* renderer, vec2 position) {
 	auto& enemyCom = registry.enemies.get(entity);
 	enemyCom.damage = 1;
 	enemyCom.hp = 5;
+	enemyCom.max_hp = enemyCom.hp;
 	enemyCom.loot = 2;
 	enemyCom.speed = 200.f * defaultResolution.scaling;
 	auto& hunterCom = registry.enemyHunters.get(entity);
@@ -318,6 +347,7 @@ Entity createEnemyBacteria(RenderSystem* renderer, vec2 position) {
 	auto& enemyCom = registry.enemies.get(entity);
 	enemyCom.damage = 1;
 	enemyCom.hp = 5;
+	enemyCom.max_hp = enemyCom.hp;
 	enemyCom.loot = 4;
 	enemyCom.speed = 200.f * defaultResolution.scaling;
 	auto& bacteria = registry.enemyBacterias.get(entity);
@@ -325,7 +355,7 @@ Entity createEnemyBacteria(RenderSystem* renderer, vec2 position) {
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ENEMYBACTERIA,
-			EFFECT_ASSET_ID::TEXTURED,
+			EFFECT_ASSET_ID::ENEMYRUN,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
@@ -354,6 +384,7 @@ Entity createEnemyChase(RenderSystem* renderer, vec2 position)
 	auto& enemyCom = registry.enemies.get(entity);
 	enemyCom.damage = 1;
 	enemyCom.hp = 3;
+	enemyCom.max_hp = enemyCom.hp;
 	enemyCom.loot = 1;
 	enemyCom.speed = 50.f * defaultResolution.scaling;
 	motion.velocity = vec2(uniform_dist(rng) * enemyCom.speed, uniform_dist(rng) * enemyCom.speed);
@@ -409,6 +440,7 @@ Entity createEnemySwarm(RenderSystem* renderer, vec2 position) {
 	auto& enemyCom = registry.enemies.get(entity);
 	enemyCom.damage = 1;
 	enemyCom.hp = 3;
+	enemyCom.max_hp = enemyCom.hp;
 	enemyCom.loot = 1;
 	enemyCom.speed = 100.f * defaultResolution.scaling;
 	motion.velocity = vec2(0, 0);
