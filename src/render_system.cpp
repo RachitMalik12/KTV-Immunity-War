@@ -85,12 +85,9 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	{
 		textureEffectSetup(program, entity);
 
-		// Light up?
 		GLint light_up_uloc = glGetUniformLocation(program, "light_up");
 		assert(light_up_uloc >= 0);
 
-		// !!! TODO A1: set the light_up shader variable using glUniform1i,
-		// similar to the glUniform1f call below. The 1f or 1i specified the type, here a single int.
 		int light_up_cond = 0;
 		if (registry.enemiesrun.has(entity)) {
 			light_up_cond = registry.enemiesrun.get(entity).encounter;
@@ -104,10 +101,6 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 		// Get the Light up scale for enemy right now
 		GLuint light_up_scale_uloc = glGetUniformLocation(program, "light_up_scale");
-		assert(light_up_scale_uloc >= 0);
-
-		// !!! TODO A1: set the light_up shader variable using glUniform1f,
-		// similar to the glUniform1f call below. The 1f or 1i specified the type, here a single int.
 		const int light_up_scale_cond = (registry.enemies.get(entity).max_hp - registry.enemies.get(entity).hp) / registry.enemies.get(entity).max_hp;
 		glUniform1f(light_up_scale_uloc, light_up_scale_cond);
 		gl_has_errors();
