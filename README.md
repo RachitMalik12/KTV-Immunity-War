@@ -6,7 +6,7 @@ Required Features:
 
 -Gameplay II (ALL):
 
--Behaviour Tree (FC):
+-Behaviour Tree (FC): Implemented behaviour tree enemies. Enemy actions are conditional with processes as nodes. If any player is alive, the enemy will chase a player of their choosing. If any player is dead, the enemy will explode in randomized direction. 
 
 -Swarm Behaviour (BZ): Implemented swarm behaviour enemies. Swarm will spawn in triplets surrounding the same location. Each update each swarm enemy will detect the closest swarm enemy, calculate the vector to the other enemy, reverse the x and y of that vector then normalize it. Finally we multiply swarm enemy's speed to this normalized directional vector to set its new velocity. The result is that each swarm will try to spread out as much as possible. Swarm enemmies attack the player via a projectile fireball attack, so the swarms benefit from spreading out because the enemy projectiles will then attack the players from many directions.
 
@@ -38,7 +38,7 @@ EnemyChase Memory and Performance Improvement (LT):
 
 Bug and Feature Fixes: 
 
-Pathfinding Enemy fix (FC):
+Pathfinding Enemy fix (FC): Changed the way the enemies are updated as to save memory. The enemies are now changed, instead of every update following the entire BFS path, each new velocity will be changed every update time, still using BFS.
 
 Adaptive Resolution fix (BZ): Changed from prompting user to select resolution to auto detecting user's primary monitor resolution and setting the game resolution accordingly.
 
