@@ -695,110 +695,117 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 		helpMode.clicked = 0;
 	}
 
+	// menu is in game
 	if (menuMode.menuType == 2) {
 
 	}
 
 	// menu is main menu
 	if (menuMode.menuType == 1) {
-		
 		if (left_clicked) {
-			
-			// 1P 
-			if (menuMode.on1P) {
-				menuMode.menuType = 0;
-				for (Entity entity : registry.menuModes.entities) {
-					registry.remove_all_components_of(entity);
-				}
-				if (storyMode.inStoryMode == 0) {
-					storyMode.inStoryMode = 1;
-					createStory();
-				}
-			}
-			// 2P
-			if (menuMode.on2P) {
-
-				menuMode.menuType = 0;
-				for (Entity entity : registry.menuModes.entities) {
-					registry.remove_all_components_of(entity);
-				}
-				// insert code here
-				playerTwoJoinOrLeave();
-				if (storyMode.inStoryMode == 0) {
-					storyMode.inStoryMode = 1;
-					createStory();
-				}
-				
-
-			}
-			// Load
-			if (menuMode.onLoad) {
-
-				menuMode.menuType = 0;
-				for (Entity entity : registry.menuModes.entities) {
-					registry.remove_all_components_of(entity);
-				}
-
-				// No story on Load
-				storyMode.firstLoad = false;
-
-				// Load the game from last save
-				dataManager.setPlayerModeFromFile();
-				int player_mode_file = dataManager.getPlayerMode();
-				if (player_mode_file == 1) {
-					twoPlayer.inTwoPlayerMode = false;
-				}
-				else {
-					twoPlayer.inTwoPlayerMode = true;
-				}
-				setPlayersStats();
-
-				if (twoPlayer.inTwoPlayerMode) {
-					dataManager.setPlayerStatEntity(player_stat, player2_stat);
-				}
-				else {
-					dataManager.setPlayerStatEntity(player_stat);
-				}
-				bool loadFile = dataManager.loadFile();
-				if (!loadFile) {
-					// If load failed due to file missing,load level 1 with 1 player. 
-					twoPlayer.inTwoPlayerMode = false;
-					setupLevel(1);
-				}
-				else {
-					level_number = dataManager.getLevelNumber();
-					int playerModeFile = dataManager.getPlayerMode();
-					if (playerModeFile == 1) {
-						twoPlayer.inTwoPlayerMode = false;
-					}
-					else {
-						twoPlayer.inTwoPlayerMode = true;
-					}
-					setupLevel(level_number);
-				}
-
-
-			}
-			Entity menu;
-			// Help
-			if (menuMode.onHelp) {
-				std::cout << "help clicked!";
-				menuMode.menuType = 0;
-				createHelp();
-				helpMode.inHelpMode = true;
-				helpMode.menuHelp = true;
-				helpMode.clicked = 1;
-				menuMode.onHelp = false;
-
-			}
-			
-
+			menuLogic(1);
 		}
-
-
 	}
 	
 	
+}
+
+void WorldSystem::menuLogic(int menuType) {
+
+	if (menuType == 1) {
+		// 1P 
+		if (menuMode.on1P) {
+			menuMode.menuType = 0;
+			for (Entity entity : registry.menuModes.entities) {
+				registry.remove_all_components_of(entity);
+			}
+			if (storyMode.inStoryMode == 0) {
+				storyMode.inStoryMode = 1;
+				createStory();
+			}
+		}
+		// 2P
+		if (menuMode.on2P) {
+
+			menuMode.menuType = 0;
+			for (Entity entity : registry.menuModes.entities) {
+				registry.remove_all_components_of(entity);
+			}
+			// insert code here
+			playerTwoJoinOrLeave();
+			if (storyMode.inStoryMode == 0) {
+				storyMode.inStoryMode = 1;
+				createStory();
+			}
+
+
+		}
+		// Load
+		if (menuMode.onLoad) {
+
+			menuMode.menuType = 0;
+			for (Entity entity : registry.menuModes.entities) {
+				registry.remove_all_components_of(entity);
+			}
+
+			// No story on Load
+			storyMode.firstLoad = false;
+
+			// Load the game from last save
+			loadGame();
+
+
+		}
+		// Help
+		if (menuMode.onHelp) {
+			std::cout << "help clicked!";
+			menuMode.menuType = 0;
+			createHelp();
+			helpMode.inHelpMode = true;
+			helpMode.menuHelp = true;
+			helpMode.clicked = 1;
+			menuMode.onHelp = false;
+
+		}
+	}
+	
+
+}
+
+void WorldSystem::loadGame() {
+	dataManager.setPlayerModeFromFile();
+	int player_mode_file = dataManager.getPlayerMode();
+	if (player_mode_file == 1) {
+		twoPlayer.inTwoPlayerMode = false;
+	}
+	else {
+		twoPlayer.inTwoPlayerMode = true;
+	}
+	setPlayersStats();
+
+	if (twoPlayer.inTwoPlayerMode) {
+		dataManager.setPlayerStatEntity(player_stat, player2_stat);
+	}
+	else {
+		dataManager.setPlayerStatEntity(player_stat);
+	}
+	bool loadFile = dataManager.loadFile();
+	if (!loadFile) {
+		// If load failed due to file missing,load level 1 with 1 player. 
+		twoPlayer.inTwoPlayerMode = false;
+		setupLevel(1);
+	}
+	else {
+		level_number = dataManager.getLevelNumber();
+		int playerModeFile = dataManager.getPlayerMode();
+		if (playerModeFile == 1) {
+			twoPlayer.inTwoPlayerMode = false;
+		}
+		else {
+			twoPlayer.inTwoPlayerMode = true;
+		}
+		setupLevel(level_number);
+	}
 }
 
 void WorldSystem::setupWindowScaling() {
@@ -1212,7 +1219,6 @@ void WorldSystem::wizardIdleFrameSetter(float elapsed_ms, WizardAnimation& wizar
 
 
 Entity WorldSystem::createMenu() {
-//
 	Entity entity = Entity();
 
 	registry.renderRequests.insert(

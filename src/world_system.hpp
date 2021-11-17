@@ -101,4 +101,8 @@ private:
 	void wizardAttackFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation);
 	void wizardWalkFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation);
 	void wizardIdleFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation);
+	// menu
+	void menuLogic(int menuType);
+	//load
+	void loadGame();
 }; 
