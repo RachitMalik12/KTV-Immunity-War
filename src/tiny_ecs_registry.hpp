@@ -32,6 +32,7 @@ public:
 	ComponentContainer<EnemyRun> enemiesrun;
 	ComponentContainer<EnemyHunter> enemyHunters;
 	ComponentContainer<EnemyBacteria> enemyBacterias;
+	ComponentContainer<EnemyGerm> enemyGerms;
 	ComponentContainer<EnemyChase> enemyChase;
 	ComponentContainer<EnemySwarm> enemySwarms;
 	ComponentContainer<Powerup> powerups; 
@@ -74,6 +75,7 @@ public:
 		registry_list.push_back(&enemiesrun);
 		registry_list.push_back(&enemyHunters);
 		registry_list.push_back(&enemyBacterias);
+		registry_list.push_back(&enemyGerms);
 		registry_list.push_back(&enemyChase);
 		registry_list.push_back(&enemySwarms);
 		registry_list.push_back(&powerups);

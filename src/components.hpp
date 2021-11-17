@@ -111,6 +111,19 @@ struct EnemyBacteria
 	float next_bacteria_PATH_calculation;
 };
 
+// Behaviour Tree Enemy
+struct EnemyGerm
+{
+	float germBehaviourUpdateTime = 1500.f;
+	float next_germ_behaviour_calculation;
+	float mode;
+	float explosionCountDown = 0;
+	float explosionCountInit = 5;
+	float playerChaseThreshold = 5;
+};
+
+
+
 struct EnemySwarm {
 	float aiUpdateTime = 3000.f;
 	// Wait 1000ms before update AI for the first time so it doesn't fire at the player right after level loads
@@ -389,7 +402,8 @@ enum class TEXTURE_ASSET_ID {
 	WIZARDATTACK = SWORD + 1,
 	WIZARDIDLE = WIZARDATTACK + 1,
 	WIZARDWALK = WIZARDIDLE + 1,
-	MENU = WIZARDWALK + 1,
+	GERM = WIZARDWALK + 1,
+	MENU = GERM + 1,
 	TEXTURE_COUNT = MENU + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
@@ -419,7 +433,8 @@ enum class GEOMETRY_BUFFER_ID {
 	TREE = WATERBALL + 1,
 	BACTERIA = TREE + 1,
 	SWORD = BACTERIA + 1,
-	GEOMETRY_COUNT = SWORD + 1
+	GERM = SWORD + 1,
+	GEOMETRY_COUNT = GERM + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 

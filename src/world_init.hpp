@@ -25,6 +25,8 @@ const float ENEMYHUNTER_BB_HEIGHT = 0.11f * 691.f;
 const float ENEMYHUNTER_BB_WIDTH = 0.11f * 582.f;
 const float ENEMYBACTERIA_BB_HEIGHT = 0.11f * 691.f;
 const float ENEMYBACTERIA_BB_WIDTH = 0.11f * 800.f;
+const float ENEMYGERM_BB_HEIGHT = 0.11f * 691.f;
+const float ENEMYGERM_BB_WIDTH = 0.11f * 800.f;
 const float ENEMYCHASE_BB_HEIGHT = 0.05f * 1024.f;
 const float ENEMYCHASE_BB_WIDTH = 0.05f * 1258.f;
 const float HELP_BB_WIDTH = 1000.f;
@@ -80,6 +82,9 @@ Entity createEnemyBacteria(RenderSystem* renderer, vec2 position);
 
 // BFS enemy
 Entity createEnemyChase(RenderSystem* renderer, vec2 position);
+
+// Behaviour Tree enemy
+Entity createEnemyGerm(RenderSystem* renderer, vec2 position);
 
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);
