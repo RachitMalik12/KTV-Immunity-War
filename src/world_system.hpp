@@ -105,4 +105,6 @@ private:
 	void menuLogic(int menuType);
 	//load
 	void loadGame();
+	// story
+	void storyClicker();
 }; 
