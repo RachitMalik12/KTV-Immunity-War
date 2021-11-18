@@ -316,11 +316,19 @@ mat3 RenderSystem::createProjectionMatrix(float left, float top)
 			}
 		}
 		else {
+			Entity p1 = registry.players.entities[0]; 
 			if (player1Pos.y - h > -SHOP_BUFFER_ZONE) {
 				projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty + 2, 1.f} };
+				// In the shop 
+				if (!registry.inShops.has(p1)) {
+					registry.inShops.emplace(p1); 
+				}
 			}
 			else if (player1Pos.y - h < SHOP_BUFFER_ZONE) {
 				projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f} };
+				if (registry.inShops.has(p1)) {
+					registry.inShops.remove(p1);
+				}
 			}
 			else {
 				projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f} };

@@ -16,6 +16,8 @@ const int SHOP_WALL_THICKNESS = 100;
 // Create the fish world
 WorldSystem::WorldSystem()
 	: isLevelOver(false),
+	  firstEntranceToShop(true),
+	  isTransitionOver(false), 
 	  level_number(1)
 {
 	// Seeding rng with random device
@@ -431,6 +433,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			Entity door = registry.doors.entities.front();
 			registry.remove_all_components_of(door);
 		}
+	}
+	// Debug mode to get to level transition
+	if (action == GLFW_RELEASE && key == GLFW_KEY_B) {
+		while (registry.enemies.entities.size() > 0)
+			registry.remove_all_components_of(registry.enemies.entities.back());
 	}
 
 	// Debugging
@@ -958,13 +965,85 @@ void WorldSystem::resolveMouseControl() {
 void WorldSystem::levelCompletionCheck() {
 	// Check level completion 
 	if (registry.enemies.size() == 0) {
+		transitionToShop();
 		isLevelOver = true;
 	}
-	int nextLevel = level_number + 1;
-	if (isLevelOver && nextLevel <= levels.size()) {
-		// Only if we have levels left we need to change level 
-		level_number = nextLevel;
-		setupLevel(level_number);
+
+	if (isLevelOver && isTransitionOver) {
+		int nextLevel = level_number + 1;
+		if (nextLevel <= levels.size()) {
+			// Only if we have levels left we need to change level 
+			level_number = nextLevel;
+			setupLevel(level_number);
+		}
+	}
+}
+
+void WorldSystem::transitionToShop() {
+	if (registry.doors.entities.size() > 0) {
+		Entity door = registry.doors.entities.front();
+		registry.remove_all_components_of(door);
+	} 
+	if (!twoPlayer.inTwoPlayerMode) {
+		setTransitionFlag(player_knight); 
+	}
+	else {
+		setTransitionFlag(player2_wizard);
+	} 
+}
+
+void WorldSystem::reviveKnight(Player& p1, PlayerStat& p1Stat) {
+	p1.isDead = false;
+	p1.hp = p1Stat.maxHp;
+	registry.renderRequests.insert(
+		player_knight,
+		{ TEXTURE_ASSET_ID::KNIGHT,
+			EFFECT_ASSET_ID::KNIGHT,
+			GEOMETRY_BUFFER_ID::SPRITE }, false);
+}
+
+void WorldSystem::reviveWizard(Player& p2, PlayerStat& p2Stat) {
+	p2.isDead = false;
+	p2.hp = p2Stat.maxHp;
+	WizardAnimation& animation = registry.wizardAnimations.get(player2_wizard);
+	animation.animationMode = animation.idleMode;
+	registry.renderRequests.insert(
+		player2_wizard,
+		{ TEXTURE_ASSET_ID::WIZARDIDLE,
+			EFFECT_ASSET_ID::WIZARD,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	animation.frameIdle = 0;
+	animation.idleTimer = 0;
+}
+
+void WorldSystem::reviveDeadPlayerInShop() {
+	if (twoPlayer.inTwoPlayerMode) {
+		Player& p1 = registry.players.get(player_knight);
+		Player& p2 = registry.players.get(player2_wizard);
+		PlayerStat& p1Stat = registry.playerStats.get(player_stat);
+		PlayerStat& p2Stat = registry.playerStats.get(player2_stat);
+		// Restore the dead player so they can buy stuff. 
+		if (p1.isDead) {
+			reviveKnight(p1, p1Stat); 
+		}
+		if (p2.isDead) {
+			reviveWizard(p2, p2Stat); 
+		}
+		updateTitle(level_number);
+	}
+}
+
+void WorldSystem::setTransitionFlag(Entity player) {
+	
+	if (registry.inShops.has(player) && firstEntranceToShop) {
+		firstEntranceToShop = false;
+		reviveDeadPlayerInShop();
+	}
+	if (!registry.inShops.has(player) && !firstEntranceToShop) {
+		isTransitionOver = true;
+	}
+	else {
+		isTransitionOver = false;
 	}
 }
 
@@ -1027,6 +1106,9 @@ void WorldSystem::setupLevel(int levelNum) {
 	while (registry.blocks.entities.size() > 0)
 		registry.remove_all_components_of(registry.blocks.entities.back());
 
+	// Close the door at the start of every level after player leaves the shop. 
+	createADoor(screen_width, screen_height); 
+
 	int index = levelNum - 1;
 	Level level = levels[index];
 	auto enemies = level.enemies;
@@ -1079,6 +1161,8 @@ void WorldSystem::setupLevel(int levelNum) {
 	}
 	// Update state 
 	isLevelOver = false;
+	isTransitionOver = false;
+	firstEntranceToShop = true; 
 	updateTitle(levelNum);
 }
 

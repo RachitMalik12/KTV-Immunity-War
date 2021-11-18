@@ -59,6 +59,8 @@ private:
 	std::vector<Level> levels; 
 	// to start with true. 
 	bool isLevelOver;
+	bool isTransitionOver;
+	bool firstEntranceToShop; 
 	// Game state
 	RenderSystem* renderer;
 	float next_projectile_fire_player1;
@@ -108,4 +110,9 @@ private:
 	void loadGame();
 	// story
 	void storyClicker();
+	void transitionToShop(); 
+	void setTransitionFlag(Entity player); 
+	void reviveDeadPlayerInShop(); 
+	void reviveWizard(Player& p1, PlayerStat& p1Stat); 
+	void reviveKnight(Player& p2, PlayerStat& p2Stat); 
 }; 
