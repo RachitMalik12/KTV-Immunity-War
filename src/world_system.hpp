@@ -112,4 +112,7 @@ private:
 	void storyClicker();
 	void transitionToShop(); 
 	void setTransitionFlag(Entity player); 
+	void reviveDeadPlayerInShop(); 
+	void reviveWizard(Player& p1, PlayerStat& p1Stat); 
+	void reviveKnight(Player& p2, PlayerStat& p2Stat); 
 }; 

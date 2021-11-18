@@ -983,18 +983,60 @@ void WorldSystem::transitionToShop() {
 	if (registry.doors.entities.size() > 0) {
 		Entity door = registry.doors.entities.front();
 		registry.remove_all_components_of(door);
-	}
+	} 
 	if (!twoPlayer.inTwoPlayerMode) {
 		setTransitionFlag(player_knight); 
 	}
 	else {
-		setTransitionFlag(player2_wizard); 
+		setTransitionFlag(player2_wizard);
 	} 
 }
 
+void WorldSystem::reviveKnight(Player& p1, PlayerStat& p1Stat) {
+	p1.isDead = false;
+	p1.hp = p1Stat.maxHp;
+	registry.renderRequests.insert(
+		player_knight,
+		{ TEXTURE_ASSET_ID::KNIGHT,
+			EFFECT_ASSET_ID::KNIGHT,
+			GEOMETRY_BUFFER_ID::SPRITE }, false);
+}
+
+void WorldSystem::reviveWizard(Player& p2, PlayerStat& p2Stat) {
+	p2.isDead = false;
+	p2.hp = p2Stat.maxHp;
+	WizardAnimation& animation = registry.wizardAnimations.get(player2_wizard);
+	animation.animationMode = animation.idleMode;
+	registry.renderRequests.insert(
+		player2_wizard,
+		{ TEXTURE_ASSET_ID::WIZARDIDLE,
+			EFFECT_ASSET_ID::WIZARD,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	animation.frameIdle = 0;
+	animation.idleTimer = 0;
+}
+
+void WorldSystem::reviveDeadPlayerInShop() {
+	if (twoPlayer.inTwoPlayerMode) {
+		Player& p1 = registry.players.get(player_knight);
+		Player& p2 = registry.players.get(player2_wizard);
+		PlayerStat& p1Stat = registry.playerStats.get(player_stat);
+		PlayerStat& p2Stat = registry.playerStats.get(player2_stat);
+		// Restore the dead player so they can buy stuff. 
+		if (p1.isDead) {
+			reviveKnight(p1, p1Stat); 
+		}
+		if (p2.isDead) {
+			reviveWizard(p2, p2Stat); 
+		}
+	}
+}
+
 void WorldSystem::setTransitionFlag(Entity player) {
+	
 	if (registry.inShops.has(player) && firstEntranceToShop) {
 		firstEntranceToShop = false;
+		reviveDeadPlayerInShop(); 	
 	}
 	if (!registry.inShops.has(player) && !firstEntranceToShop) {
 		isTransitionOver = true;
