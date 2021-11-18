@@ -211,6 +211,7 @@ struct MenuMode {
 	// 0 = no menu, 1 = first, main menu // 2 = other in game menu
 	bool inMenuMode = true;
 	bool inGameHelpDrawn = false;
+	bool inMainHelpDrawn = false;
 	bool inGameMode = true;
 	bool inShop = false;
 	int menuType = 1;
