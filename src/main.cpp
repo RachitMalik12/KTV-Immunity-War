@@ -17,6 +17,7 @@ TwoPlayer twoPlayer;
 HelpMode helpMode;
 StoryMode storyMode;
 Step stepProgress;
+MenuMode menuMode;
 
 // Entry point
 int main()
@@ -59,9 +60,12 @@ int main()
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
 
+		// TODO: JASMINE (MAKE IT SO THAT CLICKING IN SOME RANGE WILL BRING IT TO STORY MODE)
+		if (menuMode.menuType == 1) {
+			world.createMenu();
+		}
 
-
-		if (!helpMode.inHelpMode && !storyMode.firstLoad) {
+		if (!helpMode.inHelpMode && !storyMode.firstLoad && menuMode.menuType == 0) {
 			stepProgress.stepInProgress = true;
 			world.step(elapsed_ms);
 			ai.step(elapsed_ms, (float)width, (float)height);
