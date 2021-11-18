@@ -196,6 +196,17 @@ struct StoryMode {
 };
 extern StoryMode storyMode;
 
+enum menuButtons {
+	P1,
+	P2,
+	Load,
+	Save,
+	JoinLeave,
+	Restart,
+	Help,
+	None,
+};
+
 struct MenuMode {
 	// 0 = no menu, 1 = first, main menu // 2 = other in game menu
 	bool inMenuMode = true;
@@ -203,6 +214,8 @@ struct MenuMode {
 	bool inGameMode = true;
 	bool inShop = false;
 	int menuType = 1;
+	menuButtons currentButton;
+	
 	int onLoad = false;
 	int on1P = false;
 	int on2P = false;

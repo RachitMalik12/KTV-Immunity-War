@@ -593,17 +593,22 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			}
 		}
 	}
-	bool clicked_once = false;
+	
 	bool left_clicked = (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_LEFT);
 	// menu is in-game menu
 	if (helpMode.clicked == 1) {
+		std::cout << "once";
 		helpMode.clicked = 2;
 		
 	}
 	else if (helpMode.clicked == 2) {
 		if (helpMode.isMainMenu) {
+			std::cout << "TWICE";
+			// bring main menu back
 			menuMode.menuType = 1;
+			// help is no longer displayed over main menu
 			helpMode.isMainMenu = false;
+			// make the menu
 			createMenu();
 		}
 		else {
@@ -612,6 +617,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 		}
 		
 		helpMode.inHelpMode = false;
+		menuMode.currentButton = None;
 		for (Entity entity : registry.helpModes.entities) {
 			registry.remove_all_components_of(entity);
 		}
@@ -703,7 +709,8 @@ void WorldSystem::menuLogic(int menuType) {
 
 	if (menuType == 1) {
 		// 1P 
-		if (menuMode.on1P) {
+		if (menuMode.currentButton == P1) {
+			std::cout << "P1";
 			menuMode.menuType = 0;
 			for (Entity entity : registry.menuModes.entities) {
 				registry.remove_all_components_of(entity);
@@ -714,7 +721,8 @@ void WorldSystem::menuLogic(int menuType) {
 			}
 		}
 		// 2P
-		if (menuMode.on2P) {
+		if (menuMode.currentButton == P2) {
+			std::cout << "P2";
 			menuMode.menuType = 0;
 			for (Entity entity : registry.menuModes.entities) {
 				registry.remove_all_components_of(entity);
@@ -727,7 +735,8 @@ void WorldSystem::menuLogic(int menuType) {
 			}
 		}
 		// Load
-		if (menuMode.onLoad) {
+		if (menuMode.currentButton == Load) {
+			std::cout << "Load";
 			menuMode.menuType = 0;
 			for (Entity entity : registry.menuModes.entities) {
 				registry.remove_all_components_of(entity);
@@ -738,21 +747,22 @@ void WorldSystem::menuLogic(int menuType) {
 			loadGame();
 		}
 		// Help
-		if (menuMode.onHelp) {
+		if (menuMode.currentButton == Help) {
+			std::cout << "Help";
 			menuMode.menuType = 0;
 			createHelp();
 			helpMode.inHelpMode = true;
 			helpMode.menuHelp = true;
 			helpMode.isMainMenu = true;
 			helpMode.clicked = 1;
-			menuMode.onHelp = false;
+			/*menuMode.onHelp = false;*/
 		}
 	}
 
 	//TODO1
 	if (menuType == 2) {
 		// Save
-		if (menuMode.onSave) {
+		if (menuMode.currentButton == Save) {
 			menuMode.menuType = 0;
 			for (Entity entity : registry.menuModes.entities) {
 				registry.remove_all_components_of(entity);
@@ -760,7 +770,7 @@ void WorldSystem::menuLogic(int menuType) {
 			saveGame();
 		}
 		// 2P join/leave
-		if (menuMode.onJoinLeave) {
+		if (menuMode.currentButton == JoinLeave) {
 			menuMode.menuType = 0;
 			for (Entity entity : registry.menuModes.entities) {
 				registry.remove_all_components_of(entity);
@@ -768,7 +778,7 @@ void WorldSystem::menuLogic(int menuType) {
 			playerTwoJoinOrLeave();
 		}
 		// Restart
-		if (menuMode.onRestart) {
+		if (menuMode.currentButton == Restart) {
 			menuMode.menuType = 0;
 			for (Entity entity : registry.menuModes.entities) {
 				registry.remove_all_components_of(entity);
@@ -776,7 +786,7 @@ void WorldSystem::menuLogic(int menuType) {
 			restart_game();
 		}
 		// Load
-		if (menuMode.onLoad) {
+		if (menuMode.currentButton == Load) {
 			menuMode.menuType = 0;
 			for (Entity entity : registry.menuModes.entities) {
 				registry.remove_all_components_of(entity);
@@ -787,7 +797,7 @@ void WorldSystem::menuLogic(int menuType) {
 			loadGame();
 		}
 		// Help
-		if (menuMode.onHelp) {
+		if (menuMode.currentButton == Help) {
 			std::cout << "inhelp";
 			menuMode.menuType = 0;
 			Entity help = createHelp();
@@ -800,7 +810,7 @@ void WorldSystem::menuLogic(int menuType) {
 			helpMode.menuHelp = true;
 			helpMode.isMainMenu = false;
 			helpMode.clicked = 1;
-			menuMode.onHelp = false;
+			/*menuMode.onHelp = false;*/
 		}
 	}
 	
@@ -1377,19 +1387,13 @@ void WorldSystem::createTitleScreen(vec2 mouse_position) {
 		// 1 player
 		if (mouse_position.x > xpos[0] && mouse_position.x < xpos[1]) {
 			if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
-				menuMode.onLoad = false;
-				menuMode.onHelp = false;
-				menuMode.on2P = false;
-				menuMode.on1P = true;
+				menuMode.currentButton = P1;
 			}
 			else {
-				menuMode.onLoad = false;
-				menuMode.onHelp = false;
-				menuMode.on1P = false;
 				ynum = motion.position.y + BL_BUTTONPOS.y * defaultResolution.scaling;
 				ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
 				if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
-					menuMode.on2P = true;
+					menuMode.currentButton = P2;
 				}
 			}
 		}
@@ -1401,28 +1405,28 @@ void WorldSystem::createTitleScreen(vec2 mouse_position) {
 			// Load
 			if (mouse_position.x > xpos[0] && mouse_position.x < xpos[1]) {
 				if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
-					menuMode.on2P = false;
-					menuMode.onHelp = false;
-					menuMode.on1P = false;
-					menuMode.onLoad = true;
+					menuMode.currentButton = Load;
 				}
 				else {
 					// Help
 					ynum = motion.position.y + BR_BUTTONPOS.y * defaultResolution.scaling;
 					ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
 					if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
-						menuMode.on2P = false;
+						/*menuMode.on2P = false;
 						menuMode.onLoad = false;
-						menuMode.on1P = false;
-						menuMode.onHelp = true;
+						menuMode.on1P = false;*/
+						menuMode.currentButton = Help;
 					}
 				}
 			}
 			else {
-				menuMode.onLoad = false;
+				std::cout << "None";
+				/*menuMode.onLoad = false;
 				menuMode.onHelp = false;
 				menuMode.on1P = false;
-				menuMode.on2P = false;
+				menuMode.on2P = false;*/
+				menuMode.currentButton = None;
+				
 			}
 		}
 	}
@@ -1450,11 +1454,12 @@ void WorldSystem::createInGameScreen(vec2 mouse_position) {
 		if (mouse_position.x > xpos[0] && mouse_position.x < xpos[1]) {
 			if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
 				std::cout << "2p on off";
-				menuMode.onRestart = false;
+				/*menuMode.onRestart = false;
 				menuMode.onHelp = false;
 				menuMode.onLoad = false;
 				menuMode.onSave = false;
-				menuMode.onJoinLeave = true;
+				menuMode.onJoinLeave = true;*/
+				menuMode.currentButton = JoinLeave;
 			}
 			else {
 				// Restart
@@ -1468,11 +1473,12 @@ void WorldSystem::createInGameScreen(vec2 mouse_position) {
 				ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
 				if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
 					std::cout << "restart";
-					menuMode.onHelp = false;
+					/*menuMode.onHelp = false;
 					menuMode.onLoad = false;
 					menuMode.onSave = false;
 					menuMode.onJoinLeave = false;
-					menuMode.onRestart = true;
+					menuMode.onRestart = true;*/
+					menuMode.currentButton = Restart;
 				}
 			}
 		}
@@ -1489,12 +1495,13 @@ void WorldSystem::createInGameScreen(vec2 mouse_position) {
 			// Load
 			if (mouse_position.x > xpos[0] && mouse_position.x < xpos[1]) {
 				if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
-					menuMode.onHelp = false;
-					menuMode.onJoinLeave = false;
-					menuMode.onSave = false;
-					menuMode.onRestart = false;
-					//set
-					menuMode.onLoad = true;
+					//menuMode.onHelp = false;
+					//menuMode.onJoinLeave = false;
+					//menuMode.onSave = false;
+					//menuMode.onRestart = false;
+					////set
+					//menuMode.onLoad = true;
+					menuMode.currentButton = Load;
 				}
 				else {
 					// Help
@@ -1506,12 +1513,13 @@ void WorldSystem::createInGameScreen(vec2 mouse_position) {
 					}
 					ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
 					if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
-						menuMode.onJoinLeave = false;
-						menuMode.onSave = false;
-						menuMode.onRestart = false;
-						menuMode.onLoad = false;
-						//set
-						menuMode.onHelp = true;
+						//menuMode.onJoinLeave = false;
+						//menuMode.onSave = false;
+						//menuMode.onRestart = false;
+						//menuMode.onLoad = false;
+						////set
+						//menuMode.onHelp = true;
+						menuMode.currentButton = Help;
 					}
 					
 						// save
@@ -1523,12 +1531,13 @@ void WorldSystem::createInGameScreen(vec2 mouse_position) {
 					}
 					ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
 					if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
-						menuMode.onJoinLeave = false;
-						menuMode.onRestart = false;
-						menuMode.onLoad = false;
-						menuMode.onHelp = false;
-						//set
-						menuMode.onSave = true;
+						//menuMode.onJoinLeave = false;
+						//menuMode.onRestart = false;
+						//menuMode.onLoad = false;
+						//menuMode.onHelp = false;
+						////set
+						//menuMode.onSave = true;
+						menuMode.currentButton = Save;
 					}
 
 					
@@ -1537,11 +1546,12 @@ void WorldSystem::createInGameScreen(vec2 mouse_position) {
 	
 			}
 			else {
-				menuMode.onHelp = false;
+				/*menuMode.onHelp = false;
 				menuMode.onJoinLeave = false;
 				menuMode.onSave = false;
 				menuMode.onRestart = false;
-				menuMode.onLoad = false;
+				menuMode.onLoad = false;*/
+				menuMode.currentButton = None;
 			}
 		}
 	}
