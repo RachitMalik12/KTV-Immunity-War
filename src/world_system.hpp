@@ -104,6 +104,7 @@ private:
 	// menu
 	void menuLogic(int menuType);
 	void createTitleScreen(vec2 mouse_position);
+	void createInGameScreen(vec2 mouse_position);
 	//load
 	void loadGame();
 	// story

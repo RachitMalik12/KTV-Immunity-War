@@ -496,7 +496,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 
 	// menu is in game
 	if (menuMode.menuType == 2) {
-
+		createInGameScreen(mouse_position);
 	}
 }
 
@@ -1196,6 +1196,67 @@ Entity WorldSystem::createMenu() {
 void WorldSystem::createTitleScreen(vec2 mouse_position) {
 	for (Entity entity : registry.menuModes.entities) {
 		Motion &motion = registry.motions.get(entity);
+		float xnum = motion.position.x + TL_BUTTONPOS.x * defaultResolution.scaling;
+		float ynum = motion.position.y + TL_BUTTONPOS.y * defaultResolution.scaling;
+		vec2 xpos = { xnum - BUTTON_BB_WIDTH * defaultResolution.scaling , xnum };
+		vec2 ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
+		// 1 player
+		if (mouse_position.x > xpos[0] && mouse_position.x < xpos[1]) {
+			if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
+				menuMode.onLoad = false;
+				menuMode.onHelp = false;
+				menuMode.on2P = false;
+				menuMode.on1P = true;
+			}
+			else {
+				menuMode.onLoad = false;
+				menuMode.onHelp = false;
+				menuMode.on1P = false;
+				ynum = motion.position.y + BL_BUTTONPOS.y * defaultResolution.scaling;
+				ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
+				if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
+					menuMode.on2P = true;
+				}
+			}
+		}
+		else {
+			xnum = motion.position.x + TR_BUTTONPOS.x * defaultResolution.scaling;
+			ynum = motion.position.y + TR_BUTTONPOS.y * defaultResolution.scaling;
+			xpos = { xnum - BUTTON_BB_WIDTH * defaultResolution.scaling , xnum };
+			ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
+			// Load
+			if (mouse_position.x > xpos[0] && mouse_position.x < xpos[1]) {
+				if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
+					menuMode.on2P = false;
+					menuMode.onHelp = false;
+					menuMode.on1P = false;
+					menuMode.onLoad = true;
+				}
+				else {
+					// Help
+					ynum = motion.position.y + BR_BUTTONPOS.y * defaultResolution.scaling;
+					ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
+					if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
+						menuMode.on2P = false;
+						menuMode.onLoad = false;
+						menuMode.on1P = false;
+						menuMode.onHelp = true;
+					}
+				}
+			}
+			else {
+				menuMode.onLoad = false;
+				menuMode.onHelp = false;
+				menuMode.on1P = false;
+				menuMode.on2P = false;
+			}
+		}
+	}
+}
+
+void WorldSystem::createInGameScreen(vec2 mouse_position) {
+	for (Entity entity : registry.menuModes.entities) {
+		Motion& motion = registry.motions.get(entity);
 		float xnum = motion.position.x + TL_BUTTONPOS.x * defaultResolution.scaling;
 		float ynum = motion.position.y + TL_BUTTONPOS.y * defaultResolution.scaling;
 		vec2 xpos = { xnum - BUTTON_BB_WIDTH * defaultResolution.scaling , xnum };
