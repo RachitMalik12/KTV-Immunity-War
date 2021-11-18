@@ -197,9 +197,9 @@ struct StoryMode {
 extern StoryMode storyMode;
 
 struct MenuMode {
-	// 1 = first, main menu // 2 = other in game menu
+	// 0 = no menu, 1 = first, main menu // 2 = other in game menu
 	bool inMenuMode = true;
-	bool helped = false;
+	bool inGameHelpDrawn = false;
 	bool inGameMode = true;
 	bool inShop = false;
 	int menuType = 1;

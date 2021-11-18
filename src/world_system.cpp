@@ -459,11 +459,12 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE) {
 		// if menu has no been created or menu is back from help
-		if (menuMode.menuType != 2 || menuMode.helped) {
-			menuMode.helped = false;
+		if (menuMode.menuType != 2 || menuMode.inGameHelpDrawn) {
+			menuMode.inGameHelpDrawn = false;
 			menuMode.menuType = 2;
 			menuMode.inGameMode = true;
 			//todo2
+			Entity ent;
 			if (registry.inShops.has(player_knight)|| registry.inShops.has(player2_wizard)) {
 				createMenu();
 				Entity ent = registry.menuModes.entities[0];
@@ -473,7 +474,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			else {
 				createMenu();
 			}
-			Entity ent;
+			
 			for (Entity entity : registry.menuModes.entities) {
 				registry.renderRequests.remove(entity);
 				ent = entity;
@@ -606,8 +607,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			createMenu();
 		}
 		else {
-			std::cout << "2";
-			menuMode.helped = true;
+			menuMode.inGameHelpDrawn = true;
 			menuMode.menuType = 2;
 		}
 		
@@ -739,7 +739,6 @@ void WorldSystem::menuLogic(int menuType) {
 		}
 		// Help
 		if (menuMode.onHelp) {
-			std::cout << "help clicked!";
 			menuMode.menuType = 0;
 			createHelp();
 			helpMode.inHelpMode = true;
@@ -789,9 +788,14 @@ void WorldSystem::menuLogic(int menuType) {
 		}
 		// Help
 		if (menuMode.onHelp) {
-			std::cout << "help clicked!";
+			std::cout << "inhelp";
 			menuMode.menuType = 0;
-			createHelp();
+			Entity help = createHelp();
+			if (registry.inShops.has(player_knight) || registry.inShops.has(player2_wizard)) {
+				Motion& motion = registry.motions.get(help);
+				motion.position.y = defaultResolution.height/2 + defaultResolution.defaultHeight;
+			}
+			
 			helpMode.inHelpMode = true;
 			helpMode.menuHelp = true;
 			helpMode.isMainMenu = false;
@@ -1428,17 +1432,17 @@ void WorldSystem::createInGameScreen(vec2 mouse_position) {
 	//TODO: REPOSITION ALL THE BUTTONS WHEN IN SHOP
 	// TODO: REFACTOR 800 into defaultResolution.defaultHeight
 	bool inShop = registry.inShops.has(player_knight) || registry.inShops.has(player2_wizard);
-	std::cout << inShop;
 	for (Entity entity : registry.menuModes.entities) {
 		Motion& motion = registry.motions.get(entity);
 		float xnum = motion.position.x + TL_BUTTONPOS.x * defaultResolution.scaling;
 		float ynum = motion.position.y + TL_BUTTONPOS.y * defaultResolution.scaling;
-		/*if (inShop) {
-			ynum = motion.position.y + TL_BUTTONPOS.y * defaultResolution.scaling;
+		
+		if (inShop) {
+			ynum = motion.position.y + TL_BUTTONPOS.y * defaultResolution.scaling - defaultResolution.defaultHeight;
 		}
 		else {
 			ynum = motion.position.y + TL_BUTTONPOS.y * defaultResolution.scaling;
-		}*/
+		}
 		
 		vec2 xpos = { xnum - BUTTON_BB_WIDTH * defaultResolution.scaling , xnum };
 		vec2 ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
@@ -1454,21 +1458,32 @@ void WorldSystem::createInGameScreen(vec2 mouse_position) {
 			}
 			else {
 				// Restart
-				std::cout << "restart";
-				menuMode.onHelp = false;
-				menuMode.onLoad = false;
-				menuMode.onSave = false;
-				menuMode.onJoinLeave = false;
-				ynum = motion.position.y + BL_BUTTONPOS.y * defaultResolution.scaling;
+				
+				if (inShop) {
+					ynum = motion.position.y + BL_BUTTONPOS.y * defaultResolution.scaling - defaultResolution.defaultHeight;
+				}
+				else {
+					ynum = motion.position.y + BL_BUTTONPOS.y * defaultResolution.scaling;
+				}
 				ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
 				if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
+					std::cout << "restart";
+					menuMode.onHelp = false;
+					menuMode.onLoad = false;
+					menuMode.onSave = false;
+					menuMode.onJoinLeave = false;
 					menuMode.onRestart = true;
 				}
 			}
 		}
 		else {
 			xnum = motion.position.x + TR_BUTTONPOS.x * defaultResolution.scaling;
-			ynum = motion.position.y + TR_BUTTONPOS.y * defaultResolution.scaling;
+			if (inShop) {
+				ynum = motion.position.y + TR_BUTTONPOS.y * defaultResolution.scaling - defaultResolution.defaultHeight;
+			}
+			else {
+				ynum = motion.position.y + TR_BUTTONPOS.y * defaultResolution.scaling;
+			}
 			xpos = { xnum - BUTTON_BB_WIDTH * defaultResolution.scaling , xnum };
 			ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
 			// Load
@@ -1483,7 +1498,12 @@ void WorldSystem::createInGameScreen(vec2 mouse_position) {
 				}
 				else {
 					// Help
-					ynum = motion.position.y + BR_BUTTONPOS.y * defaultResolution.scaling;
+					if (inShop) {
+						ynum = motion.position.y + BR_BUTTONPOS.y * defaultResolution.scaling - defaultResolution.defaultHeight;
+					}
+					else {
+						ynum = motion.position.y + BR_BUTTONPOS.y * defaultResolution.scaling;
+					}
 					ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
 					if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
 						menuMode.onJoinLeave = false;
@@ -1495,17 +1515,21 @@ void WorldSystem::createInGameScreen(vec2 mouse_position) {
 					}
 					
 						// save
-						
+					if (inShop) {
+						ynum = motion.position.y + TTR_BUTTONPOS.y * defaultResolution.scaling - defaultResolution.defaultHeight;
+					}
+					else {
 						ynum = motion.position.y + TTR_BUTTONPOS.y * defaultResolution.scaling;
-						ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
-						if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
-							menuMode.onJoinLeave = false;
-							menuMode.onRestart = false;
-							menuMode.onLoad = false;
-							menuMode.onHelp = false;
-							//set
-							menuMode.onSave = true;
-						}
+					}
+					ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
+					if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
+						menuMode.onJoinLeave = false;
+						menuMode.onRestart = false;
+						menuMode.onLoad = false;
+						menuMode.onHelp = false;
+						//set
+						menuMode.onSave = true;
+					}
 
 					
 
