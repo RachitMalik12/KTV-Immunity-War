@@ -201,6 +201,7 @@ struct MenuMode {
 	bool inMenuMode = true;
 	bool helped = false;
 	bool inGameMode = true;
+	bool inShop = false;
 	int menuType = 1;
 	int onLoad = false;
 	int on1P = false;

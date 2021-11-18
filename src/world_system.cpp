@@ -469,7 +469,16 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			menuMode.menuType = 2;
 			menuMode.inGameMode = true;
 			//todo2
-			createMenu();
+			if (registry.inShops.has(player_knight)|| registry.inShops.has(player2_wizard)) {
+				createMenu();
+				Entity ent = registry.menuModes.entities[0];
+				Motion& motion = registry.motions.get(ent);
+				int translation = 800 * defaultResolution.scaling;
+				motion.position = { defaultResolution.width / 2 , defaultResolution.height / 2 + translation };
+			}
+			else {
+				createMenu();
+			}
 			Entity ent;
 			for (Entity entity : registry.menuModes.entities) {
 				registry.renderRequests.remove(entity);
@@ -1418,6 +1427,8 @@ void WorldSystem::createTitleScreen(vec2 mouse_position) {
 }
 
 void WorldSystem::createInGameScreen(vec2 mouse_position) {
+	//TODO: REPOSITION ALL THE BUTTONS WHEN IN SHOP
+	// TODO: REFACTOR 800 into defaultResolution.defaultHeight
 	for (Entity entity : registry.menuModes.entities) {
 		Motion& motion = registry.motions.get(entity);
 		float xnum = motion.position.x + TL_BUTTONPOS.x * defaultResolution.scaling;
@@ -1473,7 +1484,9 @@ void WorldSystem::createInGameScreen(vec2 mouse_position) {
 						//set
 						menuMode.onHelp = true;
 					}
-					else {
+					
+						// save
+						
 						ynum = motion.position.y + TTR_BUTTONPOS.y * defaultResolution.scaling;
 						ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
 						if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
@@ -1485,7 +1498,7 @@ void WorldSystem::createInGameScreen(vec2 mouse_position) {
 							menuMode.onSave = true;
 						}
 
-					}
+					
 
 				}
 	
