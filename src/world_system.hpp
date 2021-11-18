@@ -107,6 +107,7 @@ private:
 	void createInGameScreen(vec2 mouse_position);
 	//load
 	void loadGame();
+	void saveGame();
 	// story
 	void storyClicker();
 }; 

@@ -181,6 +181,7 @@ struct HelpMode {
 	bool inHelpMode = false;
 	bool menuHelp = false;
 	int clicked = 0;
+	bool isMainMenu = false;
 };
 extern HelpMode helpMode;
 
@@ -198,6 +199,8 @@ extern StoryMode storyMode;
 struct MenuMode {
 	// 1 = first, main menu // 2 = other in game menu
 	bool inMenuMode = true;
+	bool helped = false;
+	bool inGameMode = true;
 	int menuType = 1;
 	int onLoad = false;
 	int on1P = false;

@@ -343,17 +343,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}	
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_K) {
-		// Save current level. 
-		dataManager.setLevelNumber(level_number); 
-		if (twoPlayer.inTwoPlayerMode) {
-			dataManager.setPlayerStatEntity(player_stat, player2_stat);
-			dataManager.saveFile(2);
-		}
-		else {
-			dataManager.setPlayerStatEntity(player_stat); 
-			dataManager.saveFile(1); 
-		}
-		
+		saveGame();
 	}
 
 	// level loading
@@ -463,7 +453,34 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// storymode
 	if (action == GLFW_RELEASE && key == GLFW_KEY_SPACE && storyMode.firstLoad) {
 		storyClicker();
-		
+	}
+
+	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE) {
+		// if menu has no been created or menu is back from help
+		if (menuMode.menuType != 2 || menuMode.helped) {
+			menuMode.helped = false;
+			menuMode.menuType = 2;
+			menuMode.inGameMode = true;
+			//todo2
+			createMenu();
+			Entity ent;
+			for (Entity entity : registry.menuModes.entities) {
+				registry.renderRequests.remove(entity);
+				ent = entity;
+			}
+			registry.renderRequests.insert(
+				ent,
+				{ TEXTURE_ASSET_ID::INGAMEMENU,
+					EFFECT_ASSET_ID::TEXTURED,
+					GEOMETRY_BUFFER_ID::SPRITE });
+
+		}
+		else if (menuMode.inGameMode) {
+			for (Entity entity : registry.menuModes.entities) {
+				registry.remove_all_components_of(entity);
+			}
+			menuMode.menuType = 0;
+		}
 	}
 }
 
@@ -573,8 +590,17 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 		
 	}
 	else if (helpMode.clicked == 2) {
-		menuMode.menuType = 1;
-		createMenu();
+		if (helpMode.isMainMenu) {
+			menuMode.menuType = 1;
+			helpMode.isMainMenu = false;
+			createMenu();
+		}
+		else {
+			std::cout << "2";
+			menuMode.helped = true;
+			menuMode.menuType = 2;
+		}
+		
 		helpMode.inHelpMode = false;
 		for (Entity entity : registry.helpModes.entities) {
 			registry.remove_all_components_of(entity);
@@ -590,16 +616,14 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 	}
 	// menu is in game
 	else if (menuMode.menuType == 2) {
-
+		if (left_clicked) {
+			menuLogic(2);
+		}
 	}
 	// story click to progress
 	else if (storyMode.firstLoad && left_clicked&& menuMode.menuType==0) {
 		storyClicker();
 	}
-
-	
-	
-	
 }
 
 void WorldSystem::storyClicker() {
@@ -678,11 +702,9 @@ void WorldSystem::menuLogic(int menuType) {
 				storyMode.inStoryMode = 1;
 				createStory();
 			}
-			
 		}
 		// 2P
 		if (menuMode.on2P) {
-
 			menuMode.menuType = 0;
 			for (Entity entity : registry.menuModes.entities) {
 				registry.remove_all_components_of(entity);
@@ -696,19 +718,14 @@ void WorldSystem::menuLogic(int menuType) {
 		}
 		// Load
 		if (menuMode.onLoad) {
-
 			menuMode.menuType = 0;
 			for (Entity entity : registry.menuModes.entities) {
 				registry.remove_all_components_of(entity);
 			}
-
 			// No story on Load
 			storyMode.firstLoad = false;
-
 			// Load the game from last save
 			loadGame();
-
-
 		}
 		// Help
 		if (menuMode.onHelp) {
@@ -717,9 +734,59 @@ void WorldSystem::menuLogic(int menuType) {
 			createHelp();
 			helpMode.inHelpMode = true;
 			helpMode.menuHelp = true;
+			helpMode.isMainMenu = true;
 			helpMode.clicked = 1;
 			menuMode.onHelp = false;
+		}
+	}
 
+	//TODO1
+	if (menuType == 2) {
+		// Save
+		if (menuMode.onSave) {
+			menuMode.menuType = 0;
+			for (Entity entity : registry.menuModes.entities) {
+				registry.remove_all_components_of(entity);
+			}
+			saveGame();
+		}
+		// 2P join/leave
+		if (menuMode.onJoinLeave) {
+			menuMode.menuType = 0;
+			for (Entity entity : registry.menuModes.entities) {
+				registry.remove_all_components_of(entity);
+			}
+			playerTwoJoinOrLeave();
+		}
+		// Restart
+		if (menuMode.onRestart) {
+			menuMode.menuType = 0;
+			for (Entity entity : registry.menuModes.entities) {
+				registry.remove_all_components_of(entity);
+			}
+			restart_game();
+		}
+		// Load
+		if (menuMode.onLoad) {
+			menuMode.menuType = 0;
+			for (Entity entity : registry.menuModes.entities) {
+				registry.remove_all_components_of(entity);
+			}
+			// No story on Load
+			storyMode.firstLoad = false;
+			// Load the game from last save
+			loadGame();
+		}
+		// Help
+		if (menuMode.onHelp) {
+			std::cout << "help clicked!";
+			menuMode.menuType = 0;
+			createHelp();
+			helpMode.inHelpMode = true;
+			helpMode.menuHelp = true;
+			helpMode.isMainMenu = false;
+			helpMode.clicked = 1;
+			menuMode.onHelp = false;
 		}
 	}
 	
@@ -759,6 +826,18 @@ void WorldSystem::loadGame() {
 			twoPlayer.inTwoPlayerMode = true;
 		}
 		setupLevel(level_number);
+	}
+}
+
+void WorldSystem::saveGame() {
+	dataManager.setLevelNumber(level_number);
+	if (twoPlayer.inTwoPlayerMode) {
+		dataManager.setPlayerStatEntity(player_stat, player2_stat);
+		dataManager.saveFile(2);
+	}
+	else {
+		dataManager.setPlayerStatEntity(player_stat);
+		dataManager.saveFile(1);
 	}
 }
 
@@ -1261,22 +1340,25 @@ void WorldSystem::createInGameScreen(vec2 mouse_position) {
 		float ynum = motion.position.y + TL_BUTTONPOS.y * defaultResolution.scaling;
 		vec2 xpos = { xnum - BUTTON_BB_WIDTH * defaultResolution.scaling , xnum };
 		vec2 ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
-		// 1 player
+		// 2P on/off
 		if (mouse_position.x > xpos[0] && mouse_position.x < xpos[1]) {
 			if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
-				menuMode.onLoad = false;
+				menuMode.onRestart = false;
 				menuMode.onHelp = false;
-				menuMode.on2P = false;
-				menuMode.on1P = true;
+				menuMode.onLoad = false;
+				menuMode.onSave = false;
+				menuMode.onJoinLeave = true;
 			}
 			else {
-				menuMode.onLoad = false;
+				// Restart
 				menuMode.onHelp = false;
-				menuMode.on1P = false;
+				menuMode.onLoad = false;
+				menuMode.onSave = false;
+				menuMode.onJoinLeave = false;
 				ynum = motion.position.y + BL_BUTTONPOS.y * defaultResolution.scaling;
 				ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
 				if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
-					menuMode.on2P = true;
+					menuMode.onRestart = true;
 				}
 			}
 		}
@@ -1288,9 +1370,11 @@ void WorldSystem::createInGameScreen(vec2 mouse_position) {
 			// Load
 			if (mouse_position.x > xpos[0] && mouse_position.x < xpos[1]) {
 				if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
-					menuMode.on2P = false;
 					menuMode.onHelp = false;
-					menuMode.on1P = false;
+					menuMode.onJoinLeave = false;
+					menuMode.onSave = false;
+					menuMode.onRestart = false;
+					//set
 					menuMode.onLoad = true;
 				}
 				else {
@@ -1298,18 +1382,36 @@ void WorldSystem::createInGameScreen(vec2 mouse_position) {
 					ynum = motion.position.y + BR_BUTTONPOS.y * defaultResolution.scaling;
 					ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
 					if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
-						menuMode.on2P = false;
+						menuMode.onJoinLeave = false;
+						menuMode.onSave = false;
+						menuMode.onRestart = false;
 						menuMode.onLoad = false;
-						menuMode.on1P = false;
+						//set
 						menuMode.onHelp = true;
 					}
+					else {
+						ynum = motion.position.y + TTR_BUTTONPOS.y * defaultResolution.scaling;
+						ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
+						if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
+							menuMode.onJoinLeave = false;
+							menuMode.onRestart = false;
+							menuMode.onLoad = false;
+							menuMode.onHelp = false;
+							//set
+							menuMode.onSave = true;
+						}
+
+					}
+
 				}
+	
 			}
 			else {
-				menuMode.onLoad = false;
 				menuMode.onHelp = false;
-				menuMode.on1P = false;
-				menuMode.on2P = false;
+				menuMode.onJoinLeave = false;
+				menuMode.onSave = false;
+				menuMode.onRestart = false;
+				menuMode.onLoad = false;
 			}
 		}
 	}
