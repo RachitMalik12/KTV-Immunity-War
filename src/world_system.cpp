@@ -968,6 +968,7 @@ void WorldSystem::levelCompletionCheck() {
 		transitionToShop();
 		isLevelOver = true;
 	}
+
 	if (isLevelOver && isTransitionOver) {
 		int nextLevel = level_number + 1;
 		if (nextLevel <= levels.size()) {
@@ -976,7 +977,6 @@ void WorldSystem::levelCompletionCheck() {
 			setupLevel(level_number);
 		}
 	}
-	
 }
 
 void WorldSystem::transitionToShop() {

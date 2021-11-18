@@ -222,8 +222,7 @@ void RenderSystem::playerOneTransition(bool leaveShop) {
 	Entity player2Entity = registry.players.entities[1];
 	if (leaveShop) {
 		registry.inShops.remove(player2Entity);
-	}
-	else {
+	} else {
 		registry.inShops.emplace(player2Entity);
 	}
 	registry.motions.get(player2Entity).velocity = vec2(0, 0);
@@ -231,8 +230,7 @@ void RenderSystem::playerOneTransition(bool leaveShop) {
 		registry.mouseDestinations.get(player2Entity).position = player2Pos;
 	if (leaveShop) {
 		registry.motions.get(player2Entity).position = vec2(screenWidth + SHOP_BUFFER_ZONE, screenHeight - SHOP_BUFFER_ZONE * 3);
-	}
-	else {
+	} else {
 		registry.motions.get(player2Entity).position = vec2(screenWidth + SHOP_BUFFER_ZONE, screenHeight + SHOP_BUFFER_ZONE * 3);
 	}
 }
