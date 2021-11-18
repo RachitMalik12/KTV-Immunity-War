@@ -8,11 +8,6 @@
 
 #include "physics_system.hpp"
 
-// Game configuration
-const size_t DEFAULT_HEIGHT = 800;
-const int WALL_THICKNESS = 40;
-const int SHOP_WALL_THICKNESS = 100;
-
 // Create the fish world
 WorldSystem::WorldSystem()
 	: isLevelOver(false),
@@ -210,7 +205,7 @@ void WorldSystem::restart_game() {
 
 void WorldSystem::createADoor(int screenWidth, int screenHeight) {
 	vec2 doorPosition = { screenWidth / 2 , screenHeight };
-	vec2 doorScale = { screenWidth * doorWidthScale, SHOP_WALL_THICKNESS };
+	vec2 doorScale = { screenWidth * doorWidthScale, defaultResolution.shopWallThickness };
 	createDoor(doorPosition, doorScale);
 }
 
@@ -546,7 +541,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 				double x, y;
 				glfwGetCursorPos(window, &x, &y);
 				if (registry.inShops.has(player2_wizard)) {
-					y += DEFAULT_HEIGHT * defaultResolution.scaling;
+					y += defaultResolution.defaultHeight;
 				}
 				float dx = (float)x - wizard2_motion.position.x;
 				float dy = (float)y - wizard2_motion.position.y;
@@ -868,8 +863,8 @@ void WorldSystem::createWalls(int screenWidth, int screenHeight) {
 	vec2 rightWallPos = { screenWidth, screenHeight * gameHeightScale / 2 };
 	vec2 topWallPos = { screenWidth / 2, 0 };
 	vec2 bottomWallPos = { screenWidth / 2, screenHeight * gameHeightScale };
-	vec2 verticalWallScale = { WALL_THICKNESS, screenHeight * gameHeightScale };
-	vec2 horizontalWallScale = { screenWidth, WALL_THICKNESS };
+	vec2 verticalWallScale = { defaultResolution.wallThickness, screenHeight * gameHeightScale };
+	vec2 horizontalWallScale = { screenWidth, defaultResolution.wallThickness };
 	createWall(leftWallPos, verticalWallScale);
 	createWall(rightWallPos, verticalWallScale);
 	createWall(topWallPos, horizontalWallScale);
@@ -878,7 +873,7 @@ void WorldSystem::createWalls(int screenWidth, int screenHeight) {
 	// Create middle shop walls
 	vec2 middleWallLeftPos = { 0, screenHeight };
 	vec2 middleWallRightPos = { screenWidth, screenHeight };
-	vec2 shopWallScale = { screenWidth - (screenWidth * doorWidthScale), SHOP_WALL_THICKNESS };
+	vec2 shopWallScale = { screenWidth - (screenWidth * doorWidthScale), defaultResolution.shopWallThickness };
 	createWall(middleWallLeftPos, shopWallScale);
 	createWall(middleWallRightPos, shopWallScale);
 }
@@ -916,6 +911,10 @@ void WorldSystem::setResolution() {
 		defaultResolution.height = 400;
 		defaultResolution.scaling = 0.5;
 	}
+	defaultResolution.defaultHeight *= defaultResolution.scaling;
+	defaultResolution.wallThickness *= defaultResolution.scaling;
+	defaultResolution.shopWallThickness *= defaultResolution.scaling;
+	defaultResolution.shopBufferZone *= defaultResolution.scaling;
 }
 
 void WorldSystem::setPlayersStats() {
@@ -955,7 +954,7 @@ void WorldSystem::handlePlayerTwoProjectile(float elapsed_ms_since_last_update) 
 			double x, y;
 			glfwGetCursorPos(window, &x, &y);
 			if (registry.inShops.has(player2_wizard)) {
-				y += DEFAULT_HEIGHT * defaultResolution.scaling;
+				y += defaultResolution.defaultHeight;
 			}
 			float dx = (float)x - player2Motion.position.x;
 			float dy = (float)y - player2Motion.position.y;
