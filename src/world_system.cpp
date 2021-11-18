@@ -468,8 +468,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 				createMenu();
 				Entity ent = registry.menuModes.entities[0];
 				Motion& motion = registry.motions.get(ent);
-				int translation = 800 * defaultResolution.scaling;
-				motion.position = { defaultResolution.width / 2 , defaultResolution.height / 2 + translation };
+				motion.position = { defaultResolution.width / 2 , defaultResolution.height / 2 + defaultResolution.defaultHeight };
 			}
 			else {
 				createMenu();
@@ -1428,15 +1427,25 @@ void WorldSystem::createTitleScreen(vec2 mouse_position) {
 void WorldSystem::createInGameScreen(vec2 mouse_position) {
 	//TODO: REPOSITION ALL THE BUTTONS WHEN IN SHOP
 	// TODO: REFACTOR 800 into defaultResolution.defaultHeight
+	bool inShop = registry.inShops.has(player_knight) || registry.inShops.has(player2_wizard);
+	std::cout << inShop;
 	for (Entity entity : registry.menuModes.entities) {
 		Motion& motion = registry.motions.get(entity);
 		float xnum = motion.position.x + TL_BUTTONPOS.x * defaultResolution.scaling;
 		float ynum = motion.position.y + TL_BUTTONPOS.y * defaultResolution.scaling;
+		/*if (inShop) {
+			ynum = motion.position.y + TL_BUTTONPOS.y * defaultResolution.scaling;
+		}
+		else {
+			ynum = motion.position.y + TL_BUTTONPOS.y * defaultResolution.scaling;
+		}*/
+		
 		vec2 xpos = { xnum - BUTTON_BB_WIDTH * defaultResolution.scaling , xnum };
 		vec2 ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
 		// 2P on/off
 		if (mouse_position.x > xpos[0] && mouse_position.x < xpos[1]) {
 			if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
+				std::cout << "2p on off";
 				menuMode.onRestart = false;
 				menuMode.onHelp = false;
 				menuMode.onLoad = false;
@@ -1445,6 +1454,7 @@ void WorldSystem::createInGameScreen(vec2 mouse_position) {
 			}
 			else {
 				// Restart
+				std::cout << "restart";
 				menuMode.onHelp = false;
 				menuMode.onLoad = false;
 				menuMode.onSave = false;
