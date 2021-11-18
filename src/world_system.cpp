@@ -1029,6 +1029,7 @@ void WorldSystem::reviveDeadPlayerInShop() {
 		if (p2.isDead) {
 			reviveWizard(p2, p2Stat); 
 		}
+		updateTitle(level_number);
 	}
 }
 
@@ -1036,7 +1037,7 @@ void WorldSystem::setTransitionFlag(Entity player) {
 	
 	if (registry.inShops.has(player) && firstEntranceToShop) {
 		firstEntranceToShop = false;
-		reviveDeadPlayerInShop(); 	
+		reviveDeadPlayerInShop();
 	}
 	if (!registry.inShops.has(player) && !firstEntranceToShop) {
 		isTransitionOver = true;
