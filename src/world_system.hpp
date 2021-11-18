@@ -56,6 +56,8 @@ private:
 	std::vector<Level> levels; 
 	// to start with true. 
 	bool isLevelOver;
+	bool isTransitionOver;
+	bool firstEntranceToShop; 
 	// Game state
 	RenderSystem* renderer;
 	float next_projectile_fire_player1;
@@ -98,4 +100,6 @@ private:
 	void wizardAttackFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation);
 	void wizardWalkFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation);
 	void wizardIdleFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation);
+	void transitionToShop(); 
+	void setTransitionFlag(Entity player); 
 }; 

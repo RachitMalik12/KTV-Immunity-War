@@ -119,12 +119,13 @@ public:
 
 	mat3 createProjectionMatrix(float left, float top);
 
+	void playerOneTransition(bool leaveShop);
+	void playerTwoTransition(bool leaveShop, vec2 player2Pos);
+
 private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& projection);
 	void drawToScreen();
-	void playerOneTransition(bool leaveShop);
-	void playerTwoTransition(bool leaveShop, vec2 player2Pos);
 	void textureEffectSetup(const GLuint program, Entity entity);
 
 	// Window handle

@@ -222,7 +222,8 @@ void RenderSystem::playerOneTransition(bool leaveShop) {
 	Entity player2Entity = registry.players.entities[1];
 	if (leaveShop) {
 		registry.inShops.remove(player2Entity);
-	} else {
+	}
+	else {
 		registry.inShops.emplace(player2Entity);
 	}
 	registry.motions.get(player2Entity).velocity = vec2(0, 0);
@@ -230,7 +231,8 @@ void RenderSystem::playerOneTransition(bool leaveShop) {
 		registry.mouseDestinations.get(player2Entity).position = player2Pos;
 	if (leaveShop) {
 		registry.motions.get(player2Entity).position = vec2(screenWidth + SHOP_BUFFER_ZONE, screenHeight - SHOP_BUFFER_ZONE * 3);
-	} else {
+	}
+	else {
 		registry.motions.get(player2Entity).position = vec2(screenWidth + SHOP_BUFFER_ZONE, screenHeight + SHOP_BUFFER_ZONE * 3);
 	}
 }
@@ -316,11 +318,19 @@ mat3 RenderSystem::createProjectionMatrix(float left, float top)
 			}
 		}
 		else {
+			Entity p1 = registry.players.entities[0]; 
 			if (player1Pos.y - h > -SHOP_BUFFER_ZONE) {
 				projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty + 2, 1.f} };
+				// In the shop 
+				if (!registry.inShops.has(p1)) {
+					registry.inShops.emplace(p1); 
+				}
 			}
 			else if (player1Pos.y - h < SHOP_BUFFER_ZONE) {
 				projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f} };
+				if (registry.inShops.has(p1)) {
+					registry.inShops.remove(p1);
+				}
 			}
 			else {
 				projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f} };
