@@ -464,7 +464,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (menuMode.menuType == 0 && !menuMode.inHelpDrawn) {
 			menuMode.menuType = 2;
 			menuMode.inGameMode = true;
-
+			
 			//if in shop
 			if (registry.inShops.has(player_knight)|| registry.inShops.has(player2_wizard)) {
 				Entity ent = createInGameMenu();
@@ -480,6 +480,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 				registry.remove_all_components_of(entity);
 			}
 			menuMode.menuType = 0;
+
 		}
 	}
 }
@@ -518,7 +519,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 }
 
 void WorldSystem::on_mouse_click(int button, int action, int mods) {
-	if (twoPlayer.inTwoPlayerMode && storyMode.inStoryMode==0) {
+	if (twoPlayer.inTwoPlayerMode && storyMode.inStoryMode==0 && menuMode.menuType ==0) {
 		Player& wizard2_player = registry.players.get(player2_wizard);
 		WizardAnimation& animation = registry.wizardAnimations.get(player2_wizard);
 		if (!wizard2_player.isDead) {

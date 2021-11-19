@@ -227,6 +227,7 @@ struct MenuMode {
 };
 extern MenuMode menuMode;
 
+
 struct DefaultResolution {
 	int width = 1200;
 	int height = 800;
