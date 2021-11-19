@@ -4,7 +4,7 @@ Milestone Feature Descriptions:
 
 Required Features:
 
--Gameplay II (ALL):
+-Gameplay II (ALL): Shop fully implemented with power up's. Level transition and shop visit phase implemented. Two more levels added with two new enemies. Main characters fully animated. Players and enemies implemented with hit handling. Background texture implemented. 
 
 -Behaviour Tree (FC): Implemented behaviour tree enemies. Enemy actions are conditional with processes as nodes. If any player is alive, the enemy will chase a player of their choosing. If any player is dead, the enemy will explode in randomized direction. Added an explanation diagram for the implementation of behaviour tree enemy and the BTNodes for future expansion of these functions. (see reports folder)
 
