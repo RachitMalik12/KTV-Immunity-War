@@ -181,8 +181,8 @@ struct HelpMode {
 	bool inHelpMode = false;
 	bool menuHelp = false;
 	int clicked = 0;
-	bool isOntopMainMenu = false;
-	bool isOntopInGameMenu = false;
+	bool isOnTopMainMenu = false;
+	bool isOnTopInGameMenu = false;
 };
 extern HelpMode helpMode;
 
@@ -213,17 +213,8 @@ struct MenuMode {
 	bool inMenuMode = true;
 	bool inHelpDrawn = false;
 	bool inGameMode = false;
-	bool inShop = false;
 	int menuType = 1;
 	menuButtons currentButton;
-	
-	int onLoad = false;
-	int on1P = false;
-	int on2P = false;
-	int onHelp = false;
-	int onJoinLeave = false;
-	int onSave = false;
-	int onRestart = false;
 };
 extern MenuMode menuMode;
 
