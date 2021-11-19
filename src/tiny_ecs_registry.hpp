@@ -47,6 +47,10 @@ public:
 	ComponentContainer<Sword> swords;
 	ComponentContainer<Title> titles;
 	ComponentContainer<MenuMode> menuModes;
+	ComponentContainer<MovementSpeedPowerUp> movementSpeedPowerup; 
+	ComponentContainer<HpPowerUp> hpPowerup; 
+	ComponentContainer<DamagePowerUp> damagePowerUp; 
+	ComponentContainer<AtackSpeedPowerUp> attackSpeedPowerUp; 
 
 
 
@@ -90,6 +94,11 @@ public:
 		registry_list.push_back(&swords);
 		registry_list.push_back(&titles);
 		registry_list.push_back(&menuModes);
+		registry_list.push_back(&movementSpeedPowerup); 
+		registry_list.push_back(&hpPowerup); 
+		registry_list.push_back(&damagePowerUp);
+		registry_list.push_back(&attackSpeedPowerUp);
+
 	}
 
 	void clear_all_components() {
