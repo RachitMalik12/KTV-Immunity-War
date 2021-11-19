@@ -39,6 +39,10 @@ public:
 
 	void setResolution();
 
+	// menu
+	Entity createMenu();
+	Entity createInGameMenu();
+
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
@@ -56,6 +60,8 @@ private:
 	std::vector<Level> levels; 
 	// to start with true. 
 	bool isLevelOver;
+	bool isTransitionOver;
+	bool firstEntranceToShop; 
 	// is a new level being loaded
 	bool startingNewLevel = false;
 	// is one or both players dead (so is game over?)
@@ -102,7 +108,23 @@ private:
 	void wizardAttackFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation);
 	void wizardWalkFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation);
 	void wizardIdleFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation);
-	// fragment shader
+	// menu
+	void menuLogic(int menuType);
+	void createTitleScreen(vec2 mouse_position);
+	void createInGameScreen(vec2 mouse_position);
+	void toggleInGameMenu();
+	vec2 inShopAdjustPosition(float button_pos, Motion& motion);
+	bool withinButtonBounds(float mouse_position, vec2 bounds);
+	//load
+	void loadGame();
+	void saveGame();
+	// story
+	void storyClicker();
+	void transitionToShop(); 
+	void setTransitionFlag(Entity player); 
+	void reviveDeadPlayerInShop(); 
+	void reviveWizard(Player& p1, PlayerStat& p1Stat); 
+	void reviveKnight(Player& p2, PlayerStat& p2Stat); 
 	void progressGameEndEffect(float elapsed_ms_since_last_update);
 	void progressBrightenScreen(float elapsed_ms_since_last_update);
 	void lightUpEnemyRunTimer(float elapsed_ms_since_last_update);

@@ -74,7 +74,10 @@ class RenderSystem {
 			textures_path("wizard_idle.png"),
 			textures_path("wizard_walk.png"),
 			textures_path("BTEnemy.png"),
+			textures_path("main_menu.png"),
+			textures_path("in_game_menu.png"),
 			textures_path("background.png")
+
 	};
 
 	std::array<GLuint, effect_count> effects;

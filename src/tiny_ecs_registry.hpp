@@ -49,8 +49,8 @@ public:
 	ComponentContainer<StoryMode> storyModes;
 	ComponentContainer<Sword> swords;
 	ComponentContainer<Title> titles;
+	ComponentContainer<MenuMode> menuModes;
 	ComponentContainer<Background> backgrounds;
-
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -94,6 +94,7 @@ public:
 		registry_list.push_back(&storyModes);
 		registry_list.push_back(&swords);
 		registry_list.push_back(&titles);
+		registry_list.push_back(&menuModes);
 		registry_list.push_back(&backgrounds);
 	}
 

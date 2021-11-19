@@ -5,8 +5,6 @@
 
 #include "tiny_ecs_registry.hpp"
 
-const int SHOP_BUFFER_ZONE = 50;
-
 void RenderSystem::drawTexturedMesh(Entity entity,
 									const mat3 &projection)
 {
@@ -265,9 +263,9 @@ void RenderSystem::playerOneTransition(bool leaveShop) {
 	if (registry.mouseDestinations.has(player2Entity))
 		registry.mouseDestinations.get(player2Entity).position = player2Pos;
 	if (leaveShop) {
-		registry.motions.get(player2Entity).position = vec2(screenWidth + SHOP_BUFFER_ZONE, screenHeight - SHOP_BUFFER_ZONE * 3);
+		registry.motions.get(player2Entity).position = vec2(screenWidth + defaultResolution.shopBufferZone, screenHeight - defaultResolution.shopBufferZone * 3);
 	} else {
-		registry.motions.get(player2Entity).position = vec2(screenWidth + SHOP_BUFFER_ZONE, screenHeight + SHOP_BUFFER_ZONE * 3);
+		registry.motions.get(player2Entity).position = vec2(screenWidth + defaultResolution.shopBufferZone, screenHeight + defaultResolution.shopBufferZone * 3);
 	}
 }
 
@@ -277,10 +275,10 @@ void RenderSystem::playerTwoTransition(bool leaveShop, vec2 player2Pos) {
 	Entity player1Entity = registry.players.entities[0];
 	Entity player2Entity = registry.players.entities[1];
 	if (leaveShop) {
-		registry.motions.get(player2Entity).position.y -= SHOP_BUFFER_ZONE * 3;
+		registry.motions.get(player2Entity).position.y -= defaultResolution.shopBufferZone * 3;
 		registry.inShops.remove(player2Entity);
 	} else {
-		registry.motions.get(player2Entity).position.y += SHOP_BUFFER_ZONE * 3;
+		registry.motions.get(player2Entity).position.y += defaultResolution.shopBufferZone * 3;
 		registry.inShops.emplace(player2Entity);
 	}
 	registry.motions.get(player2Entity).velocity = vec2(0, 0);
@@ -288,11 +286,11 @@ void RenderSystem::playerTwoTransition(bool leaveShop, vec2 player2Pos) {
 		registry.mouseDestinations.get(player2Entity).position = player2Pos;
 	}
 	if (leaveShop) {
-		registry.motions.get(player1Entity).position = vec2((w / 2) - SHOP_BUFFER_ZONE, player2Pos.y - SHOP_BUFFER_ZONE * 3);
+		registry.motions.get(player1Entity).position = vec2((w / 2) - defaultResolution.shopBufferZone, player2Pos.y - defaultResolution.shopBufferZone * 3);
 	} else {
-		registry.motions.get(player1Entity).position = vec2((w / 2) - SHOP_BUFFER_ZONE, player2Pos.y + SHOP_BUFFER_ZONE * 3);
+		registry.motions.get(player1Entity).position = vec2((w / 2) - defaultResolution.shopBufferZone, player2Pos.y + defaultResolution.shopBufferZone * 3);
 	}
-	registry.motions.get(player2Entity).position.x = ((float)w / 2) + SHOP_BUFFER_ZONE;
+	registry.motions.get(player2Entity).position.x = ((float)w / 2) + defaultResolution.shopBufferZone;
 }
 
 mat3 RenderSystem::createProjectionMatrix(float left, float top)
@@ -311,56 +309,61 @@ mat3 RenderSystem::createProjectionMatrix(float left, float top)
 	float ty = -(top + bottom) / (top - bottom);
 	mat3 projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f} };;
 
-	size_t playerCount = registry.players.entities.size();
-	if (playerCount > 0) {
-		vec2 player1Pos = registry.motions.get(registry.players.entities[0]).position;
-		if (playerCount == 2) {
-			vec2 player2Pos = registry.motions.get(registry.players.entities[1]).position;
-			if (player1Pos.y - h < SHOP_BUFFER_ZONE) { // player1 is leaves the shop
-				if (registry.inShops.has(registry.players.entities[1])) {
-					playerOneTransition(true);
-				}
+	vec2 player1Pos = registry.motions.get(registry.players.entities[0]).position;
+	if (twoPlayer.inTwoPlayerMode) {
+		vec2 player2Pos = registry.motions.get(registry.players.entities[1]).position;
+		if (player1Pos.y - h < defaultResolution.shopBufferZone) { // player1 is leaves the shop
+			if (registry.inShops.has(registry.players.entities[1])) {
+				playerOneTransition(true);
+			}
+			projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f} };
+		}
+		else if (player1Pos.y - h > -defaultResolution.shopBufferZone) { // player 1 enters the shop
+			if (!registry.inShops.has(registry.players.entities[1])) {
+				playerOneTransition(false);
+			}
+			projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty + 2, 1.f} };
+		}
+		else {
+			projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f} };
+		}
+
+		if (registry.inShops.has(registry.players.entities[1])) { // player 2 is in the shop
+			if (player2Pos.y - h < defaultResolution.shopBufferZone) { // player 2 leaves the shop
+				playerTwoTransition(true, player2Pos);
 				projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f} };
 			}
-			else if (player1Pos.y - h > -SHOP_BUFFER_ZONE) { // player 1 enters the shop
-				if (!registry.inShops.has(registry.players.entities[1])) {
-					playerOneTransition(false);
-				}
+			else {
+				projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty + 2, 1.f} };
+			}
+		}
+		else { // player 2 is not in the shop
+			if (player2Pos.y - h > -defaultResolution.shopBufferZone) { // player 2 enters the shop
+				playerTwoTransition(false, player2Pos);
 				projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty + 2, 1.f} };
 			}
 			else {
 				projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f} };
 			}
-
-			if (registry.inShops.has(registry.players.entities[1])) { // player 2 is in the shop
-				if (player2Pos.y - h < SHOP_BUFFER_ZONE) { // player 2 leaves the shop
-					playerTwoTransition(true, player2Pos);
-					projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f} };
-				}
-				else {
-					projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty + 2, 1.f} };
-				}
+		}
+	}
+	else {
+		Entity p1 = registry.players.entities[0];
+		if (player1Pos.y - h > -defaultResolution.shopBufferZone) {
+			projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty + 2, 1.f} };
+			// In the shop 
+			if (!registry.inShops.has(p1)) {
+				registry.inShops.emplace(p1);
 			}
-			else { // player 2 is not in the shop
-				if (player2Pos.y - h > -SHOP_BUFFER_ZONE) { // player 2 enters the shop
-					playerTwoTransition(false, player2Pos);
-					projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty + 2, 1.f} };
-				}
-				else {
-					projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f} };
-				}
+		}
+		else if (player1Pos.y - h < defaultResolution.shopBufferZone) {
+			projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f} };
+			if (registry.inShops.has(p1)) {
+				registry.inShops.remove(p1);
 			}
 		}
 		else {
-			if (player1Pos.y - h > -SHOP_BUFFER_ZONE) {
-				projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty + 2, 1.f} };
-			}
-			else if (player1Pos.y - h < SHOP_BUFFER_ZONE) {
-				projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f} };
-			}
-			else {
-				projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f} };
-			}
+			projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f} };
 		}
 	}
 	return projMat;

@@ -8,14 +8,11 @@
 
 #include "physics_system.hpp"
 
-// Game configuration
-const size_t DEFAULT_HEIGHT = 800;
-const int WALL_THICKNESS = 40;
-const int SHOP_WALL_THICKNESS = 100;
-
 // Create the fish world
 WorldSystem::WorldSystem()
 	: isLevelOver(false),
+	  firstEntranceToShop(true),
+	  isTransitionOver(false), 
 	  level_number(1)
 {
 	// Seeding rng with random device
@@ -142,7 +139,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	handlePlayerOneAttack(elapsed_ms_since_last_update);
 	handlePlayerTwoProjectile(elapsed_ms_since_last_update);
 	deathHandling();
-	progressGameEndEffect(elapsed_ms_since_last_update);
+	// progressGameEndEffect(elapsed_ms_since_last_update);
+
 
 	return true;
 }
@@ -165,17 +163,17 @@ void WorldSystem::deathHandling() {
 			// TODO: Implement player death animation
 		}
 		if (player1.isDead && player2.isDead) {
-			//setupLevel(level_number);
-			isGameOver = true;
-			screen.game_over_factor = 1;
+			setupLevel(level_number);
+			// isGameOver = true;
+			// screen.game_over_factor = 1;
 		}
 	}
 	else {
 		Player& player1 = registry.players.get(player_knight);
 		if (player1.isDead) {
-			//setupLevel(level_number);
-			isGameOver = true;
-			screen.game_over_factor = 1;
+			setupLevel(level_number);
+			// isGameOver = true;
+			// screen.game_over_factor = 1;
 		}
 	}
 }
@@ -241,7 +239,7 @@ void WorldSystem::restart_game() {
 
 void WorldSystem::createADoor(int screenWidth, int screenHeight) {
 	vec2 doorPosition = { screenWidth / 2 , screenHeight };
-	vec2 doorScale = { screenWidth * doorWidthScale, SHOP_WALL_THICKNESS };
+	vec2 doorScale = { screenWidth * doorWidthScale, defaultResolution.shopWallThickness };
 	createDoor(doorPosition, doorScale);
 }
 
@@ -257,7 +255,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	glfwGetWindowSize(window, &w, &h);
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
-		storyMode.firstLoad = true;
         restart_game();
 	}
 
@@ -377,17 +374,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}	
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_K) {
-		// Save current level. 
-		dataManager.setLevelNumber(level_number); 
-		if (twoPlayer.inTwoPlayerMode) {
-			dataManager.setPlayerStatEntity(player_stat, player2_stat);
-			dataManager.saveFile(2);
-		}
-		else {
-			dataManager.setPlayerStatEntity(player_stat); 
-			dataManager.saveFile(1); 
-		}
-		
+		saveGame();
 	}
 
 	// level loading
@@ -466,6 +453,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			registry.remove_all_components_of(door);
 		}
 	}
+	// Debug mode to get to level transition
+	if (action == GLFW_RELEASE && key == GLFW_KEY_B) {
+		while (registry.enemies.entities.size() > 0)
+			registry.remove_all_components_of(registry.enemies.entities.back());
+	}
 
 	// Debugging
 	if (key == GLFW_KEY_Z) {
@@ -496,70 +488,37 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// storymode
 	if (action == GLFW_RELEASE && key == GLFW_KEY_SPACE && storyMode.firstLoad) {
-		Entity ent;
-		if (storyMode.inStoryMode ==6) {
-			storyMode.inStoryMode = 0;
-			for (Entity entity : registry.storyModes.entities) {
-				registry.remove_all_components_of(entity);
-			}
-			storyMode.firstLoad = false;
-		}
-		else if (storyMode.inStoryMode == 0){
-			storyMode.inStoryMode = 1;
-			createStory();
-		}
-		else if (storyMode.inStoryMode == 1) {
-			storyMode.inStoryMode = 2;
-			ent = registry.storyModes.entities[0];
-			registry.renderRequests.remove(ent);
-			registry.renderRequests.insert(
-				ent,
-				{ TEXTURE_ASSET_ID::FRAME2,
-					EFFECT_ASSET_ID::TEXTURED,
-					GEOMETRY_BUFFER_ID::SPRITE }, false);
-			
-		}
-		else if (storyMode.inStoryMode == 2) {
-			storyMode.inStoryMode = 3;
-			ent = registry.storyModes.entities[0];
-			registry.renderRequests.remove(ent);
-			registry.renderRequests.insert(
-				ent,
-				{ TEXTURE_ASSET_ID::FRAME3,
-					EFFECT_ASSET_ID::TEXTURED,
-					GEOMETRY_BUFFER_ID::SPRITE }, false);
-		}
-		else if (storyMode.inStoryMode == 3) {
-			storyMode.inStoryMode = 4;
-			ent = registry.storyModes.entities[0];
-			registry.renderRequests.remove(ent);
-			registry.renderRequests.insert(
-				ent,
-				{ TEXTURE_ASSET_ID::FRAME4,
-					EFFECT_ASSET_ID::TEXTURED,
-					GEOMETRY_BUFFER_ID::SPRITE }, false);
-		}
-		else if (storyMode.inStoryMode == 4) {
-			storyMode.inStoryMode = 5;
-			ent = registry.storyModes.entities[0];
-			registry.renderRequests.remove(ent);
-			registry.renderRequests.insert(
-				ent,
-				{ TEXTURE_ASSET_ID::FRAME5,
-					EFFECT_ASSET_ID::TEXTURED,
-					GEOMETRY_BUFFER_ID::SPRITE }, false);
-		}
-		else if (storyMode.inStoryMode == 5) {
-			storyMode.inStoryMode = 6;
-			ent = registry.storyModes.entities[0];
-			registry.renderRequests.remove(ent);
-			registry.renderRequests.insert(
-				ent,
-				{ TEXTURE_ASSET_ID::FRAME6,
-					EFFECT_ASSET_ID::TEXTURED,
-					GEOMETRY_BUFFER_ID::SPRITE }, false);
+		storyClicker();
+	}
 
+	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE && !helpMode.isOnTopInGameMenu) {
+		toggleInGameMenu();
+	}
+}
+
+void WorldSystem::toggleInGameMenu() {
+	// if menu has no been created or menu is back from help
+		// 
+	if (menuMode.menuType == 0 && !menuMode.inHelpDrawn) {
+		menuMode.menuType = 2;
+		menuMode.inGameMode = true;
+
+		//if in shop
+		if (registry.inShops.has(player_knight) || registry.inShops.has(player2_wizard)) {
+			Entity ent = createInGameMenu();
+			Motion& motion = registry.motions.get(ent);
+			motion.position = { defaultResolution.width / 2 , defaultResolution.height / 2 + defaultResolution.defaultHeight };
 		}
+		else {
+			createInGameMenu();
+		}
+	}
+	else if (menuMode.inGameMode && menuMode.menuType != 1) {
+		for (Entity entity : registry.menuModes.entities) {
+			registry.remove_all_components_of(entity);
+		}
+		menuMode.menuType = 0;
+
 	}
 }
 
@@ -585,10 +544,19 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 			}
 		}
 	}
+	// menu is main menu
+	if (menuMode.menuType == 1) {
+		createTitleScreen(mouse_position);
+	}
+
+	// menu is in game
+	if (menuMode.menuType == 2) {
+		createInGameScreen(mouse_position);
+	}
 }
 
 void WorldSystem::on_mouse_click(int button, int action, int mods) {
-	if (twoPlayer.inTwoPlayerMode) {
+	if (twoPlayer.inTwoPlayerMode && storyMode.inStoryMode==0 && menuMode.menuType ==0) {
 		Player& wizard2_player = registry.players.get(player2_wizard);
 		WizardAnimation& animation = registry.wizardAnimations.get(player2_wizard);
 		if (!wizard2_player.isDead) {
@@ -600,7 +568,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 				double x, y;
 				glfwGetCursorPos(window, &x, &y);
 				if (registry.inShops.has(player2_wizard)) {
-					y += DEFAULT_HEIGHT * defaultResolution.scaling;
+					y += defaultResolution.defaultHeight;
 				}
 				float dx = (float)x - wizard2_motion.position.x;
 				float dy = (float)y - wizard2_motion.position.y;
@@ -652,6 +620,275 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			}
 		}
 	}
+	
+	bool left_clicked = (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_LEFT);
+	// menu is in-game menu
+	if (helpMode.clicked == 1) {
+		helpMode.clicked = 2;
+		
+	}
+	else if (helpMode.clicked == 2) {
+
+		menuMode.inHelpDrawn = false;
+		// possible bug/edge case
+		menuMode.currentButton = None;
+		for (Entity entity : registry.helpModes.entities) {
+			registry.remove_all_components_of(entity);
+		}
+
+		if (helpMode.isOnTopMainMenu) {
+			// bring main menu back
+			menuMode.menuType = 1;
+			// help is no longer displayed over main menu
+			helpMode.isOnTopMainMenu = false;
+			// make the menu
+			createMenu();
+		}
+		else if (helpMode.isOnTopInGameMenu) {
+			menuMode.menuType = 2;
+			helpMode.isOnTopInGameMenu = false;
+			Entity entity = createInGameMenu();
+			if (registry.inShops.has(player_knight) || registry.inShops.has(player2_wizard)) {
+				Motion& motion = registry.motions.get(entity);
+				motion.position = { defaultResolution.width / 2 , defaultResolution.height / 2 + defaultResolution.defaultHeight };
+			}
+		}
+		helpMode.inHelpMode = false;
+		helpMode.clicked = 0;
+	}
+
+	// menu is main menu
+	if (menuMode.menuType == 1) {
+		if (left_clicked) {
+			menuLogic(1);
+		}
+	}
+	// menu is in game
+	else if (menuMode.menuType == 2) {
+		if (left_clicked) {
+			menuLogic(2);
+		}
+	}
+	// story click to progress
+	else if (storyMode.firstLoad && left_clicked&& menuMode.menuType==0) {
+		storyClicker();
+	}
+}
+
+void WorldSystem::storyClicker() {
+	Entity ent;
+	if (storyMode.inStoryMode == 6) {
+		storyMode.inStoryMode = 0;
+		for (Entity entity : registry.storyModes.entities) {
+			registry.remove_all_components_of(entity);
+		}
+		storyMode.firstLoad = false;
+	}
+	else if (storyMode.inStoryMode == 1) {
+		storyMode.inStoryMode = 2;
+		ent = registry.storyModes.entities[0];
+		registry.renderRequests.remove(ent);
+		registry.renderRequests.insert(
+			ent,
+			{ TEXTURE_ASSET_ID::FRAME2,
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE }, false);
+
+	}
+	else if (storyMode.inStoryMode == 2) {
+		storyMode.inStoryMode = 3;
+		ent = registry.storyModes.entities[0];
+		registry.renderRequests.remove(ent);
+		registry.renderRequests.insert(
+			ent,
+			{ TEXTURE_ASSET_ID::FRAME3,
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE }, false);
+	}
+	else if (storyMode.inStoryMode == 3) {
+		storyMode.inStoryMode = 4;
+		ent = registry.storyModes.entities[0];
+		registry.renderRequests.remove(ent);
+		registry.renderRequests.insert(
+			ent,
+			{ TEXTURE_ASSET_ID::FRAME4,
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE }, false);
+	}
+	else if (storyMode.inStoryMode == 4) {
+		storyMode.inStoryMode = 5;
+		ent = registry.storyModes.entities[0];
+		registry.renderRequests.remove(ent);
+		registry.renderRequests.insert(
+			ent,
+			{ TEXTURE_ASSET_ID::FRAME5,
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE }, false);
+	}
+	else if (storyMode.inStoryMode == 5) {
+		storyMode.inStoryMode = 6;
+		ent = registry.storyModes.entities[0];
+		registry.renderRequests.remove(ent);
+		registry.renderRequests.insert(
+			ent,
+			{ TEXTURE_ASSET_ID::FRAME6,
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE }, false);
+
+	}
+}
+
+void WorldSystem::menuLogic(int menuType) {
+	if (menuType == 1) {
+		// 1P 
+		if (menuMode.currentButton == P1) {
+			menuMode.menuType = 0;
+			for (Entity entity : registry.menuModes.entities) {
+				registry.remove_all_components_of(entity);
+			}
+			if (storyMode.inStoryMode == 0) {
+				storyMode.inStoryMode = 1;
+				createStory();
+			}
+		}
+		// 2P
+		if (menuMode.currentButton == P2) {
+			menuMode.menuType = 0;
+			for (Entity entity : registry.menuModes.entities) {
+				registry.remove_all_components_of(entity);
+			}
+			// insert code here
+			playerTwoJoinOrLeave();
+			if (storyMode.inStoryMode == 0) {
+				storyMode.inStoryMode = 1;
+				createStory();
+			}
+		}
+		// Load
+		if (menuMode.currentButton == Load) {
+			menuMode.menuType = 0;
+			for (Entity entity : registry.menuModes.entities) {
+				registry.remove_all_components_of(entity);
+			}
+			// No story on Load
+			storyMode.firstLoad = false;
+			// Load the game from last save
+			loadGame();
+		}
+		// Help
+		if (menuMode.currentButton == Help) {
+			menuMode.menuType = 0;
+			createHelp();
+			menuMode.inHelpDrawn = true;
+			helpMode.inHelpMode = true;
+			helpMode.menuHelp = true;
+			helpMode.isOnTopMainMenu = true;
+			helpMode.clicked = 1;
+		}
+	}
+
+	if (menuType == 2) {
+		// Save
+		if (menuMode.currentButton == Save) {
+			menuMode.menuType = 0;
+			for (Entity entity : registry.menuModes.entities) {
+				registry.remove_all_components_of(entity);
+			}
+			saveGame();
+		}
+		// 2P join/leave
+		if (menuMode.currentButton == JoinLeave) {
+			menuMode.menuType = 0;
+			for (Entity entity : registry.menuModes.entities) {
+				registry.remove_all_components_of(entity);
+			}
+			playerTwoJoinOrLeave();
+		}
+		// Restart
+		if (menuMode.currentButton == Restart) {
+			menuMode.menuType = 0;
+			for (Entity entity : registry.menuModes.entities) {
+				registry.remove_all_components_of(entity);
+			}
+			restart_game();
+		}
+		// Load
+		if (menuMode.currentButton == Load) {
+			menuMode.menuType = 0;
+			for (Entity entity : registry.menuModes.entities) {
+				registry.remove_all_components_of(entity);
+			}
+			// No story on Load
+			storyMode.firstLoad = false;
+			// Load the game from last save
+			loadGame();
+		}
+		// Help
+		if (menuMode.currentButton == Help) {
+			menuMode.menuType = 0;
+			Entity help = createHelp();
+			if (registry.inShops.has(player_knight) || registry.inShops.has(player2_wizard)) {
+				Motion& motion = registry.motions.get(help);
+				motion.position.y = defaultResolution.height/2 + defaultResolution.defaultHeight;
+			}
+			menuMode.inHelpDrawn = true;
+			helpMode.inHelpMode = true;
+			helpMode.menuHelp = true;
+			helpMode.isOnTopInGameMenu = true;
+			helpMode.clicked = 1;
+			
+		}
+	}
+	
+
+}
+
+void WorldSystem::loadGame() {
+	dataManager.setPlayerModeFromFile();
+	int player_mode_file = dataManager.getPlayerMode();
+	if (player_mode_file == 1) {
+		twoPlayer.inTwoPlayerMode = false;
+	}
+	else {
+		twoPlayer.inTwoPlayerMode = true;
+	}
+	setPlayersStats();
+
+	if (twoPlayer.inTwoPlayerMode) {
+		dataManager.setPlayerStatEntity(player_stat, player2_stat);
+	}
+	else {
+		dataManager.setPlayerStatEntity(player_stat);
+	}
+	bool loadFile = dataManager.loadFile();
+	if (!loadFile) {
+		// If load failed due to file missing,load level 1 with 1 player. 
+		twoPlayer.inTwoPlayerMode = false;
+		setupLevel(1);
+	}
+	else {
+		level_number = dataManager.getLevelNumber();
+		int playerModeFile = dataManager.getPlayerMode();
+		if (playerModeFile == 1) {
+			twoPlayer.inTwoPlayerMode = false;
+		}
+		else {
+			twoPlayer.inTwoPlayerMode = true;
+		}
+		setupLevel(level_number);
+	}
+}
+
+void WorldSystem::saveGame() {
+	dataManager.setLevelNumber(level_number);
+	if (twoPlayer.inTwoPlayerMode) {
+		dataManager.setPlayerStatEntity(player_stat, player2_stat);
+		dataManager.saveFile(2);
+	}
+	else {
+		dataManager.setPlayerStatEntity(player_stat);
+		dataManager.saveFile(1);
+	}
 }
 
 void WorldSystem::setupWindowScaling() {
@@ -665,8 +902,8 @@ void WorldSystem::createWalls(int screenWidth, int screenHeight) {
 	vec2 rightWallPos = { screenWidth, screenHeight * gameHeightScale / 2 };
 	vec2 topWallPos = { screenWidth / 2, 0 };
 	vec2 bottomWallPos = { screenWidth / 2, screenHeight * gameHeightScale };
-	vec2 verticalWallScale = { WALL_THICKNESS, screenHeight * gameHeightScale };
-	vec2 horizontalWallScale = { screenWidth, WALL_THICKNESS };
+	vec2 verticalWallScale = { defaultResolution.wallThickness, screenHeight * gameHeightScale };
+	vec2 horizontalWallScale = { screenWidth, defaultResolution.wallThickness };
 	createWall(leftWallPos, verticalWallScale);
 	createWall(rightWallPos, verticalWallScale);
 	createWall(topWallPos, horizontalWallScale);
@@ -675,7 +912,7 @@ void WorldSystem::createWalls(int screenWidth, int screenHeight) {
 	// Create middle shop walls
 	vec2 middleWallLeftPos = { 0, screenHeight };
 	vec2 middleWallRightPos = { screenWidth, screenHeight };
-	vec2 shopWallScale = { screenWidth - (screenWidth * doorWidthScale), SHOP_WALL_THICKNESS };
+	vec2 shopWallScale = { screenWidth - (screenWidth * doorWidthScale), defaultResolution.shopWallThickness };
 	createWall(middleWallLeftPos, shopWallScale);
 	createWall(middleWallRightPos, shopWallScale);
 }
@@ -713,6 +950,10 @@ void WorldSystem::setResolution() {
 		defaultResolution.height = 400;
 		defaultResolution.scaling = 0.5;
 	}
+	defaultResolution.defaultHeight *= defaultResolution.scaling;
+	defaultResolution.wallThickness *= defaultResolution.scaling;
+	defaultResolution.shopWallThickness *= defaultResolution.scaling;
+	defaultResolution.shopBufferZone *= defaultResolution.scaling;
 }
 
 void WorldSystem::setPlayersStats() {
@@ -752,7 +993,7 @@ void WorldSystem::handlePlayerTwoProjectile(float elapsed_ms_since_last_update) 
 			double x, y;
 			glfwGetCursorPos(window, &x, &y);
 			if (registry.inShops.has(player2_wizard)) {
-				y += DEFAULT_HEIGHT * defaultResolution.scaling;
+				y += defaultResolution.defaultHeight;
 			}
 			float dx = (float)x - player2Motion.position.x;
 			float dy = (float)y - player2Motion.position.y;
@@ -880,6 +1121,7 @@ void WorldSystem::resolveMouseControl() {
 void WorldSystem::levelCompletionCheck(float elapsed_ms_since_last_update) {
 	// Check level completion 
 	if (registry.enemies.size() == 0 && isLevelOver != true) {
+		transitionToShop();
 		isLevelOver = true;
 		auto entity1 = Entity();
 		registry.endLevelTimers.emplace(entity1);
@@ -911,6 +1153,42 @@ void WorldSystem::levelCompletionCheck(float elapsed_ms_since_last_update) {
 	// reduce window brightness if the level is ending
 	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 }
+void WorldSystem::transitionToShop() {
+	if (registry.doors.entities.size() > 0) {
+		Entity door = registry.doors.entities.front();
+		registry.remove_all_components_of(door);
+	}
+	if (!twoPlayer.inTwoPlayerMode) {
+		setTransitionFlag(player_knight);
+	}
+	else {
+		setTransitionFlag(player2_wizard);
+	}
+}
+
+void WorldSystem::reviveKnight(Player& p1, PlayerStat& p1Stat) {
+	p1.isDead = false;
+	p1.hp = p1Stat.maxHp;
+	registry.renderRequests.insert(
+		player_knight,
+		{ TEXTURE_ASSET_ID::KNIGHT,
+			EFFECT_ASSET_ID::KNIGHT,
+			GEOMETRY_BUFFER_ID::SPRITE }, false);
+}
+
+void WorldSystem::reviveWizard(Player& p2, PlayerStat& p2Stat) {
+	p2.isDead = false;
+	p2.hp = p2Stat.maxHp;
+	WizardAnimation& animation = registry.wizardAnimations.get(player2_wizard);
+	animation.animationMode = animation.idleMode;
+	registry.renderRequests.insert(
+		player2_wizard,
+		{ TEXTURE_ASSET_ID::WIZARDIDLE,
+			EFFECT_ASSET_ID::WIZARD,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	animation.frameIdle = 0;
+	animation.idleTimer = 0;
+}
 
 void WorldSystem::progressBrightenScreen(float elapsed_ms_since_last_update) {
 	// Check level completion 
@@ -937,6 +1215,36 @@ void WorldSystem::progressBrightenScreen(float elapsed_ms_since_last_update) {
 		}
 		// increase window brightness if the level is starting
 		screen.brighten_screen_factor = 0 + min_counter_ms / 3000;
+	}
+}
+void WorldSystem::reviveDeadPlayerInShop() {
+	if (twoPlayer.inTwoPlayerMode) {
+		Player& p1 = registry.players.get(player_knight);
+		Player& p2 = registry.players.get(player2_wizard);
+		PlayerStat& p1Stat = registry.playerStats.get(player_stat);
+		PlayerStat& p2Stat = registry.playerStats.get(player2_stat);
+		// Restore the dead player so they can buy stuff. 
+		if (p1.isDead) {
+			reviveKnight(p1, p1Stat);
+		}
+		if (p2.isDead) {
+			reviveWizard(p2, p2Stat);
+		}
+		updateTitle(level_number);
+	}
+}
+
+void WorldSystem::setTransitionFlag(Entity player) {
+
+	if (registry.inShops.has(player) && firstEntranceToShop) {
+		firstEntranceToShop = false;
+		reviveDeadPlayerInShop();
+	}
+	if (!registry.inShops.has(player) && !firstEntranceToShop) {
+		isTransitionOver = true;
+	}
+	else {
+		isTransitionOver = false;
 	}
 }
 
@@ -1004,7 +1312,8 @@ void WorldSystem::setupLevel(int levelNum) {
 		registry.remove_all_components_of(registry.backgrounds.entities.back());
 
 	createBackground(renderer, vec2(screen_width / 2 * defaultResolution.scaling, screen_height / 2 * defaultResolution.scaling));
-
+	// Close the door at the start of every level after player leaves the shop. 
+	createADoor(screen_width, screen_height);
 	int index = levelNum - 1;
 	Level level = levels[index];
 	auto enemies = level.enemies;
@@ -1057,6 +1366,8 @@ void WorldSystem::setupLevel(int levelNum) {
 	}
 	// Update state 
 	isLevelOver = false;
+	isTransitionOver = false;
+	firstEntranceToShop = true; 
 	updateTitle(levelNum);
 	startingNewLevel = true;
 }
@@ -1148,4 +1459,161 @@ void WorldSystem::wizardIdleFrameSetter(float elapsed_ms, WizardAnimation& wizar
 		wizardAnimation.frameIdle = (wizardAnimation.frameIdle + 1) % wizardAnimation.numOfIdleFrames;
 		wizardAnimation.idleTimer = 0;
 	}
+}
+
+
+Entity WorldSystem::createMenu() {
+	Entity entity = Entity();
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::MENU,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	// Create motion
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = { defaultResolution.width / 2, defaultResolution.height / 2};
+	motion.scale = vec2({ STORY_BB_WIDTH * defaultResolution.scaling, STORY_BB_HEIGHT * defaultResolution.scaling });
+
+	registry.menuModes.emplace(entity);
+
+	return entity;
+}
+
+Entity WorldSystem::createInGameMenu() {
+	Entity entity = Entity();
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::INGAMEMENU,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	// Create motion
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = { defaultResolution.width / 2, defaultResolution.height / 2 };
+	motion.scale = vec2({ STORY_BB_WIDTH * defaultResolution.scaling, STORY_BB_HEIGHT * defaultResolution.scaling });
+
+	registry.menuModes.emplace(entity);
+
+	return entity;
+}
+
+void WorldSystem::createTitleScreen(vec2 mouse_position) {
+	if(registry.menuModes.size()>0){
+		Entity entity = registry.menuModes.entities[0];
+		Motion &motion = registry.motions.get(entity);
+		float xnum = motion.position.x + TL_BUTTONPOS.x * defaultResolution.scaling;
+		vec2 xpos = { xnum - BUTTON_BB_WIDTH * defaultResolution.scaling , xnum };
+		vec2 ypos = inShopAdjustPosition(TL_BUTTONPOS.y, motion);
+		// 1P
+		if (withinButtonBounds(mouse_position.x, xpos)) {
+			if (withinButtonBounds(mouse_position.y, ypos)) {
+				menuMode.currentButton = P1;
+			}
+			// 2P
+			ypos = inShopAdjustPosition(BL_BUTTONPOS.y, motion);
+			if (withinButtonBounds(mouse_position.y, ypos)) {
+				menuMode.currentButton = P2;
+			}
+		}
+		else {
+			xnum = motion.position.x + TR_BUTTONPOS.x * defaultResolution.scaling;
+			xpos = { xnum - BUTTON_BB_WIDTH * defaultResolution.scaling , xnum };
+
+			if (withinButtonBounds(mouse_position.x, xpos)) {
+				// Load
+				ypos = inShopAdjustPosition(TR_BUTTONPOS.y, motion);
+				if (withinButtonBounds(mouse_position.y, ypos)) {
+					menuMode.currentButton = Load;
+				}
+				
+				// Help
+				ypos = inShopAdjustPosition(BR_BUTTONPOS.y, motion);
+				if (withinButtonBounds(mouse_position.y, ypos)) {
+					menuMode.currentButton = Help;
+				}
+			}
+			else {
+				menuMode.currentButton = None;
+				
+			}
+		}
+	}
+}
+
+void WorldSystem::createInGameScreen(vec2 mouse_position) {
+	bool inShop = registry.inShops.has(player_knight) || registry.inShops.has(player2_wizard);
+	if (registry.menuModes.size() > 0) {
+		Entity entity = registry.menuModes.entities[0];
+		Motion& motion = registry.motions.get(entity);
+		float xnum = motion.position.x + TL_BUTTONPOS.x * defaultResolution.scaling;
+
+		vec2 xpos = { xnum - BUTTON_BB_WIDTH * defaultResolution.scaling , xnum };
+		vec2 ypos = inShopAdjustPosition(TL_BUTTONPOS.y, motion);
+		
+		if (withinButtonBounds(mouse_position.x, xpos)) {
+			// 2P on/off
+			if (withinButtonBounds(mouse_position.y, ypos)) {
+				menuMode.currentButton = JoinLeave;
+			}
+			// Restart
+			ypos = inShopAdjustPosition(BL_BUTTONPOS.y, motion);
+			if (withinButtonBounds(mouse_position.y, ypos)) {
+				menuMode.currentButton = Restart;
+			}
+			
+		}
+		else {
+			xnum = motion.position.x + TR_BUTTONPOS.x * defaultResolution.scaling;
+			xpos = { xnum - BUTTON_BB_WIDTH * defaultResolution.scaling , xnum };
+			
+			if (withinButtonBounds(mouse_position.x, xpos)) {
+				// Load
+				ypos = inShopAdjustPosition(TR_BUTTONPOS.y, motion);
+				if (withinButtonBounds(mouse_position.y, ypos)) {
+					menuMode.currentButton = Load;
+				}
+				
+				// Help
+				ypos = inShopAdjustPosition(BR_BUTTONPOS.y, motion);
+				if (withinButtonBounds(mouse_position.y, ypos)) {
+					menuMode.currentButton = Help;
+				}
+					
+				// Save
+				ypos = inShopAdjustPosition(TTR_BUTTONPOS.y, motion);
+				if (withinButtonBounds(mouse_position.y, ypos)) {
+					menuMode.currentButton = Save;
+				}
+				
+			}
+			else {
+				menuMode.currentButton = None;
+			}
+		}
+	}
+}
+
+vec2 WorldSystem::inShopAdjustPosition(float button_pos, Motion& motion) {
+	bool inShop = registry.inShops.has(player_knight) || registry.inShops.has(player2_wizard);
+	float ynum;
+	if (inShop) {
+		ynum = motion.position.y + button_pos * defaultResolution.scaling - defaultResolution.defaultHeight;
+	}
+	else {
+		ynum = motion.position.y + button_pos * defaultResolution.scaling;
+	}
+	return { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
+}
+
+bool WorldSystem::withinButtonBounds(float mouse_position, vec2 bounds) {
+
+	return mouse_position > bounds[0] && mouse_position < bounds[1];
+
 }
