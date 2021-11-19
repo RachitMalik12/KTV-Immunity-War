@@ -20,13 +20,13 @@ Required Features:
 
 -Save and Reload (RM):
 
--Story (JK):
+-Story (JK): Created a storyline for the game to setup for the "battle" that starts within. The writing and planning for it (in full) can be found here: https://jsminea.notion.site/Story-bcbd3cb2b5ba442f80d6af9073b6de5b
 
 Custom Features:
 
--Graphic Menu (10 points)(JK):
+-Graphic Menu (10 points)(JK): Created 2 different menus (as well as the custom assets for buttons and background). One for when the game first starts, the main menu, with 4 options: Load, 1P, 2P, and Help (which displays ontop of the menu). The second menu is in-game, which can be toggled by the ESC key, and displays both in the shop and in the enemy rooms. This menu has 5 options: 2P on/off (which toggles 2 player mode), Save, Load, Restart, Help. Also refactored loading and saving code, as well as added to mouse control of the wizard to limit rendering issues. Changed help positioning to render in shop and in the enemy's room as well, as well as made functions for the future, for any in shop positioning. Button positions and menu were coded with positions relative to the center of the screen. Did not use any pre-built libraries, created our own menu system.
 
--Pre-game Cutscene (5 points)(JK):
+-Pre-game Cutscene (5 points)(JK): Created 6 different cutscene graphics and routed the story progression to click and space key. The cutscene will only play at the beginning of the game, so it will not repeat itself after restarting a level or the game (unless exited from game).
 
 Memory Management:
 
@@ -44,7 +44,9 @@ Adaptive Resolution fix (BZ): Changed from prompting user to select resolution t
 
 Knight Animation Sliding fix (BZ): Stopping knight's movement animation was tied to releasing the directional movement button. Fixed so that it is tied to player's velocity being 0 instead.
 
-Graphics Assets (JK):
+Player Rendering Over Other Assets fix + Help positioning (JK): Player was rendering over other items like Help and Menu, so fixed rendering order and added flags to make sure that players were not rendering over assets they were not supposed to. Also adjusted help positioning to display in the correct positions when in shop.
+
+Graphics Assets (JK): Created background asset, coin asset, numbered text (monospace) asset for later use with the shop, 6 cutscenes (full screen), main menu and in game menu designs/assets for buttons. These were all custom made and not taken from the web.
 
 Revised Project Proposal:
 

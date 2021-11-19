@@ -340,17 +340,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}	
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_K) {
-		// Save current level. 
-		dataManager.setLevelNumber(level_number); 
-		if (twoPlayer.inTwoPlayerMode) {
-			dataManager.setPlayerStatEntity(player_stat, player2_stat);
-			dataManager.saveFile(2);
-		}
-		else {
-			dataManager.setPlayerStatEntity(player_stat); 
-			dataManager.saveFile(1); 
-		}
-		
+		saveGame();
 	}
 
 	// level loading
@@ -465,7 +455,36 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// storymode
 	if (action == GLFW_RELEASE && key == GLFW_KEY_SPACE && storyMode.firstLoad) {
 		storyClicker();
-		
+	}
+
+	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE && !helpMode.isOnTopInGameMenu) {
+		toggleInGameMenu();
+	}
+}
+
+void WorldSystem::toggleInGameMenu() {
+	// if menu has no been created or menu is back from help
+		// 
+	if (menuMode.menuType == 0 && !menuMode.inHelpDrawn) {
+		menuMode.menuType = 2;
+		menuMode.inGameMode = true;
+
+		//if in shop
+		if (registry.inShops.has(player_knight) || registry.inShops.has(player2_wizard)) {
+			Entity ent = createInGameMenu();
+			Motion& motion = registry.motions.get(ent);
+			motion.position = { defaultResolution.width / 2 , defaultResolution.height / 2 + defaultResolution.defaultHeight };
+		}
+		else {
+			createInGameMenu();
+		}
+	}
+	else if (menuMode.inGameMode && menuMode.menuType != 1) {
+		for (Entity entity : registry.menuModes.entities) {
+			registry.remove_all_components_of(entity);
+		}
+		menuMode.menuType = 0;
+
 	}
 }
 
@@ -498,12 +517,12 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 
 	// menu is in game
 	if (menuMode.menuType == 2) {
-
+		createInGameScreen(mouse_position);
 	}
 }
 
 void WorldSystem::on_mouse_click(int button, int action, int mods) {
-	if (twoPlayer.inTwoPlayerMode && storyMode.inStoryMode==0) {
+	if (twoPlayer.inTwoPlayerMode && storyMode.inStoryMode==0 && menuMode.menuType ==0) {
 		Player& wizard2_player = registry.players.get(player2_wizard);
 		WizardAnimation& animation = registry.wizardAnimations.get(player2_wizard);
 		if (!wizard2_player.isDead) {
@@ -567,7 +586,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			}
 		}
 	}
-	bool clicked_once = false;
+	
 	bool left_clicked = (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_LEFT);
 	// menu is in-game menu
 	if (helpMode.clicked == 1) {
@@ -575,12 +594,32 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 		
 	}
 	else if (helpMode.clicked == 2) {
-		menuMode.menuType = 1;
-		createMenu();
-		helpMode.inHelpMode = false;
+
+		menuMode.inHelpDrawn = false;
+		// possible bug/edge case
+		menuMode.currentButton = None;
 		for (Entity entity : registry.helpModes.entities) {
 			registry.remove_all_components_of(entity);
 		}
+
+		if (helpMode.isOnTopMainMenu) {
+			// bring main menu back
+			menuMode.menuType = 1;
+			// help is no longer displayed over main menu
+			helpMode.isOnTopMainMenu = false;
+			// make the menu
+			createMenu();
+		}
+		else if (helpMode.isOnTopInGameMenu) {
+			menuMode.menuType = 2;
+			helpMode.isOnTopInGameMenu = false;
+			Entity entity = createInGameMenu();
+			if (registry.inShops.has(player_knight) || registry.inShops.has(player2_wizard)) {
+				Motion& motion = registry.motions.get(entity);
+				motion.position = { defaultResolution.width / 2 , defaultResolution.height / 2 + defaultResolution.defaultHeight };
+			}
+		}
+		helpMode.inHelpMode = false;
 		helpMode.clicked = 0;
 	}
 
@@ -592,16 +631,14 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 	}
 	// menu is in game
 	else if (menuMode.menuType == 2) {
-
+		if (left_clicked) {
+			menuLogic(2);
+		}
 	}
 	// story click to progress
 	else if (storyMode.firstLoad && left_clicked&& menuMode.menuType==0) {
 		storyClicker();
 	}
-
-	
-	
-	
 }
 
 void WorldSystem::storyClicker() {
@@ -668,10 +705,9 @@ void WorldSystem::storyClicker() {
 }
 
 void WorldSystem::menuLogic(int menuType) {
-
 	if (menuType == 1) {
 		// 1P 
-		if (menuMode.on1P) {
+		if (menuMode.currentButton == P1) {
 			menuMode.menuType = 0;
 			for (Entity entity : registry.menuModes.entities) {
 				registry.remove_all_components_of(entity);
@@ -680,11 +716,9 @@ void WorldSystem::menuLogic(int menuType) {
 				storyMode.inStoryMode = 1;
 				createStory();
 			}
-			
 		}
 		// 2P
-		if (menuMode.on2P) {
-
+		if (menuMode.currentButton == P2) {
 			menuMode.menuType = 0;
 			for (Entity entity : registry.menuModes.entities) {
 				registry.remove_all_components_of(entity);
@@ -697,31 +731,78 @@ void WorldSystem::menuLogic(int menuType) {
 			}
 		}
 		// Load
-		if (menuMode.onLoad) {
-
+		if (menuMode.currentButton == Load) {
 			menuMode.menuType = 0;
 			for (Entity entity : registry.menuModes.entities) {
 				registry.remove_all_components_of(entity);
 			}
-
 			// No story on Load
 			storyMode.firstLoad = false;
-
 			// Load the game from last save
 			loadGame();
-
-
 		}
 		// Help
-		if (menuMode.onHelp) {
-			std::cout << "help clicked!";
+		if (menuMode.currentButton == Help) {
 			menuMode.menuType = 0;
 			createHelp();
+			menuMode.inHelpDrawn = true;
 			helpMode.inHelpMode = true;
 			helpMode.menuHelp = true;
+			helpMode.isOnTopMainMenu = true;
 			helpMode.clicked = 1;
-			menuMode.onHelp = false;
+		}
+	}
 
+	if (menuType == 2) {
+		// Save
+		if (menuMode.currentButton == Save) {
+			menuMode.menuType = 0;
+			for (Entity entity : registry.menuModes.entities) {
+				registry.remove_all_components_of(entity);
+			}
+			saveGame();
+		}
+		// 2P join/leave
+		if (menuMode.currentButton == JoinLeave) {
+			menuMode.menuType = 0;
+			for (Entity entity : registry.menuModes.entities) {
+				registry.remove_all_components_of(entity);
+			}
+			playerTwoJoinOrLeave();
+		}
+		// Restart
+		if (menuMode.currentButton == Restart) {
+			menuMode.menuType = 0;
+			for (Entity entity : registry.menuModes.entities) {
+				registry.remove_all_components_of(entity);
+			}
+			restart_game();
+		}
+		// Load
+		if (menuMode.currentButton == Load) {
+			menuMode.menuType = 0;
+			for (Entity entity : registry.menuModes.entities) {
+				registry.remove_all_components_of(entity);
+			}
+			// No story on Load
+			storyMode.firstLoad = false;
+			// Load the game from last save
+			loadGame();
+		}
+		// Help
+		if (menuMode.currentButton == Help) {
+			menuMode.menuType = 0;
+			Entity help = createHelp();
+			if (registry.inShops.has(player_knight) || registry.inShops.has(player2_wizard)) {
+				Motion& motion = registry.motions.get(help);
+				motion.position.y = defaultResolution.height/2 + defaultResolution.defaultHeight;
+			}
+			menuMode.inHelpDrawn = true;
+			helpMode.inHelpMode = true;
+			helpMode.menuHelp = true;
+			helpMode.isOnTopInGameMenu = true;
+			helpMode.clicked = 1;
+			
 		}
 	}
 	
@@ -761,6 +842,18 @@ void WorldSystem::loadGame() {
 			twoPlayer.inTwoPlayerMode = true;
 		}
 		setupLevel(level_number);
+	}
+}
+
+void WorldSystem::saveGame() {
+	dataManager.setLevelNumber(level_number);
+	if (twoPlayer.inTwoPlayerMode) {
+		dataManager.setPlayerStatEntity(player_stat, player2_stat);
+		dataManager.saveFile(2);
+	}
+	else {
+		dataManager.setPlayerStatEntity(player_stat);
+		dataManager.saveFile(1);
 	}
 }
 
@@ -1276,63 +1369,137 @@ Entity WorldSystem::createMenu() {
 	return entity;
 }
 
+Entity WorldSystem::createInGameMenu() {
+	Entity entity = Entity();
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::INGAMEMENU,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	// Create motion
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = { defaultResolution.width / 2, defaultResolution.height / 2 };
+	motion.scale = vec2({ STORY_BB_WIDTH * defaultResolution.scaling, STORY_BB_HEIGHT * defaultResolution.scaling });
+
+	registry.menuModes.emplace(entity);
+
+	return entity;
+}
+
 void WorldSystem::createTitleScreen(vec2 mouse_position) {
-	for (Entity entity : registry.menuModes.entities) {
+	if(registry.menuModes.size()>0){
+		Entity entity = registry.menuModes.entities[0];
 		Motion &motion = registry.motions.get(entity);
 		float xnum = motion.position.x + TL_BUTTONPOS.x * defaultResolution.scaling;
-		float ynum = motion.position.y + TL_BUTTONPOS.y * defaultResolution.scaling;
 		vec2 xpos = { xnum - BUTTON_BB_WIDTH * defaultResolution.scaling , xnum };
-		vec2 ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
-		// 1 player
-		if (mouse_position.x > xpos[0] && mouse_position.x < xpos[1]) {
-			if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
-				menuMode.onLoad = false;
-				menuMode.onHelp = false;
-				menuMode.on2P = false;
-				menuMode.on1P = true;
+		vec2 ypos = inShopAdjustPosition(TL_BUTTONPOS.y, motion);
+		// 1P
+		if (withinButtonBounds(mouse_position.x, xpos)) {
+			if (withinButtonBounds(mouse_position.y, ypos)) {
+				menuMode.currentButton = P1;
 			}
-			else {
-				menuMode.onLoad = false;
-				menuMode.onHelp = false;
-				menuMode.on1P = false;
-				ynum = motion.position.y + BL_BUTTONPOS.y * defaultResolution.scaling;
-				ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
-				if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
-					menuMode.on2P = true;
-				}
+			// 2P
+			ypos = inShopAdjustPosition(BL_BUTTONPOS.y, motion);
+			if (withinButtonBounds(mouse_position.y, ypos)) {
+				menuMode.currentButton = P2;
 			}
 		}
 		else {
 			xnum = motion.position.x + TR_BUTTONPOS.x * defaultResolution.scaling;
-			ynum = motion.position.y + TR_BUTTONPOS.y * defaultResolution.scaling;
 			xpos = { xnum - BUTTON_BB_WIDTH * defaultResolution.scaling , xnum };
-			ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
-			// Load
-			if (mouse_position.x > xpos[0] && mouse_position.x < xpos[1]) {
-				if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
-					menuMode.on2P = false;
-					menuMode.onHelp = false;
-					menuMode.on1P = false;
-					menuMode.onLoad = true;
+
+			if (withinButtonBounds(mouse_position.x, xpos)) {
+				// Load
+				ypos = inShopAdjustPosition(TR_BUTTONPOS.y, motion);
+				if (withinButtonBounds(mouse_position.y, ypos)) {
+					menuMode.currentButton = Load;
 				}
-				else {
-					// Help
-					ynum = motion.position.y + BR_BUTTONPOS.y * defaultResolution.scaling;
-					ypos = { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
-					if (mouse_position.y > ypos[0] && mouse_position.y < ypos[1]) {
-						menuMode.on2P = false;
-						menuMode.onLoad = false;
-						menuMode.on1P = false;
-						menuMode.onHelp = true;
-					}
+				
+				// Help
+				ypos = inShopAdjustPosition(BR_BUTTONPOS.y, motion);
+				if (withinButtonBounds(mouse_position.y, ypos)) {
+					menuMode.currentButton = Help;
 				}
 			}
 			else {
-				menuMode.onLoad = false;
-				menuMode.onHelp = false;
-				menuMode.on1P = false;
-				menuMode.on2P = false;
+				menuMode.currentButton = None;
+				
 			}
 		}
 	}
+}
+
+void WorldSystem::createInGameScreen(vec2 mouse_position) {
+	bool inShop = registry.inShops.has(player_knight) || registry.inShops.has(player2_wizard);
+	if (registry.menuModes.size() > 0) {
+		Entity entity = registry.menuModes.entities[0];
+		Motion& motion = registry.motions.get(entity);
+		float xnum = motion.position.x + TL_BUTTONPOS.x * defaultResolution.scaling;
+
+		vec2 xpos = { xnum - BUTTON_BB_WIDTH * defaultResolution.scaling , xnum };
+		vec2 ypos = inShopAdjustPosition(TL_BUTTONPOS.y, motion);
+		
+		if (withinButtonBounds(mouse_position.x, xpos)) {
+			// 2P on/off
+			if (withinButtonBounds(mouse_position.y, ypos)) {
+				menuMode.currentButton = JoinLeave;
+			}
+			// Restart
+			ypos = inShopAdjustPosition(BL_BUTTONPOS.y, motion);
+			if (withinButtonBounds(mouse_position.y, ypos)) {
+				menuMode.currentButton = Restart;
+			}
+			
+		}
+		else {
+			xnum = motion.position.x + TR_BUTTONPOS.x * defaultResolution.scaling;
+			xpos = { xnum - BUTTON_BB_WIDTH * defaultResolution.scaling , xnum };
+			
+			if (withinButtonBounds(mouse_position.x, xpos)) {
+				// Load
+				ypos = inShopAdjustPosition(TR_BUTTONPOS.y, motion);
+				if (withinButtonBounds(mouse_position.y, ypos)) {
+					menuMode.currentButton = Load;
+				}
+				
+				// Help
+				ypos = inShopAdjustPosition(BR_BUTTONPOS.y, motion);
+				if (withinButtonBounds(mouse_position.y, ypos)) {
+					menuMode.currentButton = Help;
+				}
+					
+				// Save
+				ypos = inShopAdjustPosition(TTR_BUTTONPOS.y, motion);
+				if (withinButtonBounds(mouse_position.y, ypos)) {
+					menuMode.currentButton = Save;
+				}
+				
+			}
+			else {
+				menuMode.currentButton = None;
+			}
+		}
+	}
+}
+
+vec2 WorldSystem::inShopAdjustPosition(float button_pos, Motion& motion) {
+	bool inShop = registry.inShops.has(player_knight) || registry.inShops.has(player2_wizard);
+	float ynum;
+	if (inShop) {
+		ynum = motion.position.y + button_pos * defaultResolution.scaling - defaultResolution.defaultHeight;
+	}
+	else {
+		ynum = motion.position.y + button_pos * defaultResolution.scaling;
+	}
+	return { ynum, ynum + BUTTON_BB_HEIGHT * defaultResolution.scaling };
+}
+
+bool WorldSystem::withinButtonBounds(float mouse_position, vec2 bounds) {
+
+	return mouse_position > bounds[0] && mouse_position < bounds[1];
+
 }

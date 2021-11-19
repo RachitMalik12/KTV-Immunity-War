@@ -40,6 +40,7 @@ const float ENEMYSWARM_BB_HEIGHT = 0.14 * 411.f;
 const float BUTTON_BB_WIDTH = 0.5 * 459.f;
 const float BUTTON_BB_HEIGHT = 0.5 * 140.f;
 // top buttons (top left, top right)
+const vec2 TTR_BUTTONPOS = { -0.5 * 18.f, 0.5 * 221.f };
 const vec2 TL_BUTTONPOS = { -0.5 * 585.f, 0.5 * 398.f};
 const vec2 TR_BUTTONPOS = { -0.5 * 18.f, 0.5 * 398.f};
 // bottom buttons 

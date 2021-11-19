@@ -41,6 +41,7 @@ public:
 
 	// menu
 	Entity createMenu();
+	Entity createInGameMenu();
 
 private:
 	// Input callback functions
@@ -106,8 +107,13 @@ private:
 	// menu
 	void menuLogic(int menuType);
 	void createTitleScreen(vec2 mouse_position);
+	void createInGameScreen(vec2 mouse_position);
+	void toggleInGameMenu();
+	vec2 inShopAdjustPosition(float button_pos, Motion& motion);
+	bool withinButtonBounds(float mouse_position, vec2 bounds);
 	//load
 	void loadGame();
+	void saveGame();
 	// story
 	void storyClicker();
 	void transitionToShop(); 
