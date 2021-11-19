@@ -41,6 +41,7 @@ public:
 
 	// menu
 	Entity createMenu();
+	Entity createInGameMenu();
 
 private:
 	// Input callback functions

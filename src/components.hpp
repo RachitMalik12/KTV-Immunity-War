@@ -181,7 +181,8 @@ struct HelpMode {
 	bool inHelpMode = false;
 	bool menuHelp = false;
 	int clicked = 0;
-	bool isMainMenu = false;
+	bool isOntopMainMenu = false;
+	bool isOntopInGameMenu = false;
 };
 extern HelpMode helpMode;
 
@@ -210,9 +211,8 @@ enum menuButtons {
 struct MenuMode {
 	// 0 = no menu, 1 = first, main menu // 2 = other in game menu
 	bool inMenuMode = true;
-	bool inGameHelpDrawn = false;
-	bool inMainHelpDrawn = false;
-	bool inGameMode = true;
+	bool inHelpDrawn = false;
+	bool inGameMode = false;
 	bool inShop = false;
 	int menuType = 1;
 	menuButtons currentButton;
