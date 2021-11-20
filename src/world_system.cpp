@@ -128,7 +128,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	int screen_width, screen_height;
 	glfwGetFramebufferSize(window, &screen_width, &screen_height);
 
-	levelCompletionCheck();
+	progressBrightenScreen(elapsed_ms_since_last_update);
+	levelCompletionCheck(elapsed_ms_since_last_update);
 	resolveMouseControl();
 	stuckTimer(elapsed_ms_since_last_update, screen_width, screen_height);
 	invincibilityTimer(elapsed_ms_since_last_update);
@@ -138,12 +139,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	handlePlayerOneAttack(elapsed_ms_since_last_update);
 	handlePlayerTwoProjectile(elapsed_ms_since_last_update);
 	deathHandling();
-
-
 	return true;
 }
 
 void WorldSystem::deathHandling() {
+	ScreenState& screen = registry.screenStates.components[0];
 	if (twoPlayer.inTwoPlayerMode) {
 		Player& player1 = registry.players.get(player_knight);
 		Player& player2 = registry.players.get(player2_wizard);
@@ -167,6 +167,33 @@ void WorldSystem::deathHandling() {
 		Player& player1 = registry.players.get(player_knight);
 		if (player1.isDead) {
 			setupLevel(level_number);
+		}
+	}
+}
+
+void WorldSystem::progressGameEndEffect(float elapsed_ms_since_last_update) {
+	// Check level completion 
+	if (isGameOver == true) {
+		isGameOver = false;
+		auto entity1 = Entity();
+		registry.deathTimers.emplace(entity1);
+	}
+
+	ScreenState& screen = registry.screenStates.components[0];
+	float min_counter_ms = 3000.f;
+	for (Entity entity : registry.deathTimers.entities) {
+		// progress timer
+		DeathTimer& counter = registry.deathTimers.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+		if (counter.counter_ms < min_counter_ms) {
+			min_counter_ms = counter.counter_ms;
+		}
+
+		// stop shake effect and move onto next level once timer expires
+		if (counter.counter_ms < 0) {
+			registry.deathTimers.remove(entity);
+			setupLevel(level_number);
+			screen.game_over_factor = 0;
 		}
 	}
 }
@@ -198,9 +225,7 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 
 	// Create walls and doors
-	createWalls(screenWidth, screenHeight);
-	createADoor(screenWidth, screenHeight);
-	setupLevel(level_number); 
+	setupLevel(level_number);
 }
 
 void WorldSystem::createADoor(int screenWidth, int screenHeight) {
@@ -1042,6 +1067,35 @@ void WorldSystem::stuckTimer(float elapsed_ms_since_last_update, int screen_widt
 	}
 }
 
+void WorldSystem::lightUpEnemyRunTimer(float elapsed_ms_since_last_update) {
+	for (Entity entity : registry.enemiesrun.entities) {
+		if (registry.enemiesrun.get(entity).encounter == 1) {
+			registry.enemiesrun.get(entity).counter_ms -= elapsed_ms_since_last_update;
+			// reset timer and encounter variable when timer expires and set light up to false
+			if (registry.enemiesrun.get(entity).counter_ms < 0) {
+				
+				registry.enemiesrun.get(entity).encounter == 0;
+				registry.enemiesrun.get(entity).counter_ms = 800;
+			}
+		}
+	}
+}
+
+void WorldSystem::lightUpEnemyBacteriaTimer(float elapsed_ms_since_last_update) {
+	for (Entity entity : registry.enemyBacterias.entities) {
+		if (registry.enemyBacterias.get(entity).encounter == 1) {
+			registry.enemyBacterias.get(entity).counter_ms -= elapsed_ms_since_last_update;
+			// reset timer and encounter variable when timer expires and set light up to false
+			if (registry.enemyBacterias.get(entity).counter_ms < 0) {
+
+				registry.enemyBacterias.get(entity).encounter == 0;
+				registry.enemyBacterias.get(entity).counter_ms = 800;
+			}
+		}
+	}
+}
+
+
 void WorldSystem::resolveMouseControl() {
 	if (twoPlayer.inTwoPlayerMode && registry.mouseDestinations.has(player2_wizard)) {
 		Motion& motion = registry.motions.get(player2_wizard);
@@ -1049,18 +1103,18 @@ void WorldSystem::resolveMouseControl() {
 
 		if (abs(motion.position.x - mouseDestination.position.x) < 1.f && abs(motion.position.y - mouseDestination.position.y) < 1.f) {
 			registry.mouseDestinations.remove(player2_wizard);
+			registry.mouseDestinations.remove(player2_wizard);
 			motion.velocity = vec2(0, 0);
 		}
 	}
 }
 
-void WorldSystem::levelCompletionCheck() {
+void WorldSystem::levelCompletionCheck(float elapsed_ms_since_last_update) {
 	// Check level completion 
 	if (registry.enemies.size() == 0) {
 		transitionToShop();
 		isLevelOver = true;
 	}
-
 	if (isLevelOver && isTransitionOver) {
 		int nextLevel = level_number + 1;
 		if (nextLevel <= levels.size()) {
@@ -1075,13 +1129,13 @@ void WorldSystem::transitionToShop() {
 	if (registry.doors.entities.size() > 0) {
 		Entity door = registry.doors.entities.front();
 		registry.remove_all_components_of(door);
-	} 
+	}
 	if (!twoPlayer.inTwoPlayerMode) {
-		setTransitionFlag(player_knight); 
+		setTransitionFlag(player_knight);
 	}
 	else {
 		setTransitionFlag(player2_wizard);
-	} 
+	}
 }
 
 void WorldSystem::reviveKnight(Player& p1, PlayerStat& p1Stat) {
@@ -1108,6 +1162,33 @@ void WorldSystem::reviveWizard(Player& p2, PlayerStat& p2Stat) {
 	animation.idleTimer = 0;
 }
 
+void WorldSystem::progressBrightenScreen(float elapsed_ms_since_last_update) {
+	// Check level completion 
+	if (startingNewLevel == true) {
+		startingNewLevel = false;
+		auto entity1 = Entity();
+		registry.startLevelTimers.emplace(entity1);
+	}
+
+	ScreenState& screen = registry.screenStates.components[0];
+	float min_counter_ms = 3000.f;
+	for (Entity entity : registry.startLevelTimers.entities) {
+		// progress timer
+		StartLevelTimer& counter = registry.startLevelTimers.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+		if (counter.counter_ms < min_counter_ms) {
+			min_counter_ms = counter.counter_ms;
+		}
+
+		// move on to next level the game once the end level timer expired
+		if (counter.counter_ms < 0) {
+			registry.startLevelTimers.remove(entity);
+			screen.brighten_screen_factor = 0;
+		}
+		// increase window brightness if the level is starting
+		screen.brighten_screen_factor = 0 + min_counter_ms / 3000;
+	}
+}
 void WorldSystem::reviveDeadPlayerInShop() {
 	if (twoPlayer.inTwoPlayerMode) {
 		Player& p1 = registry.players.get(player_knight);
@@ -1116,17 +1197,17 @@ void WorldSystem::reviveDeadPlayerInShop() {
 		PlayerStat& p2Stat = registry.playerStats.get(player2_stat);
 		// Restore the dead player so they can buy stuff. 
 		if (p1.isDead) {
-			reviveKnight(p1, p1Stat); 
+			reviveKnight(p1, p1Stat);
 		}
 		if (p2.isDead) {
-			reviveWizard(p2, p2Stat); 
+			reviveWizard(p2, p2Stat);
 		}
 		updateTitle(level_number);
 	}
 }
 
 void WorldSystem::setTransitionFlag(Entity player) {
-	
+
 	if (registry.inShops.has(player) && firstEntranceToShop) {
 		firstEntranceToShop = false;
 		reviveDeadPlayerInShop();
@@ -1138,6 +1219,8 @@ void WorldSystem::setTransitionFlag(Entity player) {
 		isTransitionOver = false;
 	}
 }
+
+
 
 void WorldSystem::animateKnight(float elapsed_ms_since_last_update) {
 	KnightAnimation& animation = registry.knightAnimations.get(player_knight);
@@ -1197,10 +1280,18 @@ void WorldSystem::setupLevel(int levelNum) {
 		registry.remove_all_components_of(registry.enemies.entities.back());
 	while (registry.blocks.entities.size() > 0)
 		registry.remove_all_components_of(registry.blocks.entities.back());
+	while (registry.backgrounds.entities.size() > 0)
+		registry.remove_all_components_of(registry.backgrounds.entities.back());
+	while (registry.walls.entities.size() > 0)
+		registry.remove_all_components_of(registry.walls.entities.back());
+	while (registry.doors.entities.size() > 0)
+		registry.remove_all_components_of(registry.doors.entities.back());
 
+	createBackground(renderer, vec2(screen_width / 2 * defaultResolution.scaling, screen_height * defaultResolution.scaling));
 	// Close the door at the start of every level after player leaves the shop. 
-	createADoor(screen_width, screen_height); 
-
+	createADoor(screen_width, screen_height);
+	createWalls(screen_width, screen_height);
+	
 	int index = levelNum - 1;
 	Level level = levels[index];
 	auto enemies = level.enemies;
@@ -1252,6 +1343,7 @@ void WorldSystem::setupLevel(int levelNum) {
 		player2Motion.position = level.player2_position * defaultResolution.scaling;
 	}
 	// Update state 
+	startingNewLevel = true;
 	isLevelOver = false;
 	isTransitionOver = false;
 	firstEntranceToShop = true; 

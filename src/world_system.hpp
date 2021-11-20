@@ -62,6 +62,8 @@ private:
 	bool isLevelOver;
 	bool isTransitionOver;
 	bool firstEntranceToShop; 
+	bool startingNewLevel = false;
+	bool isGameOver = false;
 	// Game state
 	RenderSystem* renderer;
 	float next_projectile_fire_player1;
@@ -92,7 +94,7 @@ private:
 	void invincibilityTimer(float elapsed_ms_since_last_update);
 	void stuckTimer(float elapsed_ms_since_last_update, int screen_width, int screen_height);
 	void resolveMouseControl();
-	void levelCompletionCheck();
+	void levelCompletionCheck(float elapsed_ms_since_last_update);
 	void animateKnight(float elapsed_ms_since_last_update);
 	void animateWizard(float elpased_ms_since_last_update);
 	void checkIfPlayersAreMoving();
@@ -121,4 +123,8 @@ private:
 	void reviveDeadPlayerInShop(); 
 	void reviveWizard(Player& p1, PlayerStat& p1Stat); 
 	void reviveKnight(Player& p2, PlayerStat& p2Stat); 
+	void progressGameEndEffect(float elapsed_ms_since_last_update);
+	void progressBrightenScreen(float elapsed_ms_since_last_update);
+	void lightUpEnemyRunTimer(float elapsed_ms_since_last_update);
+	void lightUpEnemyBacteriaTimer(float elapsed_ms_since_last_update);
 }; 

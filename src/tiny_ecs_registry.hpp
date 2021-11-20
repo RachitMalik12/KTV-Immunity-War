@@ -11,6 +11,9 @@ class ECSRegistry
 
 public:
 	// Manually created list of all components this game has
+	ComponentContainer<EndLevelTimer> endLevelTimers;
+	ComponentContainer<StartLevelTimer> startLevelTimers;
+	ComponentContainer<DeathTimer> deathTimers;
 	ComponentContainer<StuckTimer> stuckTimers;
 	ComponentContainer<Motion> motions;
 	ComponentContainer<Collision> collisions;
@@ -47,11 +50,15 @@ public:
 	ComponentContainer<Sword> swords;
 	ComponentContainer<Title> titles;
 	ComponentContainer<MenuMode> menuModes;
+	ComponentContainer<Background> backgrounds;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
 	ECSRegistry()
 	{
+		registry_list.push_back(&startLevelTimers);
+		registry_list.push_back(&endLevelTimers);
+		registry_list.push_back(&deathTimers);
 		registry_list.push_back(&stuckTimers);
 		registry_list.push_back(&motions);
 		registry_list.push_back(&collisions);
@@ -88,6 +95,7 @@ public:
 		registry_list.push_back(&swords);
 		registry_list.push_back(&titles);
 		registry_list.push_back(&menuModes);
+		registry_list.push_back(&backgrounds);
 	}
 
 	void clear_all_components() {

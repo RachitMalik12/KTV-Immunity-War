@@ -75,7 +75,8 @@ class RenderSystem {
 			textures_path("wizard_walk.png"),
 			textures_path("BTEnemy.png"),
 			textures_path("main_menu.png"),
-			textures_path("in_game_menu.png")
+			textures_path("in_game_menu.png"),
+			textures_path("background_new.png")
 
 	};
 
@@ -87,7 +88,8 @@ class RenderSystem {
 		shader_path("textured"),
 		shader_path("water"),
 		shader_path("knight"),
-		shader_path("wizard")
+		shader_path("wizard"),
+		shader_path("enemyrun")
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;

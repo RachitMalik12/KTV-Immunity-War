@@ -50,6 +50,7 @@ struct Block
 struct Enemy
 {
 	int hp;
+	int max_hp;
 	int damage;
 	int loot;
 	float speed;
@@ -77,9 +78,12 @@ struct EnemyChase
 };
 
 // Enemy that will be attacked by wizard using projectile and tries to run away from wizard
+// counter for lighting up the enemy when it is hit by the player
 struct EnemyRun
 {
 	int max_dist_wz_en_run = 50 * 50;
+	uint encounter = 0;
+	float counter_ms = 800;
 };
 
 // State machine feature
@@ -109,6 +113,10 @@ struct EnemyBacteria
 	std::queue<std::pair<int, int>> adjacentsQueue;
 	float next_bacteria_BFS_calculation;
 	float next_bacteria_PATH_calculation;
+
+	// encounter and timer for when this type of enemy gets hit
+	uint encounter = 0;
+	float counter_ms = 800;
 };
 
 // Behaviour Tree Enemy
@@ -234,12 +242,34 @@ extern DefaultResolution defaultResolution;
 struct ScreenState
 {
 	float darken_screen_factor = -1;
+	float brighten_screen_factor = -1;
+	int game_over_factor = 0;
 };
 
 // A struct to refer to debugging graphics in the ECS
 struct DebugComponent
 {
 	// Note, an empty struct has size 1
+};
+
+// A timer that will be associated to level ending
+struct EndLevelTimer
+{
+	float counter_ms = 3000;
+};
+
+// A timer that will be associated to level starting
+struct StartLevelTimer
+{
+	float counter_ms = 3000;
+};
+
+// A timer that will be associated to player(s) dying/game ending
+// separate from level ending due to player(s) killing all enemies
+// (for that see EndLevelTimer)
+struct DeathTimer
+{
+	float counter_ms = 3000;
 };
 
 // A timer that will be associated to enemies/enemies run being stuck
@@ -362,6 +392,10 @@ struct Title {
 	}
 };
 
+struct Background {
+
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -419,7 +453,8 @@ enum class TEXTURE_ASSET_ID {
 	GERM = WIZARDWALK + 1,
 	MENU = GERM + 1,
 	INGAMEMENU = MENU +1,
-	TEXTURE_COUNT = INGAMEMENU + 1
+	BACKGROUND = INGAMEMENU + 1,
+	TEXTURE_COUNT = BACKGROUND + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -430,7 +465,8 @@ enum class EFFECT_ASSET_ID {
 	WATER = TEXTURED + 1,
 	KNIGHT = WATER + 1,
 	WIZARD = KNIGHT + 1,
-	EFFECT_COUNT = WIZARD + 1
+	ENEMYRUN = WIZARD + 1,
+	EFFECT_COUNT = ENEMYRUN + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 

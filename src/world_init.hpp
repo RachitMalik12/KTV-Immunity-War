@@ -35,6 +35,11 @@ const float STORY_BB_WIDTH = 0.5*2388.f;
 const float STORY_BB_HEIGHT = 0.5*1668.f;
 const float ENEMYSWARM_BB_WIDTH = 0.14 * 553.f;
 const float ENEMYSWARM_BB_HEIGHT = 0.14 * 411.f;
+const float BACKGROUND_BB_WIDTH = 1200.f;
+const float BACKGROUND_BB_HEIGHT = 1600.f;
+
+// background
+Entity createBackground(RenderSystem* renderer, vec2 pos);
 
 // menu dimensions
 const float BUTTON_BB_WIDTH = 0.5 * 459.f;
