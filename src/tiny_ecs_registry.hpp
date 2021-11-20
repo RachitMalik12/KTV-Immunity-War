@@ -11,6 +11,9 @@ class ECSRegistry
 
 public:
 	// Manually created list of all components this game has
+	ComponentContainer<EndLevelTimer> endLevelTimers;
+	ComponentContainer<StartLevelTimer> startLevelTimers;
+	ComponentContainer<DeathTimer> deathTimers;
 	ComponentContainer<StuckTimer> stuckTimers;
 	ComponentContainer<Motion> motions;
 	ComponentContainer<Collision> collisions;
@@ -50,8 +53,8 @@ public:
 	ComponentContainer<MovementSpeedPowerUp> movementSpeedPowerup; 
 	ComponentContainer<HpPowerUp> hpPowerup; 
 	ComponentContainer<DamagePowerUp> damagePowerUp; 
-	ComponentContainer<AtackSpeedPowerUp> attackSpeedPowerUp; 
-
+	ComponentContainer<AtackSpeedPowerUp> attackSpeedPowerUp;
+	ComponentContainer<Background> backgrounds;
 
 
 
@@ -59,6 +62,9 @@ public:
 	// IMPORTANT: Don't forget to add any newly added containers!
 	ECSRegistry()
 	{
+		registry_list.push_back(&startLevelTimers);
+		registry_list.push_back(&endLevelTimers);
+		registry_list.push_back(&deathTimers);
 		registry_list.push_back(&stuckTimers);
 		registry_list.push_back(&motions);
 		registry_list.push_back(&collisions);
@@ -98,7 +104,8 @@ public:
 		registry_list.push_back(&movementSpeedPowerup); 
 		registry_list.push_back(&hpPowerup); 
 		registry_list.push_back(&damagePowerUp);
-		registry_list.push_back(&attackSpeedPowerUp); 
+		registry_list.push_back(&attackSpeedPowerUp);
+		registry_list.push_back(&backgrounds);
 
 	}
 

@@ -43,7 +43,11 @@ const float HP_POWERUP_WIDTH = 0.0366f * 2048.f;
 const float HP_POWERUP_HEIGHT = 0.0366f * 2048.f;
 const float ATTACK_POWERUP_WIDTH = 0.0615f * 1218.f; 
 const float ATTACK_POWERUP_HEIGHT = 0.05112f * 1467.f; 
+const float BACKGROUND_BB_WIDTH = 1200.f;
+const float BACKGROUND_BB_HEIGHT = 1600.f;
 
+// background
+Entity createBackground(RenderSystem* renderer, vec2 pos);
 
 // menu dimensions
 const float BUTTON_BB_WIDTH = 0.5 * 459.f;

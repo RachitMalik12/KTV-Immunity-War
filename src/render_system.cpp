@@ -79,6 +79,32 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glUniform1i(frameAttack, wizardAnimation.frameAttack);
 		glUniform1i(animationMode, wizardAnimation.animationMode);
 	}
+	else if (render_request.used_effect == EFFECT_ASSET_ID::ENEMYRUN)
+	{
+		textureEffectSetup(program, entity);
+
+		GLint light_up_uloc = glGetUniformLocation(program, "light_up");
+		assert(light_up_uloc >= 0);
+
+		int light_up_cond = 0;
+		if (registry.enemiesrun.has(entity)) {
+			light_up_cond = registry.enemiesrun.get(entity).encounter;
+		}
+		else if (registry.enemyBacterias.has(entity)) {
+			light_up_cond = registry.enemyBacterias.get(entity).encounter;
+		}
+		//const int light_up_cond = registry.enemiesrun.get(entity).encounter;
+		glUniform1i(light_up_uloc, light_up_cond);
+		gl_has_errors();
+
+		// Get the Light up scale for enemy right now
+		GLuint light_up_scale_uloc = glGetUniformLocation(program, "light_up_scale");
+		const int light_up_scale_cond = (registry.enemies.get(entity).max_hp - registry.enemies.get(entity).hp) / registry.enemies.get(entity).max_hp;
+		glUniform1f(light_up_scale_uloc, light_up_scale_cond);
+		gl_has_errors();
+
+
+	}
 	else
 	{
 		assert(false && "Type of render request not supported");
@@ -145,15 +171,17 @@ void RenderSystem::drawToScreen()
 	// Set clock
 	GLuint time_uloc = glGetUniformLocation(water_program, "time");
 	GLuint dead_timer_uloc = glGetUniformLocation(water_program, "darken_screen_factor");
+	GLuint brighten_timer_uloc = glGetUniformLocation(water_program, "brighten_screen_factor");
 	glUniform1f(time_uloc, (float)(glfwGetTime() * 10.0f));
-	ScreenState &screen = registry.screenStates.get(screen_state_entity);
+	ScreenState& screen = registry.screenStates.get(screen_state_entity);
 	glUniform1f(dead_timer_uloc, screen.darken_screen_factor);
+	glUniform1f(brighten_timer_uloc, screen.brighten_screen_factor);
 	gl_has_errors();
 	// Set the vertex position and vertex texture coordinates (both stored in the
 	// same VBO)
 	GLint in_position_loc = glGetAttribLocation(water_program, "in_position");
 	glEnableVertexAttribArray(in_position_loc);
-	glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), (void *)0);
+	glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), (void*)0);
 	gl_has_errors();
 
 	// Bind our texture in Texture Unit 0
@@ -166,6 +194,14 @@ void RenderSystem::drawToScreen()
 		GL_TRIANGLES, 3, GL_UNSIGNED_SHORT,
 		nullptr); // one triangle = 3 vertices; nullptr indicates that there is
 				  // no offset from the bound index buffer
+	gl_has_errors();
+
+	// get game over information
+	GLint game_over_uloc = glGetUniformLocation(water_program, "game_over_factor");
+
+	//if (screen.game_over_factor == 0 || screen.game_over_factor == 1) {
+	glUniform1i(game_over_uloc, screen.game_over_factor);
+	
 	gl_has_errors();
 }
 

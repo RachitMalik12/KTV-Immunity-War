@@ -79,7 +79,8 @@ class RenderSystem {
 			textures_path("HpUp.png"), 
 			textures_path("attackSpeedUp.png"),
 			textures_path("movementUp.png"), 
-			textures_path("dmgUp.png")
+			textures_path("dmgUp.png"),
+			textures_path("background_new.png")
 
 	};
 
@@ -91,7 +92,8 @@ class RenderSystem {
 		shader_path("textured"),
 		shader_path("water"),
 		shader_path("knight"),
-		shader_path("wizard")
+		shader_path("wizard"),
+		shader_path("enemyrun")
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
