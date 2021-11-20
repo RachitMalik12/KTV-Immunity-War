@@ -224,7 +224,10 @@ void WorldSystem::restart_game() {
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
-	// Create walls and doors
+	// Create background texture
+	createBackground(renderer, vec2(defaultResolution.width / 2, defaultResolution.height));
+
+	// Setup level
 	setupLevel(level_number);
 }
 
@@ -1328,8 +1331,6 @@ void WorldSystem::setupLevel(int levelNum) {
 		registry.remove_all_components_of(registry.enemies.entities.back());
 	while (registry.blocks.entities.size() > 0)
 		registry.remove_all_components_of(registry.blocks.entities.back());
-	while (registry.backgrounds.entities.size() > 0)
-		registry.remove_all_components_of(registry.backgrounds.entities.back());
 	while (registry.walls.entities.size() > 0)
 		registry.remove_all_components_of(registry.walls.entities.back());
 	while (registry.doors.entities.size() > 0)
