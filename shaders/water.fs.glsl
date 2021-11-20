@@ -17,13 +17,6 @@ vec2 distort(vec2 uv)
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// TODO A1: HANDLE THE WATER WAVE DISTORTION HERE (you may want to try sin/cos)
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	if (game_over_factor != 0) {
-		//uv.y += sin(uv.x + time)/ 500;S
-		float strength = 0.01;
-        uv.x += cos(time * 10) * strength;        
-        uv.y += cos(time * 15) * strength;  
-	//uv = uv;
-	}
 	return uv;
 }
 

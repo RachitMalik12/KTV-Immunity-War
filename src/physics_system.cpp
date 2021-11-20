@@ -39,8 +39,6 @@ void PhysicsSystem::handle_collision() {
 					}
 				}
 			}
-
-			
 		}
 
 		if (registry.swords.has(entity)) {

@@ -139,9 +139,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	handlePlayerOneAttack(elapsed_ms_since_last_update);
 	handlePlayerTwoProjectile(elapsed_ms_since_last_update);
 	deathHandling();
-	// progressGameEndEffect(elapsed_ms_since_last_update);
-
-
 	return true;
 }
 
@@ -164,16 +161,12 @@ void WorldSystem::deathHandling() {
 		}
 		if (player1.isDead && player2.isDead) {
 			setupLevel(level_number);
-			// isGameOver = true;
-			// screen.game_over_factor = 1;
 		}
 	}
 	else {
 		Player& player1 = registry.players.get(player_knight);
 		if (player1.isDead) {
 			setupLevel(level_number);
-			// isGameOver = true;
-			// screen.game_over_factor = 1;
 		}
 	}
 }
@@ -233,8 +226,6 @@ void WorldSystem::restart_game() {
 
 	// Create walls and doors
 	setupLevel(level_number);
-	//createWalls(screenWidth, screenHeight);
-	//createADoor(screenWidth, screenHeight);
 }
 
 void WorldSystem::createADoor(int screenWidth, int screenHeight) {
@@ -1120,39 +1111,20 @@ void WorldSystem::resolveMouseControl() {
 
 void WorldSystem::levelCompletionCheck(float elapsed_ms_since_last_update) {
 	// Check level completion 
-	if (registry.enemies.size() == 0 && isLevelOver != true) {
+	if (registry.enemies.size() == 0) {
 		transitionToShop();
 		isLevelOver = true;
-		auto entity1 = Entity();
-		registry.endLevelTimers.emplace(entity1);
 	}
-
-	ScreenState& screen = registry.screenStates.components[0];
-	float min_counter_ms = 3000.f;
-	for (Entity entity : registry.endLevelTimers.entities) {
-		// progress timer
-		EndLevelTimer& counter = registry.endLevelTimers.get(entity);
-		counter.counter_ms -= elapsed_ms_since_last_update;
-		if (counter.counter_ms < min_counter_ms) {
-			min_counter_ms = counter.counter_ms;
-		}
-
-		// move on to next level the game once the end level timer expired
-		if (counter.counter_ms < 0) {
-			registry.endLevelTimers.remove(entity);
-			screen.darken_screen_factor = 0;
-			int nextLevel = level_number + 1;
-			if (isLevelOver && nextLevel <= levels.size()) {
-				// Only if we have levels left we need to change level 
-				level_number = nextLevel;
-				setupLevel(level_number);
-			}
+	if (isLevelOver && isTransitionOver) {
+		int nextLevel = level_number + 1;
+		if (nextLevel <= levels.size()) {
+			// Only if we have levels left we need to change level 
+			level_number = nextLevel;
+			setupLevel(level_number);
 		}
 	}
-
-	// reduce window brightness if the level is ending
-	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 }
+
 void WorldSystem::transitionToShop() {
 	if (registry.doors.entities.size() > 0) {
 		Entity door = registry.doors.entities.front();
@@ -1371,11 +1343,11 @@ void WorldSystem::setupLevel(int levelNum) {
 		player2Motion.position = level.player2_position * defaultResolution.scaling;
 	}
 	// Update state 
+	startingNewLevel = true;
 	isLevelOver = false;
 	isTransitionOver = false;
 	firstEntranceToShop = true; 
 	updateTitle(levelNum);
-	startingNewLevel = true;
 }
 
 void WorldSystem::playerTwoJoinOrLeave() {

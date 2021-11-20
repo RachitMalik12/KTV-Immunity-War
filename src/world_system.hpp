@@ -62,9 +62,7 @@ private:
 	bool isLevelOver;
 	bool isTransitionOver;
 	bool firstEntranceToShop; 
-	// is a new level being loaded
 	bool startingNewLevel = false;
-	// is one or both players dead (so is game over?)
 	bool isGameOver = false;
 	// Game state
 	RenderSystem* renderer;
