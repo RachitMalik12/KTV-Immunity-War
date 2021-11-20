@@ -116,6 +116,8 @@ private:
 	void transitionToShop(); 
 	void setTransitionFlag(Entity player); 
 	void reviveDeadPlayerInShop(); 
+	void spawnPowerups(int n);
+	Entity chooseRandomPowerUp(vec2 pos); 
 	void reviveWizard(Player& p1, PlayerStat& p1Stat); 
 	void reviveKnight(Player& p2, PlayerStat& p2Stat); 
 }; 

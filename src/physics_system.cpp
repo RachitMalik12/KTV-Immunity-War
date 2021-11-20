@@ -9,6 +9,10 @@ void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_h
 	drawDebugMode();
 }
 
+bool inline checkIfFundsArePresent(int playerMoney, int cost) {
+	return (playerMoney - cost) >= 0;
+}
+
 void PhysicsSystem::handle_collision() {
 	// Loop over all collisions detected by the physics system
 	auto& collisionsRegistry = registry.collisions;
@@ -79,8 +83,15 @@ void PhysicsSystem::handle_collision() {
 				//Deduct if money is available
 				Player& playerCom = registry.players.get(entity_other);
 				PlayerStat& playerStatCom = registry.playerStats.get(playerCom.playerStat);
-				// TODO: Implement buying power up
-				// TODO: Update player money in title when buying power up
+				bool isPlayerOne = entity_other.getId() == registry.players.entities.front().getId();
+				bool isPlayerTwo = entity_other.getId() == registry.players.entities.back().getId();
+				// Check if player can afford powerup 
+				int powerUpCost = registry.powerups.get(entity).cost; 
+				if (checkIfFundsArePresent(playerStatCom.money, powerUpCost)) {
+					handlePowerUpCollisions(playerCom, playerStatCom,entity,title, isPlayerOne, 
+						isPlayerTwo, powerUpCost);
+				}
+				title.updateWindowTitle();
 			}
 		}
 
@@ -104,6 +115,50 @@ void PhysicsSystem::handle_collision() {
 	// Remove all collisions from this simulation step
 	registry.collisions.clear();
 }
+
+void PhysicsSystem::handlePowerUpCollisions(Player& playerCom, PlayerStat& playerStatCom, Entity entity,  Title& title, 
+	bool isPlayerOne, bool isPlayerTwo, int powerUpCost) 
+{
+	playerStatCom.money -= powerUpCost;
+	if (isPlayerOne) {
+		title.p1money = playerStatCom.money;
+	}
+	else if (isPlayerTwo) {
+		title.p2money = playerStatCom.money;
+	}
+	if (registry.hpPowerup.has(entity)) {
+		HpPowerUp& hpPowerup = registry.hpPowerup.get(entity);
+		playerStatCom.maxHp += hpPowerup.hpUpFactor;
+		playerCom.hp += hpPowerup.hpUpFactor;
+		registry.remove_all_components_of(entity);
+		if (isPlayerOne) {
+			title.p1hp = playerCom.hp;
+		}
+		else if (isPlayerTwo) {
+			title.p2hp = playerCom.hp;
+		}
+	}
+
+	if (registry.damagePowerUp.has(entity)) {
+		DamagePowerUp& damagePowerup = registry.damagePowerUp.get(entity);
+		playerStatCom.damage += damagePowerup.damageUpFactor;
+		registry.remove_all_components_of(entity);
+	}
+	if (registry.movementSpeedPowerup.has(entity)) {
+		MovementSpeedPowerUp& movementSpeedPowerup = registry.movementSpeedPowerup.get(entity);
+		playerStatCom.movementSpeed += (movementSpeedPowerup.movementSpeedUpFactor * defaultResolution.scaling);
+		registry.remove_all_components_of(entity);
+	}
+
+	if (registry.attackSpeedPowerUp.has(entity)) {
+		AtackSpeedPowerUp& attackSpeedPowerup = registry.attackSpeedPowerUp.get(entity);
+		playerStatCom.attackDelay -= (attackSpeedPowerup.delayReductionFactor * playerStatCom.attackDelay);
+		playerStatCom.projectileSpeed += (attackSpeedPowerup.projectileSpeedUpFactor * defaultResolution.scaling);
+		registry.remove_all_components_of(entity);
+	}
+
+}
+
 
 void PhysicsSystem::resolvePlayerDamage(Entity playerEntity, int enemyDamage) {
 	Title& title = registry.titles.components[0];

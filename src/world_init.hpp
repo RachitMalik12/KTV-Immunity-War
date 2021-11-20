@@ -35,6 +35,15 @@ const float STORY_BB_WIDTH = 0.5*2388.f;
 const float STORY_BB_HEIGHT = 0.5*1668.f;
 const float ENEMYSWARM_BB_WIDTH = 0.14 * 553.f;
 const float ENEMYSWARM_BB_HEIGHT = 0.14 * 411.f;
+const float DAMAGE_POWERUP_WIDTH = 0.0384f * 1954.f;
+const float DAMAGE_POWERUP_HEIGHT = 0.0468f * 1602.f;
+const float MOVEMENT_POWERUP_WIDTH = 0.0366f * 2048.f; 
+const float MOVEMENT_POWERUP_HEIGHT = 0.0366f * 2048.f;
+const float HP_POWERUP_WIDTH = 0.0366f * 2048.f;
+const float HP_POWERUP_HEIGHT = 0.0366f * 2048.f;
+const float ATTACK_POWERUP_WIDTH = 0.0615f * 1218.f; 
+const float ATTACK_POWERUP_HEIGHT = 0.05112f * 1467.f; 
+
 
 // menu dimensions
 const float BUTTON_BB_WIDTH = 0.5 * 459.f;
@@ -103,3 +112,8 @@ Entity createStory();
 
 // menu
 Entity createMenu();
+
+Entity createHpPowerup(vec2 position); 
+Entity createDamagePowerup(vec2 position);
+Entity createAttackSpeedPowerup(vec2 position);
+Entity createMovementSpeedPowerup(vec2 position);

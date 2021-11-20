@@ -136,6 +136,7 @@ struct EnemySwarm {
 
 struct Powerup 
 {
+	int cost = 5; 
 
 };
 
@@ -449,7 +450,6 @@ enum class TEXTURE_ASSET_ID {
 	ATTACKPOWERUP = HPPOWERUP + 1, 
 	MOVEMENTSPEEDPOWERUP = ATTACKPOWERUP + 1, 
 	DAMAGEPOWERUP = MOVEMENTSPEEDPOWERUP + 1, 
-	
 	TEXTURE_COUNT = DAMAGEPOWERUP + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;

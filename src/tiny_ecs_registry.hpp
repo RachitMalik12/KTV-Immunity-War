@@ -98,7 +98,7 @@ public:
 		registry_list.push_back(&movementSpeedPowerup); 
 		registry_list.push_back(&hpPowerup); 
 		registry_list.push_back(&damagePowerUp);
-		registry_list.push_back(&attackSpeedPowerUp);
+		registry_list.push_back(&attackSpeedPowerUp); 
 
 	}
 
