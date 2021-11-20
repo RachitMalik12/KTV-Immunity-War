@@ -232,9 +232,9 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 
 	// Create walls and doors
-	createWalls(screenWidth, screenHeight);
-	createADoor(screenWidth, screenHeight);
-	setupLevel(level_number); 
+	setupLevel(level_number);
+	//createWalls(screenWidth, screenHeight);
+	//createADoor(screenWidth, screenHeight);
 }
 
 void WorldSystem::createADoor(int screenWidth, int screenHeight) {
@@ -1310,10 +1310,16 @@ void WorldSystem::setupLevel(int levelNum) {
 		registry.remove_all_components_of(registry.blocks.entities.back());
 	while (registry.backgrounds.entities.size() > 0)
 		registry.remove_all_components_of(registry.backgrounds.entities.back());
+	while (registry.walls.entities.size() > 0)
+		registry.remove_all_components_of(registry.walls.entities.back());
+	while (registry.doors.entities.size() > 0)
+		registry.remove_all_components_of(registry.doors.entities.back());
 
 	createBackground(renderer, vec2(screen_width / 2 * defaultResolution.scaling, screen_height / 2 * defaultResolution.scaling));
 	// Close the door at the start of every level after player leaves the shop. 
 	createADoor(screen_width, screen_height);
+	createWalls(screen_width, screen_height);
+	
 	int index = levelNum - 1;
 	Level level = levels[index];
 	auto enemies = level.enemies;

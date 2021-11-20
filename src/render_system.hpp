@@ -76,7 +76,7 @@ class RenderSystem {
 			textures_path("BTEnemy.png"),
 			textures_path("main_menu.png"),
 			textures_path("in_game_menu.png"),
-			textures_path("background.png")
+			textures_path("background_level1.png")
 
 	};
 
