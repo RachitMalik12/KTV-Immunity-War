@@ -4,7 +4,7 @@ Milestone Feature Descriptions:
 
 Required Features:
 
--Gameplay II (ALL): Shop fully implemented with power up's. Level transition and shop visit phase implemented. Two more levels added with two new enemies. Main characters fully animated. Players and enemies implemented with hit handling. Background texture implemented. 
+-Gameplay II (ALL): Shop fully implemented with power up's (RM). Level transition and shop visit phase implemented (RM). Two more levels added with two new enemies. Main characters fully animated. Players and enemies implemented with hit handling. Background texture implemented. 
 
 -Behaviour Tree (FC): Implemented behaviour tree enemies. Enemy actions are conditional with processes as nodes. If any player is alive, the enemy will chase a player of their choosing. If any player is dead, the enemy will explode in randomized direction. Added an explanation diagram for the implementation of behaviour tree enemy and the BTNodes for future expansion of these functions. (see reports folder)
 
@@ -18,7 +18,7 @@ Required Features:
 
 -Advanced Fragment Shader (LT):
 
--Save and Reload (RM):
+-Save and Reload (RM): Added a feature to save and load game state. It will save the player stats and current level in json. When the player leaves the game and loads it will resume with the level they saved on and their player stats.
 
 -Story (JK): Created a storyline for the game to setup for the "battle" that starts within. The writing and planning for it (in full) can be found here: https://jsminea.notion.site/Story-bcbd3cb2b5ba442f80d6af9073b6de5b
 
