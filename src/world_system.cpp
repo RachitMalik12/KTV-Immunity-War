@@ -1335,7 +1335,6 @@ void WorldSystem::setupLevel(int levelNum) {
 	while (registry.doors.entities.size() > 0)
 		registry.remove_all_components_of(registry.doors.entities.back());
 
-	createBackground(renderer, vec2(screen_width / 2 * defaultResolution.scaling, screen_height * defaultResolution.scaling));
 	// Close the door at the start of every level after player leaves the shop. 
 	createADoor(screen_width, screen_height);
 	createWalls(screen_width, screen_height);
