@@ -449,6 +449,19 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		while (registry.enemies.entities.size() > 0)
 			registry.remove_all_components_of(registry.enemies.entities.back());
 	}
+	// Debug mode - give player 1000 dollars.
+	if (action == GLFW_RELEASE && key == GLFW_KEY_N) {
+		PlayerStat& ps1 = registry.playerStats.get(player_stat);
+		if (twoPlayer.inTwoPlayerMode) {
+			PlayerStat& ps2 = registry.playerStats.get(player2_stat); 
+			ps1.money += 1000.f; 
+			ps2.money += 1000.f; 
+		}
+		else {
+			ps1.money += 1000.f; 
+		}
+		updateTitle(level_number); 
+	}
 
 	// Debugging
 	if (key == GLFW_KEY_Z) {
@@ -1138,6 +1151,39 @@ void WorldSystem::transitionToShop() {
 	}
 }
 
+void WorldSystem::spawnPowerups(int n) {
+	float width = static_cast<float>(defaultResolution.width); 
+	float height = static_cast<float>(defaultResolution.height);
+	// Same yPos for all powerUps. 
+	float yPos = (height / 2) + (defaultResolution.defaultHeight);
+	// We want to divide the screen width into n+1 equal columns to space the powerups
+	float numCols = static_cast<float>(n + 1); 
+	float colWidth = width / numCols; 
+	// Clear all the old powerups from the previous level. 
+	while (registry.powerups.entities.size() > 0)
+		registry.remove_all_components_of(registry.powerups.entities.back());
+
+	for (int i = 0; i < n; i++) {
+		float xPos = colWidth * (i + 1);
+		chooseRandomPowerUp({ xPos, yPos}); 	
+	}
+}
+
+Entity WorldSystem::chooseRandomPowerUp(vec2 pos) {
+	float random_choice = uniform_dist(rng);
+	if (random_choice < 0.25f) {
+		return createHpPowerup(pos);
+	}
+	else if (random_choice >= 0.25f && random_choice <= 0.5f) {
+		return createDamagePowerup(pos);
+	}
+	else if (random_choice > 0.5f && random_choice <= 0.75f) {
+		return createAttackSpeedPowerup(pos);
+	}
+	else {
+		return createMovementSpeedPowerup(pos); 
+	}
+}
 void WorldSystem::reviveKnight(Player& p1, PlayerStat& p1Stat) {
 	p1.isDead = false;
 	p1.hp = p1Stat.maxHp;
@@ -1211,6 +1257,8 @@ void WorldSystem::setTransitionFlag(Entity player) {
 	if (registry.inShops.has(player) && firstEntranceToShop) {
 		firstEntranceToShop = false;
 		reviveDeadPlayerInShop();
+		int num_powerUps = 4; 
+		spawnPowerups(num_powerUps); 
 	}
 	if (!registry.inShops.has(player) && !firstEntranceToShop) {
 		isTransitionOver = true;
@@ -1287,7 +1335,6 @@ void WorldSystem::setupLevel(int levelNum) {
 	while (registry.doors.entities.size() > 0)
 		registry.remove_all_components_of(registry.doors.entities.back());
 
-	createBackground(renderer, vec2(screen_width / 2 * defaultResolution.scaling, screen_height * defaultResolution.scaling));
 	// Close the door at the start of every level after player leaves the shop. 
 	createADoor(screen_width, screen_height);
 	createWalls(screen_width, screen_height);
@@ -1323,7 +1370,7 @@ void WorldSystem::setupLevel(int levelNum) {
 	Player& player1 = registry.players.get(player_knight);
 	player1.playerStat = player_stat;
 	PlayerStat& playerOneStat = registry.playerStats.get(player_stat);
-	player1.hp = playerOneStat.maxHp;
+	player1.hp = playerOneStat.maxHp; 
 	if (twoPlayer.inTwoPlayerMode) {
 		player2_wizard = createWizard(renderer, level.player2_position * defaultResolution.scaling);
 		Player& player2 = registry.players.get(player2_wizard);

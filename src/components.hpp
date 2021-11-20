@@ -144,6 +144,7 @@ struct EnemySwarm {
 
 struct Powerup 
 {
+	int cost = 5; 
 
 };
 
@@ -396,6 +397,23 @@ struct Background {
 
 };
 
+struct MovementSpeedPowerUp {
+	int movementSpeedUpFactor = 50; 
+};
+
+struct HpPowerUp {
+	int hpUpFactor = 1; 
+};
+
+struct AtackSpeedPowerUp {
+	int delayReductionFactor = 0.1; 
+	int projectileSpeedUpFactor = 50; 
+};
+
+struct DamagePowerUp {
+	int damageUpFactor = 1; 
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -453,7 +471,11 @@ enum class TEXTURE_ASSET_ID {
 	GERM = WIZARDWALK + 1,
 	MENU = GERM + 1,
 	INGAMEMENU = MENU +1,
-	BACKGROUND = INGAMEMENU + 1,
+	HPPOWERUP = INGAMEMENU + 1, 
+	ATTACKPOWERUP = HPPOWERUP + 1, 
+	MOVEMENTSPEEDPOWERUP = ATTACKPOWERUP + 1, 
+	DAMAGEPOWERUP = MOVEMENTSPEEDPOWERUP + 1, 
+	BACKGROUND = DAMAGEPOWERUP + 1, 
 	TEXTURE_COUNT = BACKGROUND + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;

@@ -42,4 +42,6 @@ private:
 	void resolvePlayerDamage(Entity playerEntity, int enemyDamage);
 	void rotateSword(Entity entity, float elapsed_ms);
 	void enemyHitHandling(Entity enemyEntity);
+	void handlePowerUpCollisions(Player& playerCom, PlayerStat& playerStatCom, Entity entity, Title& title,
+		bool isPlayerOne, bool isPlayerTwo, int powerUpCost); 
 };
