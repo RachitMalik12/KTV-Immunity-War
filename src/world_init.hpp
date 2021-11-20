@@ -116,7 +116,6 @@ Entity createStory();
 
 // menu
 Entity createMenu();
-
 Entity createHpPowerup(vec2 position); 
 Entity createDamagePowerup(vec2 position);
 Entity createAttackSpeedPowerup(vec2 position);

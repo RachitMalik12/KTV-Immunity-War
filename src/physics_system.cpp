@@ -172,7 +172,6 @@ void PhysicsSystem::handlePowerUpCollisions(Player& playerCom, PlayerStat& playe
 
 }
 
-
 void PhysicsSystem::resolvePlayerDamage(Entity playerEntity, int enemyDamage) {
 	Title& title = registry.titles.components[0];
 	Player& player = registry.players.get(playerEntity);

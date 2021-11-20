@@ -1125,7 +1125,6 @@ void WorldSystem::resolveMouseControl() {
 void WorldSystem::levelCompletionCheck(float elapsed_ms_since_last_update) {
 	// Check level completion 
 	if (registry.enemies.size() == 0) {
-		// Make sure maxHp is updated at the end of level to ensure powerup increments are accurate
 		transitionToShop();
 		isLevelOver = true;
 	}
@@ -1138,7 +1137,6 @@ void WorldSystem::levelCompletionCheck(float elapsed_ms_since_last_update) {
 		}
 	}
 }
-
 
 void WorldSystem::transitionToShop() {
 	if (registry.doors.entities.size() > 0) {
