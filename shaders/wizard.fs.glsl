@@ -20,11 +20,10 @@ layout(location = 0) out  vec4 color;
 void main()
 {
 	color = vec4(fcolor, 1.0) * texture(sampler0, vec2(texcoord.x, texcoord.y));
-	float radius = distance(vec2(0.0), local_coord);
-	if (radius < 0.4)
-	{
-		color.xyz += (0.4 - radius) * 0.8 * vec3(1.0, 0.0, 0.0);
-	}
+
+	float darkenFactor = 0.3;
+	color = vec4(color.r - darkenFactor * color_scale, color.g - darkenFactor * color_scale, color.b - darkenFactor * color_scale, color.a);
+	
 	if(color.a < 1.0)
 		discard;
     float distance = distance(light_source_pos, world_pos);

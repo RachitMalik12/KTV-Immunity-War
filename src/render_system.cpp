@@ -65,6 +65,11 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		GLint yFrame = glGetUniformLocation(program, "yFrame");
 		glUniform1i(xFrame, knightAnimation.xFrame);
 		glUniform1i(yFrame, knightAnimation.yFrame);
+
+		GLfloat colorScale = glGetUniformLocation(program, "color_scale");
+		float color_scale_value = registry.playerStats.get(registry.players.get(entity).playerStat).maxHp - registry.players.get(entity).hp;
+		glUniform1f(colorScale, color_scale_value);
+
 		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::WIZARD) {
@@ -78,6 +83,12 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glUniform1i(frameIdle, wizardAnimation.frameIdle);
 		glUniform1i(frameAttack, wizardAnimation.frameAttack);
 		glUniform1i(animationMode, wizardAnimation.animationMode);
+
+		GLfloat colorScale = glGetUniformLocation(program, "color_scale");
+		float color_scale_value = registry.playerStats.get(registry.players.get(entity).playerStat).maxHp - registry.players.get(entity).hp;
+		glUniform1f(colorScale, color_scale_value);
+
+		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::ENEMY)
 	{

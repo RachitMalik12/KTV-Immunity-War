@@ -19,6 +19,9 @@ layout(location = 0) out  vec4 color;
 void main()
 {
 	color = vec4(fcolor, 1.0) * texture(sampler0, vec2(texcoord.x, texcoord.y));
+
+	float darkenFactor = 0.3;
+	color = vec4(color.r - darkenFactor * color_scale, color.g - darkenFactor * color_scale, color.b - darkenFactor * color_scale, color.a);
 	
 	if(color.a < 1.0)
 		discard;
