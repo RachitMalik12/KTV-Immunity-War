@@ -130,7 +130,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	progressBrightenScreen(elapsed_ms_since_last_update);
 	levelCompletionCheck(elapsed_ms_since_last_update);
-	resolveMouseControl();
+	stopPlayerAtMouseDestination();
 	stuckTimer(elapsed_ms_since_last_update, screen_width, screen_height);
 	invincibilityTimer(elapsed_ms_since_last_update);
 	checkIfPlayersAreMoving();
@@ -1084,13 +1084,13 @@ void WorldSystem::stuckTimer(float elapsed_ms_since_last_update, int screen_widt
 }
 
 
-void WorldSystem::resolveMouseControl() {
+void WorldSystem::stopPlayerAtMouseDestination() {
 	if (twoPlayer.inTwoPlayerMode && registry.mouseDestinations.has(player2_wizard)) {
 		Motion& motion = registry.motions.get(player2_wizard);
 		MouseDestination& mouseDestination = registry.mouseDestinations.get(player2_wizard);
 
-		if (abs(motion.position.x - mouseDestination.position.x) < 1.f && abs(motion.position.y - mouseDestination.position.y) < 1.f) {
-			registry.mouseDestinations.remove(player2_wizard);
+		float frameThreshold = 10.f;
+		if (abs(motion.position.x - mouseDestination.position.x) < (frameThreshold * defaultResolution.scaling) && abs(motion.position.y - mouseDestination.position.y) < (frameThreshold * defaultResolution.scaling)) {
 			registry.mouseDestinations.remove(player2_wizard);
 			motion.velocity = vec2(0, 0);
 		}

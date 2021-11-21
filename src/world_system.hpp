@@ -93,7 +93,7 @@ private:
 	void handlePlayerTwoProjectile(float elapsed_ms_since_last_update);
 	void invincibilityTimer(float elapsed_ms_since_last_update);
 	void stuckTimer(float elapsed_ms_since_last_update, int screen_width, int screen_height);
-	void resolveMouseControl();
+	void stopPlayerAtMouseDestination();
 	void levelCompletionCheck(float elapsed_ms_since_last_update);
 	void animateKnight(float elapsed_ms_since_last_update);
 	void animateWizard(float elpased_ms_since_last_update);
