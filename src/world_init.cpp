@@ -14,8 +14,6 @@ Entity createBackground(RenderSystem* renderer, vec2 position) {
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
-	Mesh& hitbox = renderer->getMesh(GEOMETRY_BUFFER_ID::WIZARD);
-	registry.hitboxes.emplace(entity, &hitbox);
 
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
@@ -633,6 +631,93 @@ Entity createMenu() {
 	motion.scale = vec2({ STORY_BB_WIDTH * defaultResolution.scaling, STORY_BB_HEIGHT * defaultResolution.scaling });
 
 	registry.menuModes.emplace(entity);
+
+	return entity;
+}
+
+Entity createHpPowerup(vec2 position) {
+	Entity entity = Entity();
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::HPPOWERUP,
+		  EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position; 
+	motion.scale = vec2({ HP_POWERUP_WIDTH * defaultResolution.scaling, HP_POWERUP_HEIGHT * defaultResolution.scaling });
+
+	registry.hpPowerup.emplace(entity);
+	Powerup& powerup = registry.powerups.emplace(entity); 
+	powerup.cost = 5; 
+
+	return entity;
+}
+
+Entity createDamagePowerup(vec2 position) {
+	Entity entity = Entity();
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::DAMAGEPOWERUP,
+		  EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+	motion.scale = vec2({ DAMAGE_POWERUP_WIDTH * defaultResolution.scaling, DAMAGE_POWERUP_HEIGHT * defaultResolution.scaling });
+
+	registry.damagePowerUp.emplace(entity);
+	Powerup& powerup = registry.powerups.emplace(entity);
+	powerup.cost = 5;
+
+	return entity;
+}
+Entity createAttackSpeedPowerup(vec2 position) {
+	Entity entity = Entity();
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ATTACKPOWERUP,
+		  EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+	motion.scale = vec2({ ATTACK_POWERUP_WIDTH * defaultResolution.scaling, ATTACK_POWERUP_HEIGHT * defaultResolution.scaling });
+
+	registry.attackSpeedPowerUp.emplace(entity); 
+	Powerup& powerup = registry.powerups.emplace(entity);
+	powerup.cost = 5;
+
+	return entity;
+}
+
+Entity createMovementSpeedPowerup(vec2 position) {
+	Entity entity = Entity();
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::MOVEMENTSPEEDPOWERUP,
+		  EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+	motion.scale = vec2({ MOVEMENT_POWERUP_WIDTH * defaultResolution.scaling, MOVEMENT_POWERUP_HEIGHT * defaultResolution.scaling });
+
+	registry.movementSpeedPowerup.emplace(entity);
+	Powerup& powerup = registry.powerups.emplace(entity);
+	powerup.cost = 5;
 
 	return entity;
 }
