@@ -577,11 +577,12 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 				if (registry.inShops.has(player2_wizard)) {
 					y += defaultResolution.defaultHeight;
 				}
-				float dx = (float)x - wizard2_motion.position.x;
-				float dy = (float)y - wizard2_motion.position.y;
-				float h = sqrtf(powf(dx, 2) + powf(dy, 2));
-				float scale = playerTwoStat.movementSpeed / h;
-				wizard2_motion.velocity = vec2(dx * scale, dy * scale);
+				float xFrameToDestination = (float)x - wizard2_motion.position.x;
+				float yFrameToDestination = (float)y - wizard2_motion.position.y;
+				float frameToDestination = sqrtf(powf(xFrameToDestination, 2) + powf(yFrameToDestination, 2));
+				// (frame / second) / (frame) = (1 / second) 
+				float oneOverTime = playerTwoStat.movementSpeed / frameToDestination;
+				wizard2_motion.velocity = vec2(xFrameToDestination * oneOverTime, yFrameToDestination * oneOverTime);
 				registry.mouseDestinations.emplace(player2_wizard, vec2(x, y));
 				if (!animation.isAnimatingHurt && animation.animationMode != animation.attackMode) {
 					animation.animationMode = animation.walkMode;
