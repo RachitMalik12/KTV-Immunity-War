@@ -39,6 +39,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED)
 	{
 		textureEffectSetup(program,entity);
+		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::LINE)
 	{
@@ -87,7 +88,6 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		GLfloat colorScale = glGetUniformLocation(program, "color_scale");
 		float color_scale_value = registry.playerStats.get(registry.players.get(entity).playerStat).maxHp - registry.players.get(entity).hp;
 		glUniform1f(colorScale, color_scale_value);
-
 		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::ENEMY)

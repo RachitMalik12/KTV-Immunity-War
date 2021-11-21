@@ -361,6 +361,7 @@ struct WizardAnimation {
 	int idleMode = 0;
 	int walkMode = 1;
 	int attackMode = 2;
+	int hurtMode = 3;
 	bool isAnimatingHurt = false;
 };
 

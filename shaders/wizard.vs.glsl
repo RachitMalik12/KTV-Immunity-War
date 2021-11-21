@@ -30,7 +30,7 @@ void main()
 	} else if (animationMode == 1) {
 		texcoord.x = texcoord.x * walkScale;
 		texcoord.x += walkScale * frameWalk;
-	} else {
+	} else if (animationMode == 2) {
 		texcoord.x = texcoord.x * attackScale;
 		texcoord.x += attackScale * frameAttack;
 	}

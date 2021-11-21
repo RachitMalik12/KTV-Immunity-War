@@ -177,9 +177,10 @@ void PhysicsSystem::resolvePlayerDamage(Entity playerEntity, int enemyDamage) {
 				registry.renderRequests.insert(
 					playerEntity,
 					{ TEXTURE_ASSET_ID::WIZARDHURT,
-						EFFECT_ASSET_ID::TEXTURED,
+						EFFECT_ASSET_ID::WIZARD,
 						GEOMETRY_BUFFER_ID::SPRITE });
 				registry.wizardAnimations.get(playerEntity).isAnimatingHurt = true;
+				registry.wizardAnimations.get(playerEntity).animationMode = registry.wizardAnimations.get(playerEntity).hurtMode;
 			}
 			else {
 				// TODO: Implement knight hit animation with fragment shader
