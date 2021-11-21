@@ -577,12 +577,12 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 				if (registry.inShops.has(player2_wizard)) {
 					y += defaultResolution.defaultHeight;
 				}
-				float xFrameToDestination = (float)x - wizard2_motion.position.x;
-				float yFrameToDestination = (float)y - wizard2_motion.position.y;
-				float frameToDestination = sqrtf(powf(xFrameToDestination, 2) + powf(yFrameToDestination, 2));
-				// (frame / second) / (frame) = (1 / second) 
-				float oneOverTime = playerTwoStat.movementSpeed / frameToDestination;
-				wizard2_motion.velocity = vec2(xFrameToDestination * oneOverTime, yFrameToDestination * oneOverTime);
+				float xPixelToDestination = (float)x - wizard2_motion.position.x;
+				float yPixelToDestination = (float)y - wizard2_motion.position.y;
+				float pixelToDestination = sqrtf(powf(xPixelToDestination, 2) + powf(yPixelToDestination, 2));
+				// (pixel / second) / (pixel) = (1 / second) 
+				float oneOverTime = playerTwoStat.movementSpeed / pixelToDestination;
+				wizard2_motion.velocity = vec2(xPixelToDestination * oneOverTime, yPixelToDestination * oneOverTime);
 				registry.mouseDestinations.emplace(player2_wizard, vec2(x, y));
 				if (!animation.isAnimatingHurt && animation.animationMode != animation.attackMode) {
 					animation.animationMode = animation.walkMode;
@@ -1090,8 +1090,8 @@ void WorldSystem::stopPlayerAtMouseDestination() {
 		Motion& motion = registry.motions.get(player2_wizard);
 		MouseDestination& mouseDestination = registry.mouseDestinations.get(player2_wizard);
 
-		float frameThreshold = 10.f;
-		if (abs(motion.position.x - mouseDestination.position.x) < (frameThreshold * defaultResolution.scaling) && abs(motion.position.y - mouseDestination.position.y) < (frameThreshold * defaultResolution.scaling)) {
+		float pixelThreshold = 10.f;
+		if (abs(motion.position.x - mouseDestination.position.x) < (pixelThreshold * defaultResolution.scaling) && abs(motion.position.y - mouseDestination.position.y) < (pixelThreshold * defaultResolution.scaling)) {
 			registry.mouseDestinations.remove(player2_wizard);
 			motion.velocity = vec2(0, 0);
 		}
