@@ -79,36 +79,33 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glUniform1i(frameAttack, wizardAnimation.frameAttack);
 		glUniform1i(animationMode, wizardAnimation.animationMode);
 	}
-	else if (render_request.used_effect == EFFECT_ASSET_ID::ENEMYRUN)
+	else if (render_request.used_effect == EFFECT_ASSET_ID::ENEMY)
 	{
 		textureEffectSetup(program, entity);
-
-		GLint light_up_uloc = glGetUniformLocation(program, "light_up");
-		assert(light_up_uloc >= 0);
-
-		int light_up_cond = 0;
-		if (registry.enemiesrun.has(entity)) {
-			light_up_cond = registry.enemiesrun.get(entity).encounter;
-		}
-		else if (registry.enemyBacterias.has(entity)) {
-			light_up_cond = registry.enemyBacterias.get(entity).encounter;
-		}
-		//const int light_up_cond = registry.enemiesrun.get(entity).encounter;
-		glUniform1i(light_up_uloc, light_up_cond);
 		gl_has_errors();
 
-		// Get the Light up scale for enemy right now
-		GLuint light_up_scale_uloc = glGetUniformLocation(program, "light_up_scale");
-		const int light_up_scale_cond = (registry.enemies.get(entity).max_hp - registry.enemies.get(entity).hp) / registry.enemies.get(entity).max_hp;
-		glUniform1f(light_up_scale_uloc, light_up_scale_cond);
+		GLfloat colorScale = glGetUniformLocation(program, "color_scale");
+		float color_scale_value = registry.enemies.get(entity).max_hp - registry.enemies.get(entity).hp;
+		glUniform1f(colorScale, color_scale_value);
 		gl_has_errors();
-
 
 	}
 	else
 	{
 		assert(false && "Type of render request not supported");
 	}
+
+	// Getting lighting information
+	GLint ambient_light = glGetUniformLocation(program, "ambient_light");
+	GLint light_source_pos = glGetUniformLocation(program, "light_source_pos");
+	GLint light_col = glGetUniformLocation(program, "light_col");
+	GLint light_intensity = glGetUniformLocation(program, "light_intensity");
+	Lighting lighting = Lighting();
+	glUniform3fv(ambient_light, 1, (float*)& lighting.ambient_light);
+	glUniform2fv(light_source_pos, 1, (float*)& lighting.light_source_pos);
+	glUniform3fv(light_col, 1, (float*)& lighting.light_col);
+	glUniform1f(light_intensity, lighting.light_intensity);
+	gl_has_errors();
 
 	// Getting uniform locations for glUniform* calls
 	GLint color_uloc = glGetUniformLocation(program, "fcolor");

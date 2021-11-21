@@ -249,7 +249,7 @@ Entity createEnemyBlob(RenderSystem* renderer, vec2 position)
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ENEMY,
-			EFFECT_ASSET_ID::TEXTURED,
+			EFFECT_ASSET_ID::ENEMY,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
@@ -287,7 +287,7 @@ Entity createEnemyRun(RenderSystem* renderer, vec2 position)
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ENEMYRUN,
-			EFFECT_ASSET_ID::ENEMYRUN,
+			EFFECT_ASSET_ID::ENEMY,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
@@ -323,7 +323,7 @@ Entity createEnemyHunter(RenderSystem* renderer, vec2 position) {
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ENEMYHUNTER,
-			EFFECT_ASSET_ID::TEXTURED,
+			EFFECT_ASSET_ID::ENEMY,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
@@ -357,7 +357,7 @@ Entity createEnemyBacteria(RenderSystem* renderer, vec2 position) {
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ENEMYBACTERIA,
-			EFFECT_ASSET_ID::ENEMYRUN,
+			EFFECT_ASSET_ID::ENEMY,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
@@ -391,7 +391,7 @@ Entity createEnemyGerm(RenderSystem* renderer, vec2 position) {
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::GERM,
-			EFFECT_ASSET_ID::TEXTURED,
+			EFFECT_ASSET_ID::ENEMY,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
@@ -437,7 +437,7 @@ Entity createEnemyChase(RenderSystem* renderer, vec2 position)
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ENEMYCHASE,
-			EFFECT_ASSET_ID::TEXTURED,
+			EFFECT_ASSET_ID::ENEMY,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
@@ -484,7 +484,7 @@ Entity createEnemySwarm(RenderSystem* renderer, vec2 position) {
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ENEMYSWARM,
-			EFFECT_ASSET_ID::TEXTURED,
+			EFFECT_ASSET_ID::ENEMY,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;

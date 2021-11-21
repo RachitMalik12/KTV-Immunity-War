@@ -2,6 +2,7 @@
 
 // From vertex shader
 in vec2 texcoord;
+in vec2 vpos; // Distance from local origin
 in vec2 world_pos;
 
 // Application data
@@ -18,9 +19,11 @@ layout(location = 0) out  vec4 color;
 
 void main()
 {
+	float reddenFactor = 0.5;
 	color = vec4(fcolor, 1.0) * texture(sampler0, vec2(texcoord.x, texcoord.y));
-	
-	if(color.a < 1.0)
+	color = vec4(color.r + reddenFactor * color_scale, color.g, color.b, color.a);
+
+    if(color.a < 1.0)
 		discard;
     float distance = distance(light_source_pos, world_pos);
     float diffuse = 0.0;

@@ -1083,34 +1083,6 @@ void WorldSystem::stuckTimer(float elapsed_ms_since_last_update, int screen_widt
 	}
 }
 
-void WorldSystem::lightUpEnemyRunTimer(float elapsed_ms_since_last_update) {
-	for (Entity entity : registry.enemiesrun.entities) {
-		if (registry.enemiesrun.get(entity).encounter == 1) {
-			registry.enemiesrun.get(entity).counter_ms -= elapsed_ms_since_last_update;
-			// reset timer and encounter variable when timer expires and set light up to false
-			if (registry.enemiesrun.get(entity).counter_ms < 0) {
-				
-				registry.enemiesrun.get(entity).encounter == 0;
-				registry.enemiesrun.get(entity).counter_ms = 800;
-			}
-		}
-	}
-}
-
-void WorldSystem::lightUpEnemyBacteriaTimer(float elapsed_ms_since_last_update) {
-	for (Entity entity : registry.enemyBacterias.entities) {
-		if (registry.enemyBacterias.get(entity).encounter == 1) {
-			registry.enemyBacterias.get(entity).counter_ms -= elapsed_ms_since_last_update;
-			// reset timer and encounter variable when timer expires and set light up to false
-			if (registry.enemyBacterias.get(entity).counter_ms < 0) {
-
-				registry.enemyBacterias.get(entity).encounter == 0;
-				registry.enemyBacterias.get(entity).counter_ms = 800;
-			}
-		}
-	}
-}
-
 
 void WorldSystem::resolveMouseControl() {
 	if (twoPlayer.inTwoPlayerMode && registry.mouseDestinations.has(player2_wizard)) {
@@ -1134,9 +1106,33 @@ void WorldSystem::levelCompletionCheck(float elapsed_ms_since_last_update) {
 	if (isLevelOver && isTransitionOver) {
 		int nextLevel = level_number + 1;
 		if (nextLevel <= levels.size()) {
+
+			ScreenState& screen = registry.screenStates.components[0];
+			float min_counter_ms = 3000.f;
+			for (Entity entity : registry.endLevelTimers.entities) {
+				// progress timer
+				EndLevelTimer& counter = registry.endLevelTimers.get(entity);
+				counter.counter_ms -= elapsed_ms_since_last_update;
+				if (counter.counter_ms < min_counter_ms) {
+					min_counter_ms = counter.counter_ms;
+				}
+
+				// move on to next level the game once the end level timer expired
+				if (counter.counter_ms < 0) {
+					registry.endLevelTimers.remove(entity);
+					screen.darken_screen_factor = 0;
+					level_number = nextLevel;
+					setupLevel(level_number);
+				}
+				else {
+					screen.darken_screen_factor = 1 - min_counter_ms / 3000;
+				}
+				
+			}
 			// Only if we have levels left we need to change level 
-			level_number = nextLevel;
-			setupLevel(level_number);
+			//level_number = nextLevel;
+			//setupLevel(level_number);
+			// reduce window brightness if the level is ending
 		}
 	}
 }
@@ -1265,6 +1261,10 @@ void WorldSystem::setTransitionFlag(Entity player) {
 	}
 	if (!registry.inShops.has(player) && !firstEntranceToShop) {
 		isTransitionOver = true;
+		if (registry.endLevelTimers.entities.size() == 0) {
+			Entity entity1 = Entity();
+			registry.endLevelTimers.emplace(entity1);
+		}
 	}
 	else {
 		isTransitionOver = false;

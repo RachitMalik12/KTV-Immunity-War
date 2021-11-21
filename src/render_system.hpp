@@ -93,7 +93,7 @@ class RenderSystem {
 		shader_path("water"),
 		shader_path("knight"),
 		shader_path("wizard"),
-		shader_path("enemyrun")
+		shader_path("enemy")
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
