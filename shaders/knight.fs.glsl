@@ -39,6 +39,6 @@ void main()
 	float radius = distance(vec2(0.0), local_pos);
 	if (inInvin == 1 && radius < 0.4)
 	{
-		color.xyz += (0.4 - radius) * vec3(1.0, 0.0, 0.0);
+		color.xyz += (0.4 - radius) * vec3(3.0, 0.0, 0.0);
 	}
 }
