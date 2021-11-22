@@ -23,7 +23,7 @@ void AISystem::stepEnemyHunter(float elapsed_ms) {
 			registry.renderRequests.insert(
 				hunterEntity,
 				{ TEXTURE_ASSET_ID::ENEMYHUNTERFLEE,
-					EFFECT_ASSET_ID::TEXTURED,
+					EFFECT_ASSET_ID::ENEMY,
 					GEOMETRY_BUFFER_ID::SPRITE });
 			hunter.isAnimatingHurt = false;
 		}
@@ -36,7 +36,7 @@ void AISystem::stepEnemyHunter(float elapsed_ms) {
 						registry.renderRequests.insert(
 							hunterEntity,
 							{ TEXTURE_ASSET_ID::ENEMYHUNTERMAD,
-								EFFECT_ASSET_ID::TEXTURED,
+								EFFECT_ASSET_ID::ENEMY,
 								GEOMETRY_BUFFER_ID::SPRITE });
 						hunter.isAnimatingHurt = false;
 					}
@@ -69,7 +69,7 @@ void AISystem::resolveHunterAnimation(Entity hunterEntity, Enemy& hunterStatus, 
 			registry.renderRequests.insert(
 				hunterEntity,
 				{ TEXTURE_ASSET_ID::ENEMYHUNTER,
-					EFFECT_ASSET_ID::TEXTURED,
+					EFFECT_ASSET_ID::ENEMY,
 					GEOMETRY_BUFFER_ID::SPRITE });
 			hunter.isAnimatingHurt = false;
 		}
@@ -78,7 +78,7 @@ void AISystem::resolveHunterAnimation(Entity hunterEntity, Enemy& hunterStatus, 
 			registry.renderRequests.insert(
 				hunterEntity,
 				{ TEXTURE_ASSET_ID::ENEMYHUNTERMAD,
-					EFFECT_ASSET_ID::TEXTURED,
+					EFFECT_ASSET_ID::ENEMY,
 					GEOMETRY_BUFFER_ID::SPRITE });
 			hunter.isAnimatingHurt = false;
 		}
@@ -88,7 +88,7 @@ void AISystem::resolveHunterAnimation(Entity hunterEntity, Enemy& hunterStatus, 
 			registry.renderRequests.insert(
 				hunterEntity,
 				{ TEXTURE_ASSET_ID::ENEMYHUNTERFLEE,
-					EFFECT_ASSET_ID::TEXTURED,
+					EFFECT_ASSET_ID::ENEMY,
 					GEOMETRY_BUFFER_ID::SPRITE });
 			hunter.isAnimatingHurt = false;
 		}
@@ -626,7 +626,7 @@ void AISystem::stepEnemySwarm(float elapsed_ms) {
 			registry.renderRequests.insert(
 				swarmEntity,
 				{ TEXTURE_ASSET_ID::ENEMYSWARM,
-					EFFECT_ASSET_ID::TEXTURED,
+					EFFECT_ASSET_ID::ENEMY,
 					GEOMETRY_BUFFER_ID::SPRITE });
 			swarm.isAnimatingHurt = false;
 		}

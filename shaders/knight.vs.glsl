@@ -7,6 +7,7 @@ in vec2 in_texcoord;
 // Passed to fragment shader
 out vec2 texcoord;
 out vec2 world_pos;
+out vec2 local_pos;
 
 // Application data
 uniform mat3 transform;
@@ -16,6 +17,8 @@ uniform int yFrame;
 
 void main()
 {
+	local_pos = in_position.xy;
+
 	float xScale = 1.0 / 9.0;
 	float yScale = 1.0 / 4.0;
 	float xShift = xScale * 0.2;

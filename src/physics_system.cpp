@@ -527,7 +527,7 @@ void PhysicsSystem::enemyHitHandling(Entity enemyEntity) {
 		registry.renderRequests.insert(
 			enemyEntity,
 			{ TEXTURE_ASSET_ID::ENEMYHUNTERHURT,
-				EFFECT_ASSET_ID::TEXTURED,
+				EFFECT_ASSET_ID::ENEMY,
 				GEOMETRY_BUFFER_ID::SPRITE });
 		registry.enemyHunters.get(enemyEntity).isAnimatingHurt = true;
 	}
@@ -536,7 +536,7 @@ void PhysicsSystem::enemyHitHandling(Entity enemyEntity) {
 		registry.renderRequests.insert(
 			enemyEntity,
 			{ TEXTURE_ASSET_ID::ENEMYSWARMHURT,
-				EFFECT_ASSET_ID::TEXTURED,
+				EFFECT_ASSET_ID::ENEMY,
 				GEOMETRY_BUFFER_ID::SPRITE });
 		registry.enemySwarms.get(enemyEntity).isAnimatingHurt = true;
 	}
