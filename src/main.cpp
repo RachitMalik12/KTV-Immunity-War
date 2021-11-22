@@ -15,18 +15,19 @@ using Clock = std::chrono::high_resolution_clock;
 DefaultResolution defaultResolution;
 TwoPlayer twoPlayer;
 HelpMode helpMode;
+StoryMode storyMode;
+Step stepProgress;
+MenuMode menuMode;
 
 // Entry point
 int main()
 {
 	// Global systems
 	WorldSystem world;
-	world.setPlayerMode();
 	world.setResolution();
 
 	RenderSystem renderer;
 	PhysicsSystem physics;
-	AISystem ai;
 
 	// Initializing window
 	GLFWwindow* window = world.create_window(defaultResolution.width, defaultResolution.height);
@@ -42,6 +43,7 @@ int main()
 	glfwGetWindowSize(window, &w, &h);
 	renderer.init(w, h, window);
 	world.init(&renderer);
+	AISystem ai(&renderer);
 	// variable timestep loop
 	auto t = Clock::now();
 	while (!world.is_over()) {
@@ -58,11 +60,18 @@ int main()
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
 
-		if (!helpMode.inHelpMode) {
+		// TODO: JASMINE (MAKE IT SO THAT CLICKING IN SOME RANGE WILL BRING IT TO STORY MODE)
+		if (menuMode.menuType == 1) {
+			world.createMenu();
+		}
+
+		if (!helpMode.inHelpMode && !storyMode.firstLoad && menuMode.menuType == 0) {
+			stepProgress.stepInProgress = true;
 			world.step(elapsed_ms);
 			ai.step(elapsed_ms, (float)width, (float)height);
 			physics.step(elapsed_ms, (float)width, (float)height);
 			physics.handle_collision();
+			stepProgress.stepInProgress = false;
 		}
 
 		renderer.draw();

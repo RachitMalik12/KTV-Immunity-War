@@ -1,11 +1,12 @@
 // internal
 #include "ai_system.hpp"
-#include <iostream>
 
 void AISystem::step(float elapsed_ms, float width, float height) {
 	stepEnemyHunter(elapsed_ms);
 	stepEnemyBacteria(elapsed_ms, width, height);
 	stepEnemyChase(elapsed_ms);
+	stepEnemySwarm(elapsed_ms);
+	stepEnemyGerm(elapsed_ms);
 }
 
 void AISystem::stepEnemyHunter(float elapsed_ms) {
@@ -18,19 +19,33 @@ void AISystem::stepEnemyHunter(float elapsed_ms) {
 		if (hunter.currentState == hunter.fleeingMode && hunter.isFleeing == false) {
 			registry.motions.get(hunterEntity).velocity = vec2(2.0f * hunterStatus.speed, 0);
 			hunter.isFleeing = true;
+			registry.renderRequests.remove(hunterEntity);
+			registry.renderRequests.insert(
+				hunterEntity,
+				{ TEXTURE_ASSET_ID::ENEMYHUNTERFLEE,
+					EFFECT_ASSET_ID::ENEMY,
+					GEOMETRY_BUFFER_ID::SPRITE });
+			hunter.isAnimatingHurt = false;
 		}
 		else {
 			if (hunter.timeToUpdateAi) {
 				if (hunter.currentState == hunter.searchingMode) {
-					if (isHunterInRangeOfThePlayers(hunterEntity)) {
+					if (isEnemyInRangeOfThePlayers(hunterEntity)) {
 						hunter.currentState = hunter.huntingMode;
+						registry.renderRequests.remove(hunterEntity);
+						registry.renderRequests.insert(
+							hunterEntity,
+							{ TEXTURE_ASSET_ID::ENEMYHUNTERMAD,
+								EFFECT_ASSET_ID::ENEMY,
+								GEOMETRY_BUFFER_ID::SPRITE });
+						hunter.isAnimatingHurt = false;
 					}
 					else {
-						setHunterWonderingRandomly(hunterEntity);
+						setEnemyWonderingRandomly(hunterEntity);
 					}
 				}
 				if (hunter.currentState == hunter.huntingMode) {
-					setHunterChasingThePlayer(hunterEntity);
+					setEnemyChasingThePlayer(hunterEntity);
 				}
 				hunter.timeToUpdateAi = false;
 				hunter.aiUpdateTimer = hunter.aiUpdateTime;
@@ -39,6 +54,237 @@ void AISystem::stepEnemyHunter(float elapsed_ms) {
 				hunter.aiUpdateTimer -= elapsed_ms;
 				if (hunter.aiUpdateTimer < 0) {
 					hunter.timeToUpdateAi = true;
+				}
+			}
+		}
+
+		resolveHunterAnimation(hunterEntity, hunterStatus, hunter);
+	}
+}
+
+void AISystem::resolveHunterAnimation(Entity hunterEntity, Enemy& hunterStatus, EnemyHunter& hunter) {
+	if (hunter.isAnimatingHurt && !hunterStatus.isInvin) {
+		if (hunter.currentState == hunter.searchingMode) {
+			registry.renderRequests.remove(hunterEntity);
+			registry.renderRequests.insert(
+				hunterEntity,
+				{ TEXTURE_ASSET_ID::ENEMYHUNTER,
+					EFFECT_ASSET_ID::ENEMY,
+					GEOMETRY_BUFFER_ID::SPRITE });
+			hunter.isAnimatingHurt = false;
+		}
+		else if (hunter.currentState == hunter.huntingMode) {
+			registry.renderRequests.remove(hunterEntity);
+			registry.renderRequests.insert(
+				hunterEntity,
+				{ TEXTURE_ASSET_ID::ENEMYHUNTERMAD,
+					EFFECT_ASSET_ID::ENEMY,
+					GEOMETRY_BUFFER_ID::SPRITE });
+			hunter.isAnimatingHurt = false;
+		}
+		else {
+			// hunter.fleeingMode
+			registry.renderRequests.remove(hunterEntity);
+			registry.renderRequests.insert(
+				hunterEntity,
+				{ TEXTURE_ASSET_ID::ENEMYHUNTERFLEE,
+					EFFECT_ASSET_ID::ENEMY,
+					GEOMETRY_BUFFER_ID::SPRITE });
+			hunter.isAnimatingHurt = false;
+		}
+	}
+}
+
+enum class BTState {
+	Running,
+	Success,
+	Failure
+};
+
+// The base class representing any node in our behaviour tree
+class BTNode {
+public:
+	virtual void init(Entity e) {};
+	virtual BTState process(Entity e) = 0;
+};
+
+// A composite node that loops through all children and exits when one fails
+class BTRunPair : public BTNode {
+private:
+	int m_index;
+	BTNode* m_children[2];
+
+public:
+	BTRunPair(BTNode* c0, BTNode* c1)
+		: m_index(0) {
+		m_children[0] = c0;
+		m_children[1] = c1;
+	}
+
+	void init(Entity e) override
+	{
+		m_index = 0;
+		// initialize the first child
+		const auto& child = m_children[m_index];
+		child->init(e);
+	}
+
+	BTState process(Entity e) override {
+		if (m_index >= 2)
+			return BTState::Success;
+
+		// process current child
+		BTState state = m_children[m_index]->process(e);
+
+		// select a new active child and initialize its internal state
+		if (state == BTState::Success) {
+			++m_index;
+			if (m_index >= 2) {
+				return BTState::Success;
+			}
+			else {
+				m_children[m_index]->init(e);
+				return BTState::Running;
+			}
+		}
+		else {
+			return state;
+		}
+	}
+};
+
+// A general decorator with lambda condition
+// TAKES IN BTNode and CONDITION.
+// If condition passes, it will run the child process. If not, finish by returning "success" and do not run child process.
+class BTIfCondition : public BTNode
+{
+public:
+	BTIfCondition(BTNode* child, std::function<bool(Entity)> condition)
+		: m_child(child), m_condition(condition) {
+	}
+
+	virtual void init(Entity e) override {
+		m_child->init(e);
+	}
+
+	virtual BTState process(Entity e) override {
+		if (m_condition(e))
+			return m_child->process(e);
+		else
+			return BTState::Success;
+	}
+
+private:
+	BTNode* m_child;
+	std::function<bool(Entity)> m_condition;
+};
+
+
+// LEAF NODE - has a prrocess that will be run if this node is met
+class ChasePlayer : public BTNode {
+private:
+	void init(Entity e) override {
+	}
+
+	BTState process(Entity e) override {
+		// modify world
+		float finX = registry.motions.get(registry.players.entities[0]).position.x;
+		float finY = registry.motions.get(registry.players.entities[0]).position.y;
+		if (registry.players.entities.size() > 1 && registry.enemyGerms.get(e).mode <= registry.enemyGerms.get(e).playerChaseThreshold) {
+			finX = registry.motions.get(registry.players.entities[1]).position.x;
+			finY = registry.motions.get(registry.players.entities[1]).position.y;
+		}
+		float initX = registry.motions.get(e).position.x;
+		float initY = registry.motions.get(e).position.y;
+
+		vec2 diff = vec2(finX, finY) - vec2(initX, initY);
+		float angle = atan2(diff.y, diff.x);
+		registry.motions.get(e).velocity = vec2(cos(angle) * registry.enemies.get(e).speed, sin(angle) * registry.enemies.get(e).speed);
+		// return progress
+		return BTState::Success;
+	}
+};
+
+// LEAF NODE - has a prrocess that will be run if this node is met
+class Explode : public BTNode {
+private:
+	void init(Entity e) override {
+	}
+	BTState process(Entity e) override {
+		// modify world
+		if (registry.enemyGerms.get(e).explosionCountDown == 0) {
+			registry.enemyGerms.get(e).explosionCountDown = registry.enemyGerms.get(e).explosionCountInit;
+			float randomizedSpeedX = (rand() % 6) - 5; // randomized number for randomized velocity multiplier
+			float randomizedSpeedY = (rand() % 6) - 5; // randomized number for randomized velocity multiplier
+			if (registry.enemyGerms.get(e).mode <= registry.enemyGerms.get(e).playerChaseThreshold) {
+				registry.motions.get(e).velocity.y = registry.enemies.get(e).speed * randomizedSpeedY;
+				registry.motions.get(e).velocity.x = registry.enemies.get(e).speed * randomizedSpeedX;
+			}
+			else {
+				registry.motions.get(e).velocity.x = registry.enemies.get(e).speed * randomizedSpeedX;
+				registry.motions.get(e).velocity.y = registry.enemies.get(e).speed * randomizedSpeedY;
+			}
+		}
+		else {
+			registry.enemyGerms.get(e).explosionCountDown--;
+		}
+		// return progress
+		return BTState::Success;
+	}
+};
+
+
+void AISystem::stepEnemyGerm(float elapsed_ms) {
+	for (Entity germEntity : registry.enemyGerms.entities) {
+		EnemyGerm& germ = registry.enemyGerms.get(germEntity);
+		germ.next_germ_behaviour_calculation -= elapsed_ms;
+		if (germ.next_germ_behaviour_calculation < 0.f) {
+			germ.next_germ_behaviour_calculation = germ.germBehaviourUpdateTime;
+
+			// BTNode (leaf node, a process that will be run if reached)
+			ChasePlayer chasePlayer;
+
+			// creating condition for chasing player, if player(s) is/are alive
+			std::function<bool(Entity)> conditionChasePlayer = [](Entity e)
+			{
+				if (registry.players.entities.size() > 1) {
+					return !registry.players.get(registry.players.entities[0]).isDead && !registry.players.get(registry.players.entities[1]).isDead;
+				}
+				else {
+					return !registry.players.get(registry.players.entities[0]).isDead;
+				}
+			};
+
+			// BTNode (node that is a condition, and if condition is met, will run the child node that is passed in)
+			BTIfCondition chase = BTIfCondition(&chasePlayer, conditionChasePlayer);
+			
+			// BTNode (leaf node, a process that will be run if reached)
+			Explode explode;
+
+			// creating condition for exploding, if one player has died
+			std::function<bool(Entity)> conditionExplosion = [](Entity e)
+			{
+				if (registry.players.entities.size() > 1) {
+					return registry.players.get(registry.players.entities[0]).isDead || registry.players.get(registry.players.entities[1]).isDead;
+				}
+				else {
+					return registry.players.get(registry.players.entities[0]).isDead;
+				}
+			};
+
+			// BTNode (node that is a condition, and if condition is met, will run the child node that is passed in)
+			BTIfCondition explosion = BTIfCondition(&explode, conditionExplosion);
+
+			// run the two BTNodes 
+			BTRunPair root = BTRunPair(&chase, &explosion);
+			root.init(germEntity);
+
+			// iterate through all the different steps
+			for (int i = 0; i < 2; i++) {
+				// run processes (0 to 1 because there is 2 steps (BTIFCondition for chase and for explode)
+				BTState state = root.process(germEntity);
+				if (state != BTState::Running) {
+					break;
 				}
 			}
 		}
@@ -58,98 +304,123 @@ void AISystem::createAdj() {
 }
 
 void AISystem::stepEnemyBacteria(float elapsed_ms, float width, float height) {
-	next_bacteria_BFS_calculation -= elapsed_ms;
-	auto& motions_registry = registry.motions;
-	if (next_bacteria_BFS_calculation < 0.f) {
-		for (Entity bacteriaEntity : registry.enemyBacterias.entities) {
-			EnemyBacteria& bacteria = registry.enemyBacterias.get(bacteriaEntity);
-			Motion& player1Motion = motions_registry.get(registry.players.entities[0]);
+	for (Entity bacteriaEntity : registry.enemyBacterias.entities) {
+		registry.enemyBacterias.get(bacteriaEntity).next_bacteria_BFS_calculation -= elapsed_ms;
+		registry.enemyBacterias.get(bacteriaEntity).next_bacteria_PATH_calculation -= elapsed_ms;
+		auto& motions_registry = registry.motions;
+		if (registry.enemyBacterias.get(bacteriaEntity).next_bacteria_BFS_calculation < 0.f) {
+				EnemyBacteria& bacteria = registry.enemyBacterias.get(bacteriaEntity);
+				Motion& player1Motion = motions_registry.get(registry.players.entities[0]);
 
-			// if bacteria is hunting, it will do BFS to find player
-			if (bacteria.huntingMode) {
-				bacteria.huntingMode = false;
+				// if bacteria is hunting, it will do BFS to find player
+				if (bacteria.huntingMode) {
+					bacteria.huntingMode = false;
 
-				createAdj();
+					createAdj();
 
-				// twoPlayerMode ? select random player to follow
-				if (twoPlayer.inTwoPlayerMode) {
-					next_bacteria_BFS_calculation = bacteria.bfsUpdateTime;
-					Motion player2Motion = motions_registry.get(registry.players.entities[1]);
-					float pickPlayer = rand() % 2 + 1;
+					// twoPlayerMode ? select random player to follow
+					if (twoPlayer.inTwoPlayerMode) {
+						registry.enemyBacterias.get(bacteriaEntity).next_bacteria_BFS_calculation = bacteria.bfsUpdateTime;
+						Motion player2Motion = motions_registry.get(registry.players.entities[1]);
+						float pickPlayer = rand() % 2 + 1;
 
-					if (pickPlayer != 1 && !registry.players.get(registry.players.entities[1]).isDead) {
-						handlePath(player2Motion.position.x, player2Motion.position.y, width, height, bacteriaEntity);
+						if (pickPlayer != 1 && !registry.players.get(registry.players.entities[1]).isDead) {
+							registry.enemyBacterias.get(bacteriaEntity).finX = player2Motion.position.x;
+							registry.enemyBacterias.get(bacteriaEntity).finY = player2Motion.position.y;
+
+							handlePath(width, height, bacteriaEntity);
+						}
+						else {
+							registry.enemyBacterias.get(bacteriaEntity).finX = player1Motion.position.x;
+							registry.enemyBacterias.get(bacteriaEntity).finY = player1Motion.position.y;
+
+							handlePath(width, height, bacteriaEntity);
+						}
 					}
 					else {
-						handlePath(player1Motion.position.x, player1Motion.position.y, width, height, bacteriaEntity);
+						registry.enemyBacterias.get(bacteriaEntity).next_bacteria_BFS_calculation = bacteria.bfsUpdateTime;
+						registry.enemyBacterias.get(bacteriaEntity).finX = player1Motion.position.x;
+						registry.enemyBacterias.get(bacteriaEntity).finY = player1Motion.position.y;
+
+						handlePath(width, height, bacteriaEntity);
 					}
 				}
-				else {
-					next_bacteria_BFS_calculation = bacteria.bfsUpdateTime;
-					handlePath(player1Motion.position.x, player1Motion.position.y, width, height, bacteriaEntity);
-				}
-			}
 		}
 	}
+	for (Entity bacteriaEntity : registry.enemyBacterias.entities) {
+		if (registry.enemyBacterias.get(bacteriaEntity).next_bacteria_PATH_calculation < 0.f) {
+			EnemyBacteria& bacteria = registry.enemyBacterias.get(bacteriaEntity);
+			registry.enemyBacterias.get(bacteriaEntity).next_bacteria_PATH_calculation = bacteria.pathUpdateTime;
+			findPath(bacteriaEntity);
+		}
+	}
+
 }
 
 void AISystem::stepEnemyChase(float elapsed_ms) {
 	// update enemy chase so it chases the player
 	for (Entity entity : registry.enemyChase.entities) {
-		auto& enemyCom = registry.enemies.get(entity);
-		Motion& motion = registry.motions.get(entity);
-		Motion& motion_wz = *new Motion();
-		for (uint k = 0; k < registry.players.size(); k++) {
-			if (!registry.players.get(registry.players.entities[k]).isDead) {
-				motion_wz = registry.motions.get(registry.players.entities[k]);
-				break;
-			}
-		}
-		// check if it is close to any other enemyChase
-		// if yes, make it move in opposite direction for a certain time
-		for (Entity other_enemy_chase : registry.enemyChase.entities) {
-			if (other_enemy_chase != entity) {
-				Motion& motion_other_en_chase = registry.motions.get(other_enemy_chase);
-				vec2 dp = motion_other_en_chase.position - motion.position;
-				float dist_squared = dot(dp, dp);
-				if (dist_squared < registry.enemyChase.get(entity).enemy_chase_max_dist_sq) {
-					// set encounter to true
-					registry.enemyChase.get(entity).encounter = 1;
-					motion.velocity = vec2{ dp.x * -1.f, dp.y * -1.f };
+		EnemyChase& chase = registry.enemyChase.get(entity);
+		if (chase.timeToUpdateAi) {
+			auto& enemyCom = registry.enemies.get(entity);
+			Motion& motion = registry.motions.get(entity);
+			Entity playerEntity = pickAPlayer();
+			Motion& playerMotion = registry.motions.get(playerEntity);
+
+			// check if it is close to any other enemyChase
+			// if yes, make it move in opposite direction for a certain time
+			for (Entity other_enemy_chase : registry.enemyChase.entities) {
+				if (other_enemy_chase != entity) {
+					Motion& motion_other_en_chase = registry.motions.get(other_enemy_chase);
+					vec2 dp = motion_other_en_chase.position - motion.position;
+					float dist_squared = dot(dp, dp);
+					if (dist_squared < registry.enemyChase.get(entity).enemy_chase_max_dist_sq) {
+						// set encounter to true
+						registry.enemyChase.get(entity).encounter = 1;
+						motion.velocity = vec2{ dp.x * -1.f, dp.y * -1.f };
+					}
+					if (registry.enemyChase.get(entity).encounter == 1) {
+						registry.enemyChase.get(entity).counter_ms -= elapsed_ms;
+						if (registry.enemyChase.get(entity).counter_ms < 0) {
+							vec2 chase_to_wz = vec2(playerMotion.position.x - motion.position.x, playerMotion.position.y - motion.position.y);
+							float radians_for_angle = atan2f(-chase_to_wz.y, -chase_to_wz.x);
+							float radians = atan2f(chase_to_wz.y, chase_to_wz.x);
+							motion.angle = radians_for_angle;
+							motion.velocity = vec2(enemyCom.speed * cos(-radians), enemyCom.speed * sin(radians));
+							registry.enemyChase.get(entity).encounter == 0;
+							registry.enemyChase.get(entity).counter_other_en_chase_ms = registry.enemyChase.get(entity).counter_other_en_chase_value;
+						}
+					}
 				}
-				if (registry.enemyChase.get(entity).encounter == 1) {
+				else {
 					registry.enemyChase.get(entity).counter_ms -= elapsed_ms;
+					// reset timer and encounter variable when timer expires and
+					// recalculate direction turtle is facing
 					if (registry.enemyChase.get(entity).counter_ms < 0) {
-						vec2 chase_to_wz = vec2(motion_wz.position.x - motion.position.x, motion_wz.position.y - motion.position.y);
+						registry.enemyChase.get(entity).counter_ms = registry.enemyChase.get(entity).counter_value;
+						vec2 chase_to_wz = vec2(playerMotion.position.x - motion.position.x, playerMotion.position.y - motion.position.y);
 						float radians_for_angle = atan2f(-chase_to_wz.y, -chase_to_wz.x);
 						float radians = atan2f(chase_to_wz.y, chase_to_wz.x);
 						motion.angle = radians_for_angle;
 						motion.velocity = vec2(enemyCom.speed * cos(-radians), enemyCom.speed * sin(radians));
-						registry.enemyChase.get(entity).encounter == 0;
-						registry.enemyChase.get(entity).counter_other_en_chase_ms = registry.enemyChase.get(entity).counter_other_en_chase_value;
 					}
 				}
+				chase.timeToUpdateAi = false;
+				chase.aiUpdateTimer = chase.aiUpdateTime;
 			}
-			else {
-				registry.enemyChase.get(entity).counter_ms -= elapsed_ms;
-				// reset timer and encounter variable when timer expires and
-				// recalculate direction turtle is facing
-				if (registry.enemyChase.get(entity).counter_ms < 0) {
-					registry.enemyChase.get(entity).counter_ms = registry.enemyChase.get(entity).counter_value;
-					vec2 chase_to_wz = vec2(motion_wz.position.x - motion.position.x, motion_wz.position.y - motion.position.y);
-					float radians_for_angle = atan2f(-chase_to_wz.y, -chase_to_wz.x);
-					float radians = atan2f(chase_to_wz.y, chase_to_wz.x);
-					motion.angle = radians_for_angle;
-					motion.velocity = vec2(enemyCom.speed * cos(-radians), enemyCom.speed * sin(radians));
-				}
-			}
-
 		}
-
+		else {
+			chase.aiUpdateTimer -= elapsed_ms;
+			if (chase.aiUpdateTimer < 0) {
+				chase.timeToUpdateAi = true;
+			}
+		}
 	}
 }
 
-bool AISystem::handlePath(int positionX, int positionY, float width, float height, Entity& bacteriaEntity) {
+bool AISystem::handlePath(float width, float height, Entity& bacteriaEntity) {
+	int positionX = registry.enemyBacterias.get(bacteriaEntity).finX;
+	int positionY = registry.enemyBacterias.get(bacteriaEntity).finY;
 	Motion playerMotion = registry.motions.get(registry.players.entities[0]);
 	Motion bacteriaMotion = registry.motions.get(bacteriaEntity);
 
@@ -163,13 +434,13 @@ bool AISystem::handlePath(int positionX, int positionY, float width, float heigh
 
 	// initialize first position, it will be visited later, add it to the queue
 	visited[resIndexX][resIndexY] = false;
-	adjacentsQueue.push({ resIndexX, resIndexY });
-	std::pair<int, int> currPosition = adjacentsQueue.front();
+	registry.enemyBacterias.get(bacteriaEntity).adjacentsQueue.push({ resIndexX, resIndexY });
+	std::pair<int, int> currPosition = registry.enemyBacterias.get(bacteriaEntity).adjacentsQueue.front();
 
-	while (!adjacentsQueue.empty()) {
+	while (!registry.enemyBacterias.get(bacteriaEntity).adjacentsQueue.empty()) {
 		// get first element in queue
-		currPosition = adjacentsQueue.front();
-		adjacentsQueue.pop();
+		currPosition = registry.enemyBacterias.get(bacteriaEntity).adjacentsQueue.front();
+		registry.enemyBacterias.get(bacteriaEntity).adjacentsQueue.pop();
 
 		// check if it's out of bounds or has been visited. if so, skip
 		if (currPosition.first < 8 && currPosition.second < 8 && visited[currPosition.first][currPosition.second] == false && currPosition.first >= 0 && currPosition.second >= 0) {
@@ -188,7 +459,7 @@ bool AISystem::handlePath(int positionX, int positionY, float width, float heigh
 			// add adjacent "grid" block above to queue
 			if (currPosition.second - 1 >= 0) {
 				if (visited[currPosition.first][currPosition.second - 1] == false) {
-					adjacentsQueue.push({ currPosition.first, currPosition.second - 1 });
+					registry.enemyBacterias.get(bacteriaEntity).adjacentsQueue.push({ currPosition.first, currPosition.second - 1 });
 				}
 				if (pred[currPosition.first][currPosition.second - 1].first == -1 && pred[currPosition.first][currPosition.second - 1].second == -1) {
 					pred[currPosition.first][currPosition.second - 1] = { currPosition.first, currPosition.second };
@@ -198,7 +469,7 @@ bool AISystem::handlePath(int positionX, int positionY, float width, float heigh
 			// add adjacent "grid" block below to queue
 			if (currPosition.second + 1 < 8) {
 				if (visited[currPosition.first][currPosition.second + 1] == false) {
-					adjacentsQueue.push({ currPosition.first, currPosition.second + 1 });
+					registry.enemyBacterias.get(bacteriaEntity).adjacentsQueue.push({ currPosition.first, currPosition.second + 1 });
 				}
 				if (pred[currPosition.first][currPosition.second + 1].first == -1 && pred[currPosition.first][currPosition.second + 1].second == -1) {
 					pred[currPosition.first][currPosition.second + 1] = { currPosition.first, currPosition.second };
@@ -208,7 +479,7 @@ bool AISystem::handlePath(int positionX, int positionY, float width, float heigh
 			// add adjacent "grid" block left to queue
 			if (currPosition.first - 1 >= 0) {
 				if (visited[currPosition.first - 1][currPosition.second] == false) {
-					adjacentsQueue.push({ currPosition.first - 1, currPosition.second });
+					registry.enemyBacterias.get(bacteriaEntity).adjacentsQueue.push({ currPosition.first - 1, currPosition.second });
 				}
 				if (pred[currPosition.first - 1][currPosition.second].first == -1 && pred[currPosition.first - 1][currPosition.second].second == -1) {
 					pred[currPosition.first - 1][currPosition.second] = { currPosition.first, currPosition.second };
@@ -218,7 +489,7 @@ bool AISystem::handlePath(int positionX, int positionY, float width, float heigh
 			// add adjacent "grid" block right to queue
 			if (currPosition.first + 1 < 8) {
 				if (visited[currPosition.first + 1][currPosition.second] == false) {
-					adjacentsQueue.push({ currPosition.first + 1, currPosition.second });
+					registry.enemyBacterias.get(bacteriaEntity).adjacentsQueue.push({ currPosition.first + 1, currPosition.second });
 				}
 				if (pred[currPosition.first + 1][currPosition.second].first == -1 && pred[currPosition.first + 1][currPosition.second].second == -1) {
 					pred[currPosition.first + 1][currPosition.second] = { currPosition.first, currPosition.second };
@@ -231,6 +502,24 @@ bool AISystem::handlePath(int positionX, int positionY, float width, float heigh
 
 }
 
+void AISystem::findPath(Entity& bacteriaEntity) {
+	float finX = registry.enemyBacterias.get(bacteriaEntity).finX;
+	float finY = registry.enemyBacterias.get(bacteriaEntity).finY;
+	std::pair<int, int> currPosition = { finX , finY };
+	// go through traversal stack. it should have the path now.
+	// if it's empty, don't do anything.
+	if (!registry.enemyBacterias.get(bacteriaEntity).traversalStack.empty()) {
+		// get current position of traversal stack
+		currPosition = registry.enemyBacterias.get(bacteriaEntity).traversalStack.top();
+		registry.enemyBacterias.get(bacteriaEntity).traversalStack.pop();
+		int bacteriaPositionX = registry.motions.get(bacteriaEntity).position.x;
+		int bacteriaPositionY = registry.motions.get(bacteriaEntity).position.y;
+
+		// from the current bacteria position, go to 
+		moveToSpot(bacteriaPositionX, bacteriaPositionY, currPosition.first, currPosition.second, bacteriaEntity);
+	}
+}
+
 void AISystem::bfsSearchPath(float initX, float initY, float finX, float finY, Entity& bacteriaEntity, float width, float height) {
 	std::pair<int, int> currPosition = { finX , finY };
 
@@ -239,25 +528,13 @@ void AISystem::bfsSearchPath(float initX, float initY, float finX, float finY, E
 	// push into our traversalStack -- stack because we are now going BACKWARDS from the end to the beginning, using the predecessor to find our path from the player to the bacteria.
 	while (currPosition.first != initX || currPosition.second != initY) {
 		std::pair<int, int> temp = { pred[currPosition.first][currPosition.second].first * (width / 8),  pred[currPosition.first][currPosition.second].second * (height / 8) };
-		traversalStack.push(temp);
+		registry.enemyBacterias.get(bacteriaEntity).traversalStack.push(temp);
 		currPosition = pred[currPosition.first][currPosition.second];
 	}
 
-	// go through traversal stack. it should have the path now.
-	// if it's empty, stop.
-	while (!traversalStack.empty()) {
-		// get current position of traversal stack
-		currPosition = traversalStack.top();
-		traversalStack.pop();
-		int bacteriaPositionX = registry.motions.get(bacteriaEntity).position.x;
-		int bacteriaPositionY = registry.motions.get(bacteriaEntity).position.y;
-
-		// from the current bacteria position, go to 
-		moveToSpot(bacteriaPositionX, bacteriaPositionY, currPosition.first, currPosition.second, bacteriaEntity);
-	}
-	while (!adjacentsQueue.empty())
+	while (!registry.enemyBacterias.get(bacteriaEntity).adjacentsQueue.empty())
 	{
-		adjacentsQueue.pop();
+		registry.enemyBacterias.get(bacteriaEntity).adjacentsQueue.pop();
 	}
 }
 
@@ -265,24 +542,23 @@ void AISystem::moveToSpot(float initX, float initY, float finalX, float finalY, 
 	vec2 diff = vec2(finalX, finalY) - vec2(initX, initY);
 	float angle = atan2(diff.y, diff.x);
 	registry.motions.get(bacteriaEntity).velocity = vec2(cos(angle) * registry.enemies.get(bacteriaEntity).speed, sin(angle) * registry.enemies.get(bacteriaEntity).speed);
-
 }
 
-bool AISystem::isHunterInRangeOfThePlayers(Entity hunterEntity) {
-	Motion& hunterMotion = registry.motions.get(hunterEntity);
+bool AISystem::isEnemyInRangeOfThePlayers(Entity enemyEntity) {
+	Motion& enemyMotion = registry.motions.get(enemyEntity);
 	float distance;
 	if (twoPlayer.inTwoPlayerMode) {
 		Motion& player1Motion = registry.motions.get(registry.players.entities.front());
 		Motion& player2Motion = registry.motions.get(registry.players.entities.back());
-		float distFromPlayer1 = enemyDistanceFromPlayer(player1Motion, hunterMotion);
-		float distFromPlayer2 = enemyDistanceFromPlayer(player2Motion, hunterMotion);
+		float distFromPlayer1 = enemyDistanceFromPlayer(player1Motion, enemyMotion);
+		float distFromPlayer2 = enemyDistanceFromPlayer(player2Motion, enemyMotion);
 		distance = std::min(distFromPlayer1, distFromPlayer2);
 	}
 	else {
 		Motion& player1Motion = registry.motions.get(registry.players.entities.front());
-		distance = enemyDistanceFromPlayer(player1Motion, hunterMotion);
+		distance = enemyDistanceFromPlayer(player1Motion, enemyMotion);
 	}
-	if (distance < registry.enemyHunters.get(hunterEntity).huntingRange) {
+	if (distance < registry.enemyHunters.get(enemyEntity).huntingRange) {
 		return true;
 	}
 	return false;
@@ -293,30 +569,30 @@ float AISystem::enemyDistanceFromPlayer(const Motion& player, const Motion& hunt
 	return sqrt(dot(dp, dp));
 }
 
-void AISystem::setHunterWonderingRandomly(Entity hunterEntity) {
-	Enemy& hunterStatus = registry.enemies.get(hunterEntity);
+void AISystem::setEnemyWonderingRandomly(Entity enemyEntity) {
+	Enemy& enemyStatus = registry.enemies.get(enemyEntity);
 	float randomNumBetweenNegativeOneAndOne = (uniform_dist(rng) - 0.5) * 2;
 	float anotherRandomNumBetweenNegativeOneAndOne = (uniform_dist(rng) - 0.5) * 2;
 	vec2 randomVelocity =
-		vec2(1.0f * hunterStatus.speed * randomNumBetweenNegativeOneAndOne,
-			1.0f * hunterStatus.speed * anotherRandomNumBetweenNegativeOneAndOne);
-	registry.motions.get(hunterEntity).velocity = randomVelocity;
+		vec2(1.0f * enemyStatus.speed * randomNumBetweenNegativeOneAndOne,
+			1.0f * enemyStatus.speed * anotherRandomNumBetweenNegativeOneAndOne);
+	registry.motions.get(enemyEntity).velocity = randomVelocity;
 }
 
-void AISystem::setHunterChasingThePlayer(Entity hunterEntity) {
-	Enemy& hunterStatus = registry.enemies.get(hunterEntity);
-	Motion& hunterMotion = registry.motions.get(hunterEntity);
+void AISystem::setEnemyChasingThePlayer(Entity enemyEntity) {
+	Enemy& enemyStatus = registry.enemies.get(enemyEntity);
+	Motion& enemyMotion = registry.motions.get(enemyEntity);
 	Entity playerToChase;
 	if (twoPlayer.inTwoPlayerMode) {
-		playerToChase = determineWhichPlayerToChase(hunterEntity);
+		playerToChase = determineWhichPlayerToChase(enemyEntity);
 	}
 	else {
 		playerToChase = registry.players.entities.front();
 	}
 	Motion& playerMotion = registry.motions.get(playerToChase);
-	vec2 diff = playerMotion.position - hunterMotion.position;
+	vec2 diff = playerMotion.position - enemyMotion.position;
 	float angle = atan2(diff.y, diff.x);
-	hunterMotion.velocity = vec2(cos(angle) * hunterStatus.speed, sin(angle) * hunterStatus.speed);
+	enemyMotion.velocity = vec2(cos(angle) * enemyStatus.speed, sin(angle) * enemyStatus.speed);
 }
 
 Entity AISystem::determineWhichPlayerToChase(Entity enemyEntity) {
@@ -331,4 +607,116 @@ Entity AISystem::determineWhichPlayerToChase(Entity enemyEntity) {
 	else {
 		return registry.players.entities.back();
 	}
+}
+
+void AISystem::stepEnemySwarm(float elapsed_ms) {
+	for (Entity swarmEntity : registry.enemySwarms.entities) {
+		EnemySwarm& swarm = registry.enemySwarms.get(swarmEntity);
+		Enemy& swarmStatus = registry.enemies.get(swarmEntity);
+		if (swarm.timeToUpdateAi) {
+			swarmSpreadOut(swarmEntity);
+			swarmFireProjectileAtPlayer(swarmEntity);
+			swarm.timeToUpdateAi = false;
+			swarm.aiUpdateTimer = swarm.aiUpdateTime;
+		}
+		else {
+			swarm.aiUpdateTimer -= elapsed_ms;
+			if (swarm.aiUpdateTimer < 0) {
+				swarm.timeToUpdateAi = true;
+			}
+		}
+
+		if (swarm.isAnimatingHurt && !swarmStatus.isInvin) {
+			registry.renderRequests.remove(swarmEntity);
+			registry.renderRequests.insert(
+				swarmEntity,
+				{ TEXTURE_ASSET_ID::ENEMYSWARM,
+					EFFECT_ASSET_ID::ENEMY,
+					GEOMETRY_BUFFER_ID::SPRITE });
+			swarm.isAnimatingHurt = false;
+		}
+	}
+}
+
+void AISystem::swarmSpreadOut(Entity swarmEntity) {
+	if (registry.enemySwarms.entities.size() == 1) {
+		setEnemyWonderingRandomly(swarmEntity);
+	}
+	Entity closestSwarmEntity = findClosestSwarm(swarmEntity);
+	moveAwayfromOtherSwarm(swarmEntity, closestSwarmEntity);
+}
+
+
+void AISystem::moveAwayfromOtherSwarm(Entity enemyEntity, Entity otherEnemyEntity) {
+	if (registry.motions.has(otherEnemyEntity)) {
+		Motion& enemyMotion = registry.motions.get(enemyEntity);
+		Motion& otherEnemyMotion = registry.motions.get(otherEnemyEntity);
+		EnemySwarm& enemySwarm = registry.enemySwarms.get(enemyEntity);
+		float distance = sqrt(pow(enemyMotion.position.x - otherEnemyMotion.position.x, 2) +
+			pow(enemyMotion.position.y - otherEnemyMotion.position.y, 2));
+		if (distance < enemySwarm.spreadOutDistance) {
+			vec2 directionFromEnemyToOtherEnemy =
+				vec2(otherEnemyMotion.position.x - enemyMotion.position.x, otherEnemyMotion.position.y - enemyMotion.position.y);
+			vec2 oppositeOfDirection = vec2(directionFromEnemyToOtherEnemy.x * -1.f, directionFromEnemyToOtherEnemy.y * -1.f);
+			vec2 normalizedDirection = vec2(oppositeOfDirection.x / sqrt(pow(oppositeOfDirection.x, 2) + pow(oppositeOfDirection.y, 2)),
+				oppositeOfDirection.y / sqrt(pow(oppositeOfDirection.x, 2) + pow(oppositeOfDirection.y, 2)));
+			Enemy& enemyStatus = registry.enemies.get(enemyEntity);
+			enemyMotion.velocity = vec2(normalizedDirection.x * enemyStatus.speed, normalizedDirection.y * enemyStatus.speed);
+		}
+		else {
+			setEnemyWonderingRandomly(enemyEntity);
+		}
+	}
+	else {
+		setEnemyWonderingRandomly(enemyEntity);
+	}
+}
+
+Entity AISystem::findClosestSwarm(Entity swarmEntity) {
+	Motion& swarmMotion = registry.motions.get(swarmEntity);
+	float shortestDistance = std::numeric_limits<float>::max();
+	Entity closestSwarmEntity;
+	for (Entity otherSwarmEntity : registry.enemySwarms.entities) {
+		if (swarmEntity.getId() != otherSwarmEntity.getId()) {
+			Motion& otherSwarmMotion = registry.motions.get(otherSwarmEntity);
+			float distance = sqrt(pow(swarmMotion.position.x - otherSwarmMotion.position.x, 2) +
+				pow(swarmMotion.position.y - otherSwarmMotion.position.y, 2));
+			if (distance != 0 && distance < shortestDistance) {
+				shortestDistance = distance;
+				closestSwarmEntity = otherSwarmEntity;
+			}
+		}
+	}
+	return closestSwarmEntity;
+}
+
+void AISystem::swarmFireProjectileAtPlayer(Entity swarmEntity) {
+	EnemySwarm& swarm = registry.enemySwarms.get(swarmEntity);
+	Motion& swarmMotion = registry.motions.get(swarmEntity);
+	Motion& playerMotion = registry.motions.get(pickAPlayer());
+	vec2 diff = playerMotion.position - swarmMotion.position;
+	float angle = atan2(diff.y, diff.x);
+	vec2 velocity = vec2(cos(angle) * swarm.projectileSpeed, sin(angle) * swarm.projectileSpeed);
+	createEnemyProjectile(renderer, swarmMotion.position, velocity, angle, swarmEntity);
+}
+
+Entity AISystem::pickAPlayer() {
+	Entity playerOneEntity = registry.players.entities.front();
+	Entity playerEntity = playerOneEntity;
+	if (twoPlayer.inTwoPlayerMode) {
+		Entity playerTwoEntity = registry.players.entities.back();
+		Player& player1 = registry.players.get(playerOneEntity);
+		Player& player2 = registry.players.get(playerTwoEntity);
+		if (uniform_dist(rng) > 0.5) {
+			if (!player2.isDead) {
+				playerEntity = playerTwoEntity;
+			}
+		}
+		else {
+			if (player1.isDead) {
+				playerEntity = playerTwoEntity;
+			}
+		}
+	}
+	return playerEntity;
 }

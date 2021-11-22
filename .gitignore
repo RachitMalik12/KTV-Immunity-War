@@ -27,6 +27,7 @@
 **/$RECYCLE.BIN/
 **/Desktop.ini
 **/ext/project_path.hpp 
+**/data/saveData/saveFile.json
 
 !ext/
 !template/ext/

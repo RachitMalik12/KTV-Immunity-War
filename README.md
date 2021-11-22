@@ -1,35 +1,66 @@
-Milestone 2 Team 6 KTV
-Grace Days Used: 1
+Milestone 3 Team 6 KTV
 
 Milestone Feature Descriptions:
-Gameplay 1 (BZ, FC, LT): We load the map and spawn all the enemies on screen and the players have to kill them all to advance to the next level. The stats of players and enemies are implemented. Stats are damage, max hp, movement speed and projectile speed/firing speed.
 
-Adaptive Resolution (BZ): We offer player a choice between 3 resolution when the game is launched. 2400 x 1600, 1200 x 800 and 600 x 400. Everything in game that involve position and velocity is scaled accordingly. 
+Required Features:
 
-State Machine (BZ): Implemented a state machine enemy "hunter". Hunter has three states: wondering mode, hunting mode and fleeing mode. In wondering mode, hunter wonders randomly until it gets close enough to a player. Then in hunting mode it chases after the player. Then finally, after its HP gets low, it gets into fleeing mode, which runs horizontally across the map at a high speed.
+-Gameplay II (ALL): Shop fully implemented with power up's (RM). Level transition and shop visit phase implemented (RM). Two more levels added with two new enemies. Main characters fully animated. Players and enemies implemented with hit handling. Background texture implemented. 
 
-Precise Collision (BS): Implemented precise collision detection by means of a coarse mesh "hitbox" overlayed on a sprite. Current detection works by checking if one entity's hitbox collides with another entity's bounding box. Currently, the player, all enemies, the projectile and trees have mesh hitboxes.
+-Behaviour Tree (FC): Implemented behaviour tree enemies. Enemy actions are conditional with processes as nodes. If any player is alive, the enemy will chase a player of their choosing. If any player is dead, the enemy will explode in randomized direction. Added an explanation diagram for the implementation of behaviour tree enemy and the BTNodes for future expansion of these functions. (see reports folder)
 
-Simple Path Finding (FC): Implemented a BFS enemy "bacteria". The enemy updates it's path to what the current player (or one of the players, if there are two players) position is. It calculates it's path using BFS with a queue, where the map is separated into an 8x8 grid as "nodes", using it's predecessor nodes to find a path to the player it is hunting. 
+-Swarm Behaviour (BZ): Implemented swarm behaviour enemies. Swarm will spawn in triplets surrounding the same location. Each update each swarm enemy will detect the closest swarm enemy, calculate the vector to the other enemy, reverse the x and y of that vector then normalize it. Finally we multiply swarm enemy's speed to this normalized directional vector to set its new velocity. The result is that each swarm will try to spread out as much as possible. Swarm enemmies attack the player via a projectile fireball attack, so the swarms benefit from spreading out because the enemy projectiles will then attack the players from many directions.
 
-Animation (BZ & JK): Created sprite animations for player 1. The player has an idle phase when it's not moving (stays still) and moves when a direction is given. Also has 4 directions of idle and walking phases.
+-Keyframe Animation (frame animation) (BZ): For assets with getting hit sprites, we animate the getting hit sprite during the asset's invincibility frame. These are the player wizard, enemyHunter and enemySwarm. Also animated different sprite for each of enemyHunter's state. Also implemented sprite sheet for wizard idle, attack and movement animations.
 
-External library integration (RM): Integrated the library https://github.com/open-source-parsers/jsoncpp to parse json files. Modified the cmake and made sure 
-it runs on all devices of our team. 
+-Keyframe Animation (fragment shader) (LT): In addition to animating the hit sprite as BZ described, the assets will also light up (yellow for enemies, red for knight) while the invincibility timer is still on to indicate to user that the sprite has been hit. For wizard and knight, sprite darkens when it gets hit too.
 
-Level loading (RM): Implemented level loading mechanism that loads an arbitrary number of levels from data/levels json file (level_design.json). 
-The level has information for the number, kind of enemies, positions of enemies, the player positions and the barrier/block positions that is all customizable. 
-JSON parsing is done through the library JSONcpp integrated in the external lib. feature. There are 3 levels in the game with varying levels of difficulty 
-and the player progresses to the next level when they kill all enemies on screen and if they stay alive.
-There is also a dev mode where you can reload a level or change to a specific level using the keys 1, 2 or 3.
+-Articulated Motion (BS): Implemented a swinging sword attack via articulated motion. Instead of rotating the sword around its own frame, it will rotate with respect to the knight's (its wielder's) object frame. Swords behave similarly to projectiles with a few exceptions: They do more damage, do not despawn on contact, and can only be swung in four directions. The sword is meant to be a far more practical weapon in close-quarters, giving the knight certain advantanges over the wizard.
 
-Help Menu (LT): Implemented ability to toggle "P" to display help menu and pause game while in help menu. Once exits help menu, the game will resume as normal. Designed help menu with features needed for game play.
+-Advanced Fragment Shader (LT): Added lighting effect for the shop room. Lighting effect has ambient light (default light in the world) and also diffusion depending on the location of the object to the light source which is in the centre of the room. The further the player, enemies, background, sprites are from the light source the darker they get. Also for fragment shader, when game starts a new level, there is a fade in effect. When a level ends (when player(s) leave(s) shop, there is a fade out effect as well (screen darkens). Shader was also used to reflect enemy and knight's hp by calculating a scale value for enemy to appear more red until it dies, or for knight to appear darker when it gets hit until it dies.
 
-Graphics assets (JK): JK is drawing our assets and she will continue to do so throughout the semester. Added animation for three states (in gif format, will be in spritesheet format), background level art, and power up art for health and speed. Also converted existing assets to black SVGs for future use with precise collisions. Drive of svgs here (not uploading to gothub until we confirm the svgs we need for collision https://drive.google.com/drive/folders/1RMY-Er0lNkpCaKGdewZKahAb429XdHNp?usp=sharing)
+-Save and Reload (RM): Added a feature to save and load game state. It will save the player stats and current level in json. When the player leaves the game and loads it will resume with the level they saved on and their player stats.
 
-Additional Enemy (LT): Added additional enemy that chases player 1 by default. If player 1 dies, all of these enemies will switch to chase player 2. 
-This group of enemies will also avoid each other (if it is within a certain distance, it will move in the opposite direction as the direction from it to another enemy of its type for a set number of seconds (this is changeable by the user)).
+-Story (JK): Created a storyline for the game to setup for the "battle" that starts within. The writing and planning for it (in full) can be found here: https://jsminea.notion.site/Story-bcbd3cb2b5ba442f80d6af9073b6de5b
+
+Custom Features:
+
+-Graphic Menu (10 points)(JK): Created 2 different menus (as well as the custom assets for buttons and background). One for when the game first starts, the main menu, with 4 options: Load, 1P, 2P, and Help (which displays ontop of the menu). The second menu is in-game, which can be toggled by the ESC key, and displays both in the shop and in the enemy rooms. This menu has 5 options: 2P on/off (which toggles 2 player mode), Save, Load, Restart, Help. Also refactored loading and saving code, as well as added to mouse control of the wizard to limit rendering issues. Changed help positioning to render in shop and in the enemy's room as well, as well as made functions for the future, for any in shop positioning. Button positions and menu were coded with positions relative to the center of the screen. Did not use any pre-built libraries, created our own menu system.
+
+-Pre-game Cutscene (5 points)(JK): Created 6 different cutscene graphics and routed the story progression to click and space key. The cutscene will only play at the beginning of the game, so it will not repeat itself after restarting a level or the game (unless exited from game).
+
+Memory Management:
+
+Memory and Performance profiling (BS): Using built-in profiling tools in Visual Studio, there were a few things found that were sources of inefficiency (See reports/PPR.pdf for more details). The first is unnecessarily updating the title every step, which is elaborated below. Second was a memory leak found in ai_system.cpp.
+
+Updating Window Title Improvement (BS): One of the improvements made was to only update the window title when necessary (Level switch, changes to player HP and money). Improvement described in the report mentioned above. 
+
+EnemyChase Memory and Performance Improvement (BZ): Added a timer to update AI and eliminated the memory leak.
+
+Bug and Feature Fixes: 
+
+Pathfinding Enemy fix (FC): Changed the way the enemies are updated as to save memory. The enemies are now changed, instead of every update following the entire BFS path, each new velocity will be changed every update time, still using BFS.
+
+Adaptive Resolution fix (BZ): Changed from prompting user to select resolution to auto detecting user's primary monitor resolution and setting the game resolution accordingly.
+
+Knight Animation Sliding fix (BZ): Stopping knight's movement animation was tied to releasing the directional movement button. Fixed so that it is tied to player's velocity being 0 instead.
+
+Player Rendering Over Other Assets fix + Help positioning (JK): Player was rendering over other items like Help and Menu, so fixed rendering order and added flags to make sure that players were not rendering over assets they were not supposed to. Also adjusted help positioning to display in the correct positions when in shop.
+
+Graphics Assets (JK): Created background asset, coin asset, numbered text (monospace) asset for later use with the shop, 6 cutscenes (full screen), main menu and in game menu designs/assets for buttons. These were all custom made and not taken from the web.
+
+Graphics Assets (LT): Per TA's suggestion from last milestone, implemented background by rendering it as a sprite. Added effects to background as well so that it can darken, brighten, and have light.
 
 Revised Project Proposal:
-Feature changes:
--Swarm behaviour was pushed to milestone 3 in favour of library integration for this milestone
+
+Feature Changes:
+
+-We are pushing audio feedback to milestone 4 and doing keyframe animation instead.
+
+-We are bringing pre-game cutscene (5 custom feature points) to this milestone.
+
+-We are implementing custom feature graphic menu which we believe is worth 10 custom feature points. 
+
+-We plan to implement heads-up display (HUD) for 5 custom feature points in milestone 4.
+
+-We plan to implement a final boss for 10 custom feature points in milestone 4.
+

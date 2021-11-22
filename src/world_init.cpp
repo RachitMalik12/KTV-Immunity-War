@@ -7,6 +7,30 @@
 std::default_random_engine rng = std::default_random_engine(std::random_device()());
 std::uniform_real_distribution<float> uniform_dist;
 
+Entity createBackground(RenderSystem* renderer, vec2 position) {
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+	motion.scale = vec2({ BACKGROUND_BB_WIDTH * defaultResolution.scaling, BACKGROUND_BB_HEIGHT * defaultResolution.scaling });
+
+	registry.backgrounds.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::BACKGROUND,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	return entity;
+}
+
 Entity createWizard(RenderSystem* renderer, vec2 position) {
 	// Reserve en entity
 	auto entity = Entity();
@@ -16,6 +40,7 @@ Entity createWizard(RenderSystem* renderer, vec2 position) {
 	registry.meshPtrs.emplace(entity, &mesh);
 	Mesh& hitbox = renderer->getMesh(GEOMETRY_BUFFER_ID::WIZARD);
 	registry.hitboxes.emplace(entity, &hitbox);
+	WizardAnimation& animation = registry.wizardAnimations.emplace(entity);
 
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
@@ -25,11 +50,14 @@ Entity createWizard(RenderSystem* renderer, vec2 position) {
 	motion.scale = vec2({ WIZARD_BB_WIDTH * defaultResolution.scaling, WIZARD_BB_HEIGHT * defaultResolution.scaling });
 
 	registry.players.emplace(entity);
+	animation.animationMode = animation.idleMode;
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::WIZARD,
-			EFFECT_ASSET_ID::TEXTURED,
+		{ TEXTURE_ASSET_ID::WIZARDIDLE,
+			EFFECT_ASSET_ID::WIZARD,
 			GEOMETRY_BUFFER_ID::SPRITE });
+	animation.frameIdle = 0;
+	animation.idleTimer = 0;
 	return entity;
 }
 
@@ -40,6 +68,7 @@ Entity createKnight(RenderSystem* renderer, vec2 position) {
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
+	registry.knightAnimations.emplace(entity);
 
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
@@ -58,6 +87,34 @@ Entity createKnight(RenderSystem* renderer, vec2 position) {
 	return entity;
 }
 
+Entity createSword(RenderSystem* renderer, float angle, Entity playerEntity) {
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+	Mesh& hitbox = renderer->getMesh(GEOMETRY_BUFFER_ID::SWORD);
+	registry.hitboxes.emplace(entity, &hitbox);
+
+	// Initialize the position, scale, and physics components		
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = angle;
+	motion.velocity = { 0, 0 };
+	motion.position = { 0, 0 };
+	motion.scale = vec2({ SWORD_BB_WIDTH * defaultResolution.scaling, SWORD_BB_HEIGHT * defaultResolution.scaling });
+
+	registry.swords.emplace(entity);
+	registry.swords.get(entity).belongToPlayer = playerEntity;
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::SWORD,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
 
 Entity createWall(vec2 position, vec2 scale) {
 	Entity entity = Entity();
@@ -66,7 +123,7 @@ Entity createWall(vec2 position, vec2 scale) {
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
-			EFFECT_ASSET_ID::PEBBLE,
+			EFFECT_ASSET_ID::LINE,
 			GEOMETRY_BUFFER_ID::WALLS });
 
 	// Create motion
@@ -87,7 +144,7 @@ Entity createDoor(vec2 position, vec2 scale) {
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
-			EFFECT_ASSET_ID::PEBBLE,
+			EFFECT_ASSET_ID::LINE,
 			GEOMETRY_BUFFER_ID::DOOR });
 
 	// Create motion
@@ -134,17 +191,28 @@ Entity createBlock(RenderSystem* renderer, vec2 pos, std::string color) {
 
 Entity createEnemy(RenderSystem* renderer, vec2 position, int enemyType) {
 	Entity curEnemy;
-	if (enemyType == 0) {
-		curEnemy = createEnemyBlob(renderer, position);
-	} else if (enemyType == 1) {
-		curEnemy = createEnemyRun(renderer, position);
-	} else if (enemyType == 2) {
-		curEnemy = createEnemyHunter(renderer, position);
-	} else if (enemyType == 3) {
-		curEnemy = createEnemyBacteria(renderer, position);
-	}
-	else if (enemyType == 4) {
-		curEnemy = createEnemyChase(renderer, position);
+	switch (enemyType) {
+		case 0:
+			curEnemy = createEnemyBlob(renderer, position);
+			break;
+		case 1:
+			curEnemy = createEnemyRun(renderer, position);
+			break;
+		case 2:
+			curEnemy = createEnemyHunter(renderer, position);
+			break;
+		case 3:
+			curEnemy = createEnemyBacteria(renderer, position);
+			break;
+		case 4:
+			curEnemy = createEnemyChase(renderer, position);
+			break;
+		case 5:
+			curEnemy = createEnemySwarmTriplet(renderer, position);
+			break;
+		case 6:
+			curEnemy = createEnemyGerm(renderer, position);
+			break;
 	}
 	return curEnemy;
 }
@@ -173,6 +241,7 @@ Entity createEnemyBlob(RenderSystem* renderer, vec2 position)
 	auto& enemyCom = registry.enemies.get(entity);
 	enemyCom.damage = 1;
 	enemyCom.hp = 3;
+	enemyCom.max_hp = enemyCom.hp;
 	enemyCom.loot = 1;
 	enemyCom.speed = 200.f * defaultResolution.scaling;
 	motion.velocity = vec2(0.f, enemyCom.speed);
@@ -180,7 +249,7 @@ Entity createEnemyBlob(RenderSystem* renderer, vec2 position)
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ENEMY,
-			EFFECT_ASSET_ID::TEXTURED,
+			EFFECT_ASSET_ID::ENEMY,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
@@ -210,6 +279,7 @@ Entity createEnemyRun(RenderSystem* renderer, vec2 position)
 	auto& enemyCom = registry.enemies.get(entity);
 	enemyCom.damage = 1;
 	enemyCom.hp = 2;
+	enemyCom.max_hp = enemyCom.hp;
 	enemyCom.loot = 1;
 	enemyCom.speed = 200.f * defaultResolution.scaling;
 	motion.velocity = vec2(uniform_dist(rng) * enemyCom.speed, uniform_dist(rng) * enemyCom.speed);;
@@ -217,7 +287,7 @@ Entity createEnemyRun(RenderSystem* renderer, vec2 position)
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ENEMYRUN,
-			EFFECT_ASSET_ID::TEXTURED,
+			EFFECT_ASSET_ID::ENEMY,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
@@ -243,6 +313,7 @@ Entity createEnemyHunter(RenderSystem* renderer, vec2 position) {
 	auto& enemyCom = registry.enemies.get(entity);
 	enemyCom.damage = 1;
 	enemyCom.hp = 5;
+	enemyCom.max_hp = enemyCom.hp;
 	enemyCom.loot = 2;
 	enemyCom.speed = 200.f * defaultResolution.scaling;
 	auto& hunterCom = registry.enemyHunters.get(entity);
@@ -252,7 +323,7 @@ Entity createEnemyHunter(RenderSystem* renderer, vec2 position) {
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ENEMYHUNTER,
-			EFFECT_ASSET_ID::TEXTURED,
+			EFFECT_ASSET_ID::ENEMY,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
@@ -278,6 +349,7 @@ Entity createEnemyBacteria(RenderSystem* renderer, vec2 position) {
 	auto& enemyCom = registry.enemies.get(entity);
 	enemyCom.damage = 1;
 	enemyCom.hp = 5;
+	enemyCom.max_hp = enemyCom.hp;
 	enemyCom.loot = 4;
 	enemyCom.speed = 200.f * defaultResolution.scaling;
 	auto& bacteria = registry.enemyBacterias.get(entity);
@@ -285,7 +357,41 @@ Entity createEnemyBacteria(RenderSystem* renderer, vec2 position) {
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ENEMYBACTERIA,
-			EFFECT_ASSET_ID::TEXTURED,
+			EFFECT_ASSET_ID::ENEMY,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
+Entity createEnemyGerm(RenderSystem* renderer, vec2 position) {
+	auto entity = Entity();
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+	Mesh& hitbox = renderer->getMesh(GEOMETRY_BUFFER_ID::GERM);
+	registry.hitboxes.emplace(entity, &hitbox);
+
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = vec2(0, 0);
+	motion.position = position;
+
+	motion.scale = vec2({ ENEMYGERM_BB_WIDTH * defaultResolution.scaling, ENEMYGERM_BB_HEIGHT * defaultResolution.scaling });
+	
+	registry.enemies.emplace(entity);
+	registry.enemyGerms.emplace(entity);
+	// Set enemy attributes
+	auto& enemyCom = registry.enemies.get(entity);
+	enemyCom.damage = 1;
+	enemyCom.hp = 5;
+	enemyCom.loot = 4;
+	enemyCom.speed = 200.f * defaultResolution.scaling;
+	auto& germ = registry.enemyGerms.get(entity);
+	germ.mode = (rand() % 10) + 1;
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::GERM,
+			EFFECT_ASSET_ID::ENEMY,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
@@ -314,10 +420,11 @@ Entity createEnemyChase(RenderSystem* renderer, vec2 position)
 	auto& enemyCom = registry.enemies.get(entity);
 	enemyCom.damage = 1;
 	enemyCom.hp = 3;
+	enemyCom.max_hp = enemyCom.hp;
 	enemyCom.loot = 1;
 	enemyCom.speed = 50.f * defaultResolution.scaling;
 	motion.velocity = vec2(uniform_dist(rng) * enemyCom.speed, uniform_dist(rng) * enemyCom.speed);
-	
+
 	Motion& player_motion = motion;
 	for (Entity player : registry.players.entities) {
 		player_motion = registry.motions.get(entity);
@@ -330,61 +437,113 @@ Entity createEnemyChase(RenderSystem* renderer, vec2 position)
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ENEMYCHASE,
-			EFFECT_ASSET_ID::TEXTURED,
+			EFFECT_ASSET_ID::ENEMY,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
 }
 
-Entity createProjectile(RenderSystem* renderer, vec2 pos, vec2 velocity, Entity playerEntity) {
+Entity createEnemySwarmTriplet(RenderSystem* renderer, vec2 position)
+{
+	// Reserve en entity
+	auto entity = createEnemySwarm(renderer, position);
+	float swarmSpawnGap = 60.f;
+	vec2 enemyTwoPosition = vec2(position.x + (swarmSpawnGap * defaultResolution.scaling), position.y - (swarmSpawnGap * defaultResolution.scaling));
+	createEnemySwarm(renderer, enemyTwoPosition);
+	vec2 enemyThreePosition = vec2(position.x + (swarmSpawnGap * defaultResolution.scaling), position.y + (swarmSpawnGap * defaultResolution.scaling));
+	createEnemySwarm(renderer, enemyThreePosition);
+
+	return entity;
+}
+
+Entity createEnemySwarm(RenderSystem* renderer, vec2 position) {
 	// Reserve en entity
 	auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
-	Mesh& hitbox = renderer->getMesh(GEOMETRY_BUFFER_ID::FIREBALL);
-	registry.hitboxes.emplace(entity, &hitbox);
 
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
+	motion.position = position;
+	motion.scale = vec2({ ENEMYSWARM_BB_WIDTH  * defaultResolution.scaling, ENEMYSWARM_BB_HEIGHT  * defaultResolution.scaling });
+	registry.enemies.emplace(entity);
+	// Set enemy attributes
+	EnemySwarm& swarm = registry.enemySwarms.emplace(entity);
+	swarm.projectileSpeed = swarm.projectileSpeed * defaultResolution.scaling;
+	auto& enemyCom = registry.enemies.get(entity);
+	enemyCom.damage = 1;
+	enemyCom.hp = 3;
+	enemyCom.max_hp = enemyCom.hp;
+	enemyCom.loot = 1;
+	enemyCom.speed = 100.f * defaultResolution.scaling;
+	motion.velocity = vec2(0, 0);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ENEMYSWARM,
+			EFFECT_ASSET_ID::ENEMY,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
+Entity createProjectile(RenderSystem* renderer, vec2 pos, vec2 velocity, float angle, Entity playerEntity) {
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+	Mesh& hitbox = renderer->getMesh(GEOMETRY_BUFFER_ID::WATERBALL);
+	registry.hitboxes.emplace(entity, &hitbox);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = angle;
 	motion.velocity = velocity;
 	motion.position = pos;
 
 	// Setting initial values
-	motion.scale = vec2({ FIREBALL_BB_WIDTH * defaultResolution.scaling, FIREBALL_BB_HEIGHT * defaultResolution.scaling });
+	motion.scale = vec2({ WATERBALL_BB_WIDTH * defaultResolution.scaling, WATERBALL_BB_HEIGHT * defaultResolution.scaling });
 
-	// fireball stuff
 	registry.projectiles.emplace(entity);
 	registry.projectiles.get(entity).belongToPlayer = playerEntity;
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::FIREBALL,
+		{ TEXTURE_ASSET_ID::WATERBALL,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
 }
 
-Entity createPowerup(RenderSystem* renderer, vec2 position)
-{   // Reserve an entity
+Entity createEnemyProjectile(RenderSystem* renderer, vec2 pos, vec2 velocity, float angle, Entity enemyEntity) {
+	// Reserve en entity
 	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
-	motion.position = position;
+	motion.angle = angle;
+	motion.velocity = velocity;
+	motion.position = pos;
 
-	motion.scale = vec2({ POWERUP_BB_WIDTH * defaultResolution.scaling, POWERUP_BB_HEIGHT * defaultResolution.scaling });
+	// Setting initial values
+	motion.scale = vec2({ FIREBALL_BB_WIDTH * defaultResolution.scaling, FIREBALL_BB_HEIGHT * defaultResolution.scaling });
 
-	registry.powerups.emplace(entity);
+	EnemyProjectile& projectile = registry.enemyProjectiles.emplace(entity);
+	projectile.belongToEnemy = enemyEntity;
 	registry.renderRequests.insert(
 		entity,
-		{  TEXTURE_ASSET_ID::POWERUP,
-			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE });
+		{ TEXTURE_ASSET_ID::FIREBALL,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
 }
@@ -397,7 +556,7 @@ Entity createLine(vec2 position, vec2 scale)
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
-		 EFFECT_ASSET_ID::PEBBLE,
+		 EFFECT_ASSET_ID::LINE,
 		 GEOMETRY_BUFFER_ID::DEBUG_LINE });
 
 	// Create motion
@@ -425,14 +584,140 @@ Entity createHelp() {
 	motion.angle = 0.f;
 	motion.velocity = { 0, 0 };
 	motion.position = { defaultResolution.width / 2, defaultResolution.height / 2 };
-	if (defaultResolution.scaling == 2) {
-		motion.scale = vec2({ HELP_BB_WIDTH * 0.7, HELP_BB_HEIGHT*0.7 });
-	}
-	else {
-		motion.scale = vec2({ HELP_BB_WIDTH * defaultResolution.scaling, HELP_BB_HEIGHT * defaultResolution.scaling });
-	}
+	
+	motion.scale = vec2({ HELP_BB_WIDTH * defaultResolution.scaling, HELP_BB_HEIGHT * defaultResolution.scaling });
+	
 
 	registry.helpModes.emplace(entity);
+
+	return entity;
+}
+
+Entity createStory() {
+	Entity entity = Entity();
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::FRAME1,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	// Create motion
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = { defaultResolution.width / 2, defaultResolution.height / 2 };
+	motion.scale = vec2({ STORY_BB_WIDTH * defaultResolution.scaling, STORY_BB_HEIGHT * defaultResolution.scaling });
+
+	registry.storyModes.emplace(entity);
+
+	return entity;
+}
+
+Entity createMenu() {
+	Entity entity = Entity();
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::MENU,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	// Create motion
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = { defaultResolution.width / 2, defaultResolution.height / 2 };
+	motion.scale = vec2({ STORY_BB_WIDTH * defaultResolution.scaling, STORY_BB_HEIGHT * defaultResolution.scaling });
+
+	registry.menuModes.emplace(entity);
+
+	return entity;
+}
+
+Entity createHpPowerup(vec2 position) {
+	Entity entity = Entity();
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::HPPOWERUP,
+		  EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position; 
+	motion.scale = vec2({ HP_POWERUP_WIDTH * defaultResolution.scaling, HP_POWERUP_HEIGHT * defaultResolution.scaling });
+
+	registry.hpPowerup.emplace(entity);
+	Powerup& powerup = registry.powerups.emplace(entity); 
+	powerup.cost = 5; 
+
+	return entity;
+}
+
+Entity createDamagePowerup(vec2 position) {
+	Entity entity = Entity();
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::DAMAGEPOWERUP,
+		  EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+	motion.scale = vec2({ DAMAGE_POWERUP_WIDTH * defaultResolution.scaling, DAMAGE_POWERUP_HEIGHT * defaultResolution.scaling });
+
+	registry.damagePowerUp.emplace(entity);
+	Powerup& powerup = registry.powerups.emplace(entity);
+	powerup.cost = 5;
+
+	return entity;
+}
+Entity createAttackSpeedPowerup(vec2 position) {
+	Entity entity = Entity();
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ATTACKPOWERUP,
+		  EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+	motion.scale = vec2({ ATTACK_POWERUP_WIDTH * defaultResolution.scaling, ATTACK_POWERUP_HEIGHT * defaultResolution.scaling });
+
+	registry.attackSpeedPowerUp.emplace(entity); 
+	Powerup& powerup = registry.powerups.emplace(entity);
+	powerup.cost = 5;
+
+	return entity;
+}
+
+Entity createMovementSpeedPowerup(vec2 position) {
+	Entity entity = Entity();
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::MOVEMENTSPEEDPOWERUP,
+		  EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+	motion.scale = vec2({ MOVEMENT_POWERUP_WIDTH * defaultResolution.scaling, MOVEMENT_POWERUP_HEIGHT * defaultResolution.scaling });
+
+	registry.movementSpeedPowerup.emplace(entity);
+	Powerup& powerup = registry.powerups.emplace(entity);
+	powerup.cost = 5;
 
 	return entity;
 }

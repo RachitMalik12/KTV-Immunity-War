@@ -3,6 +3,9 @@
 #include <vector>
 #include <unordered_map>
 #include "../ext/stb_image/stb_image.h"
+#include "../ext/json/dist/json/json.h" 
+#include <queue>
+#include <stack>
 
 // Player component
 struct Player
@@ -20,7 +23,7 @@ struct Player
 struct PlayerStat
 {
 	float projectileSpeed = 300.f;
-	float projectileFireRate = 500.f;
+	float attackDelay = 500.f;
 	float movementSpeed = 150.f;
 	int maxHp = 3;
 	int money = 0;
@@ -33,6 +36,10 @@ struct Projectile
 	Entity belongToPlayer;
 };
 
+struct EnemyProjectile {
+	Entity belongToEnemy;
+};
+
 struct Block
 {
 
@@ -43,9 +50,13 @@ struct Block
 struct Enemy
 {
 	int hp;
+	int max_hp;
 	int damage;
 	int loot;
 	float speed;
+	float invinFrame = 500.f;
+	float invinTimerInMs = 0;
+	bool isInvin = false;
 };
 
 struct EnemyBlob
@@ -64,9 +75,13 @@ struct EnemyChase
 	uint enemy_chase_max_dist_sq = 200 * 200;
 	int counter_value = 2000;
 	int counter_other_en_chase_value = 800;
+	float aiUpdateTime = 100.f;
+	float aiUpdateTimer = 0;
+	bool timeToUpdateAi = true;
 };
 
 // Enemy that will be attacked by wizard using projectile and tries to run away from wizard
+// counter for lighting up the enemy when it is hit by the player
 struct EnemyRun
 {
 	int max_dist_wz_en_run = 50 * 50;
@@ -84,17 +99,49 @@ struct EnemyHunter
 	bool timeToUpdateAi = true;
 	bool isFleeing = false;
 	float huntingRange = 500.f;
+	bool isAnimatingHurt = false;
 };
 
 // BFS Enemy
 struct EnemyBacteria
 {
 	bool huntingMode = true;
-	float bfsUpdateTime = 2000.f;
+	float bfsUpdateTime = 3000.f;
+	float pathUpdateTime = 500.f;
+	float finX = 0;
+	float finY = 0;
+	std::stack<std::pair<int, int>> traversalStack;
+	std::queue<std::pair<int, int>> adjacentsQueue;
+	float next_bacteria_BFS_calculation;
+	float next_bacteria_PATH_calculation;
+};
+
+// Behaviour Tree Enemy
+struct EnemyGerm
+{
+	float germBehaviourUpdateTime = 1500.f;
+	float next_germ_behaviour_calculation;
+	float mode;
+	float explosionCountDown = 0;
+	float explosionCountInit = 5;
+	float playerChaseThreshold = 5;
+};
+
+
+
+struct EnemySwarm {
+	float aiUpdateTime = 3000.f;
+	// Wait 1000ms before update AI for the first time so it doesn't fire at the player right after level loads
+	float aiUpdateTimer = 1000.f;
+	bool timeToUpdateAi = false;
+	float projectileSpeed = 200.f;
+	float spreadOutDistance = 200.f;
+	bool isAnimatingHurt = false;
 };
 
 struct Powerup 
 {
+	int cost = 5; 
 
 };
 
@@ -138,20 +185,72 @@ extern TwoPlayer twoPlayer;
 
 struct HelpMode {
 	bool inHelpMode = false;
+	bool menuHelp = false;
+	int clicked = 0;
+	bool isOnTopMainMenu = false;
+	bool isOnTopInGameMenu = false;
 };
 extern HelpMode helpMode;
+
+struct Step {
+	bool stepInProgress = false;
+};
+extern Step stepProgress;
+
+struct StoryMode {
+	int inStoryMode = 0;
+	bool firstLoad = true;
+};
+extern StoryMode storyMode;
+
+enum menuButtons {
+	P1,
+	P2,
+	Load,
+	Save,
+	JoinLeave,
+	Restart,
+	Help,
+	None,
+};
+
+struct MenuMode {
+	// 0 = no menu, 1 = first, main menu // 2 = other in game menu
+	bool inMenuMode = true;
+	bool inHelpDrawn = false;
+	bool inGameMode = false;
+	int menuType = 1;
+	menuButtons currentButton;
+};
+extern MenuMode menuMode;
+
 
 struct DefaultResolution {
 	int width = 1200;
 	int height = 800;
 	float scaling;
+	float defaultHeight = 800.f;
+	float wallThickness = 40.f;
+	float shopWallThickness = 100.f;
+	float shopBufferZone = 50.f;
 };
 extern DefaultResolution defaultResolution;
+
+// SOURCE of lighting implementation
+// https://gamedev.stackexchange.com/questions/135458/combining-and-drawing-2d-lights-in-opengl
+struct Lighting {
+	vec3 ambient_light = vec3(0.5, 0.5, 0.5);
+	vec2 light_source_pos = vec2(0, 0);
+	vec3 light_col = vec3(0.999, 0.999, 0.999);
+	float light_intensity = 0.8;
+};
 
 // Sets the brightness of the screen
 struct ScreenState
 {
 	float darken_screen_factor = -1;
+	float brighten_screen_factor = -1;
+	int game_over_factor = 0;
 };
 
 // A struct to refer to debugging graphics in the ECS
@@ -160,7 +259,21 @@ struct DebugComponent
 	// Note, an empty struct has size 1
 };
 
-// A timer that will be associated to dying salmon
+// A timer that will be associated to level ending
+struct EndLevelTimer
+{
+	float counter_ms = 1500;
+};
+
+// A timer that will be associated to level starting
+struct StartLevelTimer
+{
+	float counter_ms = 1500;
+};
+
+// A timer that will be associated to player(s) dying/game ending
+// separate from level ending due to player(s) killing all enemies
+// (for that see EndLevelTimer)
 struct DeathTimer
 {
 	float counter_ms = 3000;
@@ -169,7 +282,7 @@ struct DeathTimer
 // A timer that will be associated to enemies/enemies run being stuck
 struct StuckTimer
 {
-	float counter_ms = 3000;
+	float counter_ms = 4000;
 	vec2 stuck_pos = { 0, 0 };
 };
 
@@ -225,13 +338,87 @@ struct Level {
 	vec2 player2_position = vec2(50, 200);
 };
 
-struct Animation {
+struct KnightAnimation {
 	int xFrame = 0;
 	int yFrame = 0;
-	bool pressed = 0;
-	int numOfFrames = 9;
-	int animationSpeed = 100;
-	int animationTimer = 0;
+	bool moving = 0;
+	int numOfFrames = 8;
+	float msPerFrame = 100.f;
+	float animationTimer = 0.f;
+};
+
+struct WizardAnimation {
+	int frameIdle = 0;
+	int frameWalk = 0;
+	int frameAttack = 0;
+	int numOfIdleFrames = 3;
+	int numOfWalkFrames = 2;
+	int numOfAttackFrames = 3;
+	float idleMsPerFrame = 200.f;
+	float idleTimer = 0.f;
+	float walkMsPerFrame = 150.f;
+	float walkTimer = 0.f;
+	float attackMsPerFrame = 100.f;
+	float attackTimer = 0.f;
+	int animationMode = 0;
+	int idleMode = 0;
+	int walkMode = 1;
+	int attackMode = 2;
+	int hurtMode = 3;
+	bool isAnimatingHurt = false;
+};
+
+struct Sword {
+	Entity belongToPlayer;
+	float max_distance_modifier = 2.f / 3.f;
+	float max_distance = M_PI * max_distance_modifier;
+	float distance_traveled = 0;
+	float angular_velocity = M_PI / 8;
+	mat3 rotation;
+};
+
+struct Title {
+	GLFWwindow* window;
+	int level;
+	int p1hp;
+	int p2hp;
+	int p1money;
+	int p2money;
+	void updateWindowTitle() {
+		// Updating window title with money
+		std::stringstream title_ss;
+		// Get hp of player 1 and player 2 
+		title_ss << "Level: " << level;
+		if (twoPlayer.inTwoPlayerMode) {
+			title_ss << " P1 Money: " << p1money << " Health: " << p1hp
+				<< " & P2 Money: " << p2money << " Health: " << p2hp;
+		}
+		else {
+			title_ss << " Money: " << p1money << " & Health P1 " << p1hp;
+		}
+		glfwSetWindowTitle(window, title_ss.str().c_str());
+	}
+};
+
+struct Background {
+
+};
+
+struct MovementSpeedPowerUp {
+	int movementSpeedUpFactor = 50; 
+};
+
+struct HpPowerUp {
+	int hpUpFactor = 1; 
+};
+
+struct AtackSpeedPowerUp {
+	int delayReductionFactor = 0.1; 
+	int projectileSpeedUpFactor = 50; 
+};
+
+struct DamagePowerUp {
+	int damageUpFactor = 1; 
 };
 
 /**
@@ -262,38 +449,59 @@ enum class TEXTURE_ASSET_ID {
 	TREE_RED = 0,
 	TREE_ORANGE = TREE_RED + 1,
 	TREE_YELLOW = TREE_ORANGE + 1,
-	FIREBALL = TREE_YELLOW + 1,
-	WIZARD = FIREBALL + 1,
-	WIZARD_LEFT = WIZARD + 1,
-	BLACK_BAR = WIZARD_LEFT + 1,
-	ENEMY = BLACK_BAR + 1,
-	POWERUP = ENEMY + 1,
-	ENEMYRUN = POWERUP + 1,
+	WATERBALL = TREE_YELLOW + 1,
+	WIZARD = WATERBALL + 1,
+	WIZARDHURT = WIZARD + 1,
+	ENEMY = WIZARDHURT + 1,
+	ENEMYRUN = ENEMY + 1,
 	ENEMYHUNTER = ENEMYRUN + 1,
-	HELPPANEL = ENEMYHUNTER + 1,
+	ENEMYHUNTERMAD = ENEMYHUNTER + 1,
+	ENEMYHUNTERHURT = ENEMYHUNTERMAD + 1,
+	ENEMYHUNTERFLEE = ENEMYHUNTERHURT + 1,
+	HELPPANEL = ENEMYHUNTERFLEE + 1,
 	ENEMYBACTERIA = HELPPANEL + 1,
 	ENEMYCHASE = ENEMYBACTERIA + 1,
 	KNIGHT = ENEMYCHASE +1,
-	TEXTURE_COUNT = KNIGHT + 1
+	FRAME1 = KNIGHT +1,
+	FRAME2 = FRAME1 +1,
+	FRAME3 = FRAME2 +1,
+	FRAME4 = FRAME3 +1,
+	FRAME5 = FRAME4 +1,
+	FRAME6 = FRAME5 +1,
+	ENEMYSWARM = FRAME6 + 1,
+	ENEMYSWARMHURT = ENEMYSWARM + 1,
+	FIREBALL = ENEMYSWARMHURT + 1,
+	SWORD = FIREBALL + 1,
+	WIZARDATTACK = SWORD + 1,
+	WIZARDIDLE = WIZARDATTACK + 1,
+	WIZARDWALK = WIZARDIDLE + 1,
+	GERM = WIZARDWALK + 1,
+	MENU = GERM + 1,
+	INGAMEMENU = MENU +1,
+	HPPOWERUP = INGAMEMENU + 1, 
+	ATTACKPOWERUP = HPPOWERUP + 1, 
+	MOVEMENTSPEEDPOWERUP = ATTACKPOWERUP + 1, 
+	DAMAGEPOWERUP = MOVEMENTSPEEDPOWERUP + 1, 
+	BACKGROUND = DAMAGEPOWERUP + 1, 
+	TEXTURE_COUNT = BACKGROUND + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
 enum class EFFECT_ASSET_ID {
 	COLOURED = 0,
-	PEBBLE = COLOURED + 1,
-	SALMON = PEBBLE + 1,
-	TEXTURED = SALMON + 1,
+	LINE = COLOURED + 1,
+	TEXTURED = LINE + 1,
 	WATER = TEXTURED + 1,
 	KNIGHT = WATER + 1,
-	EFFECT_COUNT = KNIGHT + 1
+	WIZARD = KNIGHT + 1,
+	ENEMY = WIZARD + 1,
+	EFFECT_COUNT = ENEMY + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
 enum class GEOMETRY_BUFFER_ID {
-	SALMON = 0,
-	SPRITE = SALMON + 1,
-	PEBBLE = SPRITE + 1,
-	DEBUG_LINE = PEBBLE + 1,
+	SPRITE = 0,
+	DEBUG_LINE = SPRITE + 1,
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,
 	WALLS = SCREEN_TRIANGLE + 1,
 	DOOR = WALLS + 1,
@@ -301,10 +509,12 @@ enum class GEOMETRY_BUFFER_ID {
 	HUNTER = WIZARD + 1,
 	BLOBBER = HUNTER + 1,
 	RUNNER = BLOBBER + 1,
-	FIREBALL = RUNNER + 1,
-	TREE = FIREBALL + 1,
+	WATERBALL = RUNNER + 1,
+	TREE = WATERBALL + 1,
 	BACTERIA = TREE + 1,
-	GEOMETRY_COUNT = BACTERIA + 1
+	SWORD = BACTERIA + 1,
+	GERM = SWORD + 1,
+	GEOMETRY_COUNT = GERM + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
@@ -324,3 +534,23 @@ public:
 
 extern LevelFileLoader levelFileLoader; 
 
+class GameSaveDataManager {
+private: 
+	int levelNumber; 
+	Entity playerStatEntity1; 
+	Entity playerStatEntity2; 
+	int playerModeFromFile = 1; 
+	void loadPlayerStats(Json::Value& root, int playerMode);
+	void savePlayerStats(Json::Value& root, Entity playerStatEntity, int playerNum);
+public: 
+	void saveFile(int playerMode); 
+	void setPlayerModeFromFile(); 
+	bool loadFile(); 
+	int getLevelNumber(); 
+	int getPlayerMode(); 
+	void setLevelNumber(int levelNumber);
+	void setPlayerStatEntity(Entity playerStatEntity1, Entity playerStatEntity2); 
+	void setPlayerStatEntity(Entity playerStatEntity1); 
+};
+
+extern GameSaveDataManager dataManager; 
