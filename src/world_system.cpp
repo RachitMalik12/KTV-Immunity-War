@@ -11,8 +11,8 @@
 // Create the fish world
 WorldSystem::WorldSystem()
 	: isLevelOver(false),
+	  isTransitionOver(false),
 	  firstEntranceToShop(true),
-	  isTransitionOver(false), 
 	  level_number(1)
 {
 	// Seeding rng with random device
@@ -1130,10 +1130,6 @@ void WorldSystem::levelCompletionCheck(float elapsed_ms_since_last_update) {
 				}
 				
 			}
-			// Only if we have levels left we need to change level 
-			//level_number = nextLevel;
-			//setupLevel(level_number);
-			// reduce window brightness if the level is ending
 		}
 	}
 }
@@ -1337,7 +1333,6 @@ void WorldSystem::setupLevel(int levelNum) {
 	while (registry.doors.entities.size() > 0)
 		registry.remove_all_components_of(registry.doors.entities.back());
 
-	createBackground(renderer, vec2(defaultResolution.width * defaultResolution.scaling, defaultResolution.height * defaultResolution.scaling));
 	// Close the door at the start of every level after player leaves the shop. 
 	createADoor(screen_width, screen_height);
 	createWalls(screen_width, screen_height);

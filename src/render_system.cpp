@@ -106,7 +106,25 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		assert(false && "Type of render request not supported");
 	}
 
-	// Getting lighting information
+	// Getting lighting information and condition
+	GLint in_shop = glGetUniformLocation(program, "in_shop");
+	if (twoPlayer.inTwoPlayerMode) {
+		if (registry.inShops.has(registry.players.entities[0]) || registry.inShops.has(registry.players.entities[1])) {
+			glUniform1i(in_shop, 1);
+		}
+		else {
+			glUniform1i(in_shop, 0);
+		}
+	}
+	else {
+		if (registry.inShops.has(registry.players.entities[0])) {
+			glUniform1i(in_shop, 1);
+		}
+		else {
+			glUniform1i(in_shop, 0);
+		}
+	}
+	 
 	GLint ambient_light = glGetUniformLocation(program, "ambient_light");
 	GLint light_source_pos = glGetUniformLocation(program, "light_source_pos");
 	GLint light_col = glGetUniformLocation(program, "light_col");
