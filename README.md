@@ -12,11 +12,11 @@ Required Features:
 
 -Keyframe Animation (frame animation) (BZ): For assets with getting hit sprites, we animate the getting hit sprite during the asset's invincibility frame. These are the player wizard, enemyHunter and enemySwarm. Also animated different sprite for each of enemyHunter's state. Also implemented sprite sheet for wizard idle, attack and movement animations.
 
--Keyframe Animation (fragment shader) (LT):
+-Keyframe Animation (fragment shader) (LT): In addition to animating the hit sprite as BZ described, the assets will also light up (yellow for enemies, red for knight) while the invincibility timer is still on to indicate to user that the sprite has been hit. For wizard, sprite darkens when it gets hit too.
 
 -Articulated Motion (BS): Implemented a swinging sword attack via articulated motion. Instead of rotating the sword around its own frame, it will rotate with respect to the knight's (its wielder's) object frame. Swords behave similarly to projectiles with a few exceptions: They do more damage, do not despawn on contact, and can only be swung in four directions. The sword is meant to be a far more practical weapon in close-quarters, giving the knight certain advantanges over the wizard.
 
--Advanced Fragment Shader (LT):
+-Advanced Fragment Shader (LT): Added lighting effect for the shop room. Lighting effect has ambient light (default light in the world) and also diffusion depending on the location of the object to the light source which is in the centre of the room. The further the player, enemies, background, sprites are from the light source the darker they get. Also for fragment shader, when game starts a new level, there is a fade in effect. When a level ends (when player(s) leave(s) shop, there is a fade out effect as well (screen darkens). Shader was also used to reflect enemy and knight's hp by calculating a scale value for enemy to appear more red until it dies, or for knight to appear darker until it dies.
 
 -Save and Reload (RM): Added a feature to save and load game state. It will save the player stats and current level in json. When the player leaves the game and loads it will resume with the level they saved on and their player stats.
 
@@ -47,6 +47,8 @@ Knight Animation Sliding fix (BZ): Stopping knight's movement animation was tied
 Player Rendering Over Other Assets fix + Help positioning (JK): Player was rendering over other items like Help and Menu, so fixed rendering order and added flags to make sure that players were not rendering over assets they were not supposed to. Also adjusted help positioning to display in the correct positions when in shop.
 
 Graphics Assets (JK): Created background asset, coin asset, numbered text (monospace) asset for later use with the shop, 6 cutscenes (full screen), main menu and in game menu designs/assets for buttons. These were all custom made and not taken from the web.
+
+Graphics Assets (LT): Per TA's suggestion from last milestone, implemented background by rendering it as a sprite. Added effects to background as well so that it can darken, brighten, and have light.
 
 Revised Project Proposal:
 
