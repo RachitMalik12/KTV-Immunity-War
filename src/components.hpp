@@ -75,6 +75,9 @@ struct EnemyChase
 	uint enemy_chase_max_dist_sq = 200 * 200;
 	int counter_value = 2000;
 	int counter_other_en_chase_value = 800;
+	float aiUpdateTime = 100.f;
+	float aiUpdateTimer = 0;
+	bool timeToUpdateAi = true;
 };
 
 // Enemy that will be attacked by wizard using projectile and tries to run away from wizard
@@ -82,8 +85,6 @@ struct EnemyChase
 struct EnemyRun
 {
 	int max_dist_wz_en_run = 50 * 50;
-	uint encounter = 0;
-	float counter_ms = 800;
 };
 
 // State machine feature
@@ -113,10 +114,6 @@ struct EnemyBacteria
 	std::queue<std::pair<int, int>> adjacentsQueue;
 	float next_bacteria_BFS_calculation;
 	float next_bacteria_PATH_calculation;
-
-	// encounter and timer for when this type of enemy gets hit
-	uint encounter = 0;
-	float counter_ms = 800;
 };
 
 // Behaviour Tree Enemy
@@ -239,6 +236,15 @@ struct DefaultResolution {
 };
 extern DefaultResolution defaultResolution;
 
+// SOURCE of lighting implementation
+// https://gamedev.stackexchange.com/questions/135458/combining-and-drawing-2d-lights-in-opengl
+struct Lighting {
+	vec3 ambient_light = vec3(0.5, 0.5, 0.5);
+	vec2 light_source_pos = vec2(0, 0);
+	vec3 light_col = vec3(0.999, 0.999, 0.999);
+	float light_intensity = 0.8;
+};
+
 // Sets the brightness of the screen
 struct ScreenState
 {
@@ -256,13 +262,13 @@ struct DebugComponent
 // A timer that will be associated to level ending
 struct EndLevelTimer
 {
-	float counter_ms = 3000;
+	float counter_ms = 1500;
 };
 
 // A timer that will be associated to level starting
 struct StartLevelTimer
 {
-	float counter_ms = 3000;
+	float counter_ms = 1500;
 };
 
 // A timer that will be associated to player(s) dying/game ending
@@ -358,6 +364,7 @@ struct WizardAnimation {
 	int idleMode = 0;
 	int walkMode = 1;
 	int attackMode = 2;
+	int hurtMode = 3;
 	bool isAnimatingHurt = false;
 };
 
@@ -487,8 +494,8 @@ enum class EFFECT_ASSET_ID {
 	WATER = TEXTURED + 1,
 	KNIGHT = WATER + 1,
 	WIZARD = KNIGHT + 1,
-	ENEMYRUN = WIZARD + 1,
-	EFFECT_COUNT = ENEMYRUN + 1
+	ENEMY = WIZARD + 1,
+	EFFECT_COUNT = ENEMY + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 

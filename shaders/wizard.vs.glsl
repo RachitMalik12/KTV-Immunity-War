@@ -6,6 +6,8 @@ in vec2 in_texcoord;
 
 // Passed to fragment shader
 out vec2 texcoord;
+out vec2 local_coord;
+out vec2 world_pos;
 
 // Application data
 uniform mat3 transform;
@@ -17,6 +19,7 @@ uniform int animationMode;
 
 void main()
 {
+	local_coord = in_position.xy;
 	float walkScale = 1.0 / 2.0;
 	float idleScale = 1.0 / 3.0;
 	float attackScale = 1.0 / 3.0;
@@ -27,11 +30,12 @@ void main()
 	} else if (animationMode == 1) {
 		texcoord.x = texcoord.x * walkScale;
 		texcoord.x += walkScale * frameWalk;
-	} else {
+	} else if (animationMode == 2) {
 		texcoord.x = texcoord.x * attackScale;
 		texcoord.x += attackScale * frameAttack;
 	}
 
 	vec3 pos = projection * transform * vec3(in_position.xy, 1.0);
+	world_pos = pos.xy;
 	gl_Position = vec4(pos.xy, in_position.z, 1.0);
 }

@@ -39,6 +39,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED)
 	{
 		textureEffectSetup(program,entity);
+		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::LINE)
 	{
@@ -65,6 +66,11 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		GLint yFrame = glGetUniformLocation(program, "yFrame");
 		glUniform1i(xFrame, knightAnimation.xFrame);
 		glUniform1i(yFrame, knightAnimation.yFrame);
+		GLfloat colorScale = glGetUniformLocation(program, "color_scale");
+		float color_scale_value = registry.playerStats.get(registry.players.get(entity).playerStat).maxHp - registry.players.get(entity).hp;
+		glUniform1f(colorScale, color_scale_value);
+		GLint inInvin = glGetUniformLocation(program, "inInvin");
+		glUniform1i(inInvin, registry.players.get(entity).isInvin);
 		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::WIZARD) {
@@ -78,37 +84,55 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glUniform1i(frameIdle, wizardAnimation.frameIdle);
 		glUniform1i(frameAttack, wizardAnimation.frameAttack);
 		glUniform1i(animationMode, wizardAnimation.animationMode);
+		GLfloat colorScale = glGetUniformLocation(program, "color_scale");
+		float color_scale_value = registry.playerStats.get(registry.players.get(entity).playerStat).maxHp - registry.players.get(entity).hp;
+		glUniform1f(colorScale, color_scale_value);
+		gl_has_errors();
 	}
-	else if (render_request.used_effect == EFFECT_ASSET_ID::ENEMYRUN)
+	else if (render_request.used_effect == EFFECT_ASSET_ID::ENEMY)
 	{
 		textureEffectSetup(program, entity);
-
-		GLint light_up_uloc = glGetUniformLocation(program, "light_up");
-		assert(light_up_uloc >= 0);
-
-		int light_up_cond = 0;
-		if (registry.enemiesrun.has(entity)) {
-			light_up_cond = registry.enemiesrun.get(entity).encounter;
-		}
-		else if (registry.enemyBacterias.has(entity)) {
-			light_up_cond = registry.enemyBacterias.get(entity).encounter;
-		}
-		//const int light_up_cond = registry.enemiesrun.get(entity).encounter;
-		glUniform1i(light_up_uloc, light_up_cond);
 		gl_has_errors();
-
-		// Get the Light up scale for enemy right now
-		GLuint light_up_scale_uloc = glGetUniformLocation(program, "light_up_scale");
-		const int light_up_scale_cond = (registry.enemies.get(entity).max_hp - registry.enemies.get(entity).hp) / registry.enemies.get(entity).max_hp;
-		glUniform1f(light_up_scale_uloc, light_up_scale_cond);
+		GLfloat colorScale = glGetUniformLocation(program, "color_scale");
+		float color_scale_value = registry.enemies.get(entity).max_hp - registry.enemies.get(entity).hp;
+		glUniform1f(colorScale, color_scale_value);
+		GLint inInvin = glGetUniformLocation(program, "inInvin");
+		glUniform1i(inInvin, registry.enemies.get(entity).isInvin);
 		gl_has_errors();
-
-
 	}
 	else
 	{
 		assert(false && "Type of render request not supported");
 	}
+
+	// Getting lighting information and condition
+	GLint in_shop = glGetUniformLocation(program, "in_shop");
+	if (twoPlayer.inTwoPlayerMode) {
+		if (registry.inShops.has(registry.players.entities[0]) || registry.inShops.has(registry.players.entities[1])) {
+			glUniform1i(in_shop, 1);
+		}
+		else {
+			glUniform1i(in_shop, 0);
+		}
+	}
+	else {
+		if (registry.inShops.has(registry.players.entities[0])) {
+			glUniform1i(in_shop, 1);
+		}
+		else {
+			glUniform1i(in_shop, 0);
+		}
+	}
+	GLint ambient_light = glGetUniformLocation(program, "ambient_light");
+	GLint light_source_pos = glGetUniformLocation(program, "light_source_pos");
+	GLint light_col = glGetUniformLocation(program, "light_col");
+	GLint light_intensity = glGetUniformLocation(program, "light_intensity");
+	Lighting lighting = Lighting();
+	glUniform3fv(ambient_light, 1, (float*)& lighting.ambient_light);
+	glUniform2fv(light_source_pos, 1, (float*)& lighting.light_source_pos);
+	glUniform3fv(light_col, 1, (float*)& lighting.light_col);
+	glUniform1f(light_intensity, lighting.light_intensity);
+	gl_has_errors();
 
 	// Getting uniform locations for glUniform* calls
 	GLint color_uloc = glGetUniformLocation(program, "fcolor");

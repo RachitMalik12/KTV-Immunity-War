@@ -2,8 +2,8 @@
 
 // From vertex shader
 in vec2 texcoord;
+in vec2 vpos; // Distance from local origin
 in vec2 world_pos;
-in vec2 local_pos;
 
 // Application data
 uniform sampler2D sampler0;
@@ -21,13 +21,10 @@ layout(location = 0) out  vec4 color;
 
 void main()
 {
+	float reddenFactor = 0.5;
 	color = vec4(fcolor, 1.0) * texture(sampler0, vec2(texcoord.x, texcoord.y));
+	color = vec4(color.r + reddenFactor * color_scale, color.g, color.b, color.a);
 
-	float darkenFactor = 0.3;
-	if (inInvin == 1) {
-		color = vec4(color.r - darkenFactor * color_scale, color.g - darkenFactor * color_scale, color.b - darkenFactor * color_scale, color.a);
-	}
-	
 	if (in_shop == 1) {
 		if(color.a < 1.0)
 			discard;
@@ -38,9 +35,9 @@ void main()
 		color = vec4(min(color.xyz * ((light_col * diffuse) + ambient_light), color.xyz), color.a);
 	}
 
-	float radius = distance(vec2(0.0), local_pos);
-	if (inInvin == 1 && radius < 0.4)
+	float radius = distance(vec2(0.0), vpos);
+	if (inInvin == 1 && radius < 0.3)
 	{
-		color.xyz += (0.4 - radius) * vec3(3.0, 0.0, 0.0);
+		color.xyz += (0.3 - radius) * vec3(1.0, 1.0, 0.0);
 	}
 }

@@ -65,19 +65,6 @@ void PhysicsSystem::handle_collision() {
 					}
 				}
 			}
-
-			if (registry.enemiesrun.has(entity_other)) {
-				if (!registry.enemiesrun.get(entity_other).encounter) {
-					registry.enemiesrun.get(entity_other).encounter = 1;
-				}
-			}
-
-			if (registry.enemyBacterias.has(entity_other)) {
-				if (!registry.enemyBacterias.get(entity_other).encounter) {
-					registry.enemyBacterias.get(entity_other).encounter = 1;
-				}
-			}
-
 		}
 
 		// Checking collision of enemies or enemies run with walls or blocks
@@ -190,9 +177,10 @@ void PhysicsSystem::resolvePlayerDamage(Entity playerEntity, int enemyDamage) {
 				registry.renderRequests.insert(
 					playerEntity,
 					{ TEXTURE_ASSET_ID::WIZARDHURT,
-						EFFECT_ASSET_ID::TEXTURED,
+						EFFECT_ASSET_ID::WIZARD,
 						GEOMETRY_BUFFER_ID::SPRITE });
 				registry.wizardAnimations.get(playerEntity).isAnimatingHurt = true;
+				registry.wizardAnimations.get(playerEntity).animationMode = registry.wizardAnimations.get(playerEntity).hurtMode;
 			}
 			else {
 				// TODO: Implement knight hit animation with fragment shader
@@ -539,7 +527,7 @@ void PhysicsSystem::enemyHitHandling(Entity enemyEntity) {
 		registry.renderRequests.insert(
 			enemyEntity,
 			{ TEXTURE_ASSET_ID::ENEMYHUNTERHURT,
-				EFFECT_ASSET_ID::TEXTURED,
+				EFFECT_ASSET_ID::ENEMY,
 				GEOMETRY_BUFFER_ID::SPRITE });
 		registry.enemyHunters.get(enemyEntity).isAnimatingHurt = true;
 	}
@@ -548,7 +536,7 @@ void PhysicsSystem::enemyHitHandling(Entity enemyEntity) {
 		registry.renderRequests.insert(
 			enemyEntity,
 			{ TEXTURE_ASSET_ID::ENEMYSWARMHURT,
-				EFFECT_ASSET_ID::TEXTURED,
+				EFFECT_ASSET_ID::ENEMY,
 				GEOMETRY_BUFFER_ID::SPRITE });
 		registry.enemySwarms.get(enemyEntity).isAnimatingHurt = true;
 	}

@@ -23,7 +23,7 @@ void AISystem::stepEnemyHunter(float elapsed_ms) {
 			registry.renderRequests.insert(
 				hunterEntity,
 				{ TEXTURE_ASSET_ID::ENEMYHUNTERFLEE,
-					EFFECT_ASSET_ID::TEXTURED,
+					EFFECT_ASSET_ID::ENEMY,
 					GEOMETRY_BUFFER_ID::SPRITE });
 			hunter.isAnimatingHurt = false;
 		}
@@ -36,7 +36,7 @@ void AISystem::stepEnemyHunter(float elapsed_ms) {
 						registry.renderRequests.insert(
 							hunterEntity,
 							{ TEXTURE_ASSET_ID::ENEMYHUNTERMAD,
-								EFFECT_ASSET_ID::TEXTURED,
+								EFFECT_ASSET_ID::ENEMY,
 								GEOMETRY_BUFFER_ID::SPRITE });
 						hunter.isAnimatingHurt = false;
 					}
@@ -69,7 +69,7 @@ void AISystem::resolveHunterAnimation(Entity hunterEntity, Enemy& hunterStatus, 
 			registry.renderRequests.insert(
 				hunterEntity,
 				{ TEXTURE_ASSET_ID::ENEMYHUNTER,
-					EFFECT_ASSET_ID::TEXTURED,
+					EFFECT_ASSET_ID::ENEMY,
 					GEOMETRY_BUFFER_ID::SPRITE });
 			hunter.isAnimatingHurt = false;
 		}
@@ -78,7 +78,7 @@ void AISystem::resolveHunterAnimation(Entity hunterEntity, Enemy& hunterStatus, 
 			registry.renderRequests.insert(
 				hunterEntity,
 				{ TEXTURE_ASSET_ID::ENEMYHUNTERMAD,
-					EFFECT_ASSET_ID::TEXTURED,
+					EFFECT_ASSET_ID::ENEMY,
 					GEOMETRY_BUFFER_ID::SPRITE });
 			hunter.isAnimatingHurt = false;
 		}
@@ -88,7 +88,7 @@ void AISystem::resolveHunterAnimation(Entity hunterEntity, Enemy& hunterStatus, 
 			registry.renderRequests.insert(
 				hunterEntity,
 				{ TEXTURE_ASSET_ID::ENEMYHUNTERFLEE,
-					EFFECT_ASSET_ID::TEXTURED,
+					EFFECT_ASSET_ID::ENEMY,
 					GEOMETRY_BUFFER_ID::SPRITE });
 			hunter.isAnimatingHurt = false;
 		}
@@ -360,56 +360,61 @@ void AISystem::stepEnemyBacteria(float elapsed_ms, float width, float height) {
 void AISystem::stepEnemyChase(float elapsed_ms) {
 	// update enemy chase so it chases the player
 	for (Entity entity : registry.enemyChase.entities) {
-		auto& enemyCom = registry.enemies.get(entity);
-		Motion& motion = registry.motions.get(entity);
-		Motion& motion_wz = *new Motion();
-		for (uint k = 0; k < registry.players.size(); k++) {
-			if (!registry.players.get(registry.players.entities[k]).isDead) {
-				motion_wz = registry.motions.get(registry.players.entities[k]);
-				break;
-			}
-		}
-		// check if it is close to any other enemyChase
-		// if yes, make it move in opposite direction for a certain time
-		for (Entity other_enemy_chase : registry.enemyChase.entities) {
-			if (other_enemy_chase != entity) {
-				Motion& motion_other_en_chase = registry.motions.get(other_enemy_chase);
-				vec2 dp = motion_other_en_chase.position - motion.position;
-				float dist_squared = dot(dp, dp);
-				if (dist_squared < registry.enemyChase.get(entity).enemy_chase_max_dist_sq) {
-					// set encounter to true
-					registry.enemyChase.get(entity).encounter = 1;
-					motion.velocity = vec2{ dp.x * -1.f, dp.y * -1.f };
+		EnemyChase& chase = registry.enemyChase.get(entity);
+		if (chase.timeToUpdateAi) {
+			auto& enemyCom = registry.enemies.get(entity);
+			Motion& motion = registry.motions.get(entity);
+			Entity playerEntity = pickAPlayer();
+			Motion& playerMotion = registry.motions.get(playerEntity);
+
+			// check if it is close to any other enemyChase
+			// if yes, make it move in opposite direction for a certain time
+			for (Entity other_enemy_chase : registry.enemyChase.entities) {
+				if (other_enemy_chase != entity) {
+					Motion& motion_other_en_chase = registry.motions.get(other_enemy_chase);
+					vec2 dp = motion_other_en_chase.position - motion.position;
+					float dist_squared = dot(dp, dp);
+					if (dist_squared < registry.enemyChase.get(entity).enemy_chase_max_dist_sq) {
+						// set encounter to true
+						registry.enemyChase.get(entity).encounter = 1;
+						motion.velocity = vec2{ dp.x * -1.f, dp.y * -1.f };
+					}
+					if (registry.enemyChase.get(entity).encounter == 1) {
+						registry.enemyChase.get(entity).counter_ms -= elapsed_ms;
+						if (registry.enemyChase.get(entity).counter_ms < 0) {
+							vec2 chase_to_wz = vec2(playerMotion.position.x - motion.position.x, playerMotion.position.y - motion.position.y);
+							float radians_for_angle = atan2f(-chase_to_wz.y, -chase_to_wz.x);
+							float radians = atan2f(chase_to_wz.y, chase_to_wz.x);
+							motion.angle = radians_for_angle;
+							motion.velocity = vec2(enemyCom.speed * cos(-radians), enemyCom.speed * sin(radians));
+							registry.enemyChase.get(entity).encounter == 0;
+							registry.enemyChase.get(entity).counter_other_en_chase_ms = registry.enemyChase.get(entity).counter_other_en_chase_value;
+						}
+					}
 				}
-				if (registry.enemyChase.get(entity).encounter == 1) {
+				else {
 					registry.enemyChase.get(entity).counter_ms -= elapsed_ms;
+					// reset timer and encounter variable when timer expires and
+					// recalculate direction turtle is facing
 					if (registry.enemyChase.get(entity).counter_ms < 0) {
-						vec2 chase_to_wz = vec2(motion_wz.position.x - motion.position.x, motion_wz.position.y - motion.position.y);
+						registry.enemyChase.get(entity).counter_ms = registry.enemyChase.get(entity).counter_value;
+						vec2 chase_to_wz = vec2(playerMotion.position.x - motion.position.x, playerMotion.position.y - motion.position.y);
 						float radians_for_angle = atan2f(-chase_to_wz.y, -chase_to_wz.x);
 						float radians = atan2f(chase_to_wz.y, chase_to_wz.x);
 						motion.angle = radians_for_angle;
 						motion.velocity = vec2(enemyCom.speed * cos(-radians), enemyCom.speed * sin(radians));
-						registry.enemyChase.get(entity).encounter == 0;
-						registry.enemyChase.get(entity).counter_other_en_chase_ms = registry.enemyChase.get(entity).counter_other_en_chase_value;
 					}
 				}
+				chase.timeToUpdateAi = false;
+				chase.aiUpdateTimer = chase.aiUpdateTime;
 			}
-			else {
-				registry.enemyChase.get(entity).counter_ms -= elapsed_ms;
-				// reset timer and encounter variable when timer expires and
-				// recalculate direction turtle is facing
-				if (registry.enemyChase.get(entity).counter_ms < 0) {
-					registry.enemyChase.get(entity).counter_ms = registry.enemyChase.get(entity).counter_value;
-					vec2 chase_to_wz = vec2(motion_wz.position.x - motion.position.x, motion_wz.position.y - motion.position.y);
-					float radians_for_angle = atan2f(-chase_to_wz.y, -chase_to_wz.x);
-					float radians = atan2f(chase_to_wz.y, chase_to_wz.x);
-					motion.angle = radians_for_angle;
-					motion.velocity = vec2(enemyCom.speed * cos(-radians), enemyCom.speed * sin(radians));
-				}
-			}
-
 		}
-
+		else {
+			chase.aiUpdateTimer -= elapsed_ms;
+			if (chase.aiUpdateTimer < 0) {
+				chase.timeToUpdateAi = true;
+			}
+		}
 	}
 }
 
@@ -626,7 +631,7 @@ void AISystem::stepEnemySwarm(float elapsed_ms) {
 			registry.renderRequests.insert(
 				swarmEntity,
 				{ TEXTURE_ASSET_ID::ENEMYSWARM,
-					EFFECT_ASSET_ID::TEXTURED,
+					EFFECT_ASSET_ID::ENEMY,
 					GEOMETRY_BUFFER_ID::SPRITE });
 			swarm.isAnimatingHurt = false;
 		}
