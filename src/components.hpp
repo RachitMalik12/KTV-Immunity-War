@@ -75,6 +75,9 @@ struct EnemyChase
 	uint enemy_chase_max_dist_sq = 200 * 200;
 	int counter_value = 2000;
 	int counter_other_en_chase_value = 800;
+	float aiUpdateTime = 100.f;
+	float aiUpdateTimer = 0;
+	bool timeToUpdateAi = true;
 };
 
 // Enemy that will be attacked by wizard using projectile and tries to run away from wizard

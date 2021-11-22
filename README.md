@@ -34,7 +34,7 @@ Memory and Performance profiling (BS): Using built-in profiling tools in Visual 
 
 Updating Window Title Improvement (BS): One of the improvements made was to only update the window title when necessary (Level switch, changes to player HP and money). Improvement described in the report mentioned above. 
 
-EnemyChase Memory and Performance Improvement (LT): 
+EnemyChase Memory and Performance Improvement (BZ): Added a timer to update AI and eliminated the memory leak.
 
 Bug and Feature Fixes: 
 
