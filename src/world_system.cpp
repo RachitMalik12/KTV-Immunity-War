@@ -1109,7 +1109,6 @@ void WorldSystem::levelCompletionCheck(float elapsed_ms_since_last_update) {
 	if (isLevelOver && isTransitionOver) {
 		int nextLevel = level_number + 1;
 		if (nextLevel <= levels.size()) {
-
 			ScreenState& screen = registry.screenStates.components[0];
 			float min_counter_ms = 3000.f;
 			for (Entity entity : registry.endLevelTimers.entities) {
