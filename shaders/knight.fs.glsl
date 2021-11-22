@@ -24,7 +24,9 @@ void main()
 	color = vec4(fcolor, 1.0) * texture(sampler0, vec2(texcoord.x, texcoord.y));
 
 	float darkenFactor = 0.3;
-	color = vec4(color.r - darkenFactor * color_scale, color.g - darkenFactor * color_scale, color.b - darkenFactor * color_scale, color.a);
+	if (inInvin == 1) {
+		color = vec4(color.r - darkenFactor * color_scale, color.g - darkenFactor * color_scale, color.b - darkenFactor * color_scale, color.a);
+	}
 	
 	if (in_shop == 1) {
 		if(color.a < 1.0)
