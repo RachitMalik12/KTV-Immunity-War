@@ -1091,7 +1091,9 @@ void WorldSystem::stopPlayerAtMouseDestination() {
 		MouseDestination& mouseDestination = registry.mouseDestinations.get(player2_wizard);
 
 		float pixelThreshold = 10.f;
-		if (abs(motion.position.x - mouseDestination.position.x) < (pixelThreshold * defaultResolution.scaling) && abs(motion.position.y - mouseDestination.position.y) < (pixelThreshold * defaultResolution.scaling)) {
+		bool not_out_bound_x = abs(motion.position.x - mouseDestination.position.x) < (pixelThreshold * defaultResolution.scaling);
+		bool not_out_bound_y = abs(motion.position.y - mouseDestination.position.y) < (pixelThreshold * defaultResolution.scaling);
+		if (not_out_bound_x && not_out_bound_y) {
 			registry.mouseDestinations.remove(player2_wizard);
 			motion.velocity = vec2(0, 0);
 		}

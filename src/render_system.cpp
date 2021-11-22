@@ -66,14 +66,11 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		GLint yFrame = glGetUniformLocation(program, "yFrame");
 		glUniform1i(xFrame, knightAnimation.xFrame);
 		glUniform1i(yFrame, knightAnimation.yFrame);
-
 		GLfloat colorScale = glGetUniformLocation(program, "color_scale");
 		float color_scale_value = registry.playerStats.get(registry.players.get(entity).playerStat).maxHp - registry.players.get(entity).hp;
 		glUniform1f(colorScale, color_scale_value);
-
 		GLint inInvin = glGetUniformLocation(program, "inInvin");
 		glUniform1i(inInvin, registry.players.get(entity).isInvin);
-
 		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::WIZARD) {
@@ -87,7 +84,6 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glUniform1i(frameIdle, wizardAnimation.frameIdle);
 		glUniform1i(frameAttack, wizardAnimation.frameAttack);
 		glUniform1i(animationMode, wizardAnimation.animationMode);
-
 		GLfloat colorScale = glGetUniformLocation(program, "color_scale");
 		float color_scale_value = registry.playerStats.get(registry.players.get(entity).playerStat).maxHp - registry.players.get(entity).hp;
 		glUniform1f(colorScale, color_scale_value);
@@ -97,16 +93,12 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	{
 		textureEffectSetup(program, entity);
 		gl_has_errors();
-
 		GLfloat colorScale = glGetUniformLocation(program, "color_scale");
 		float color_scale_value = registry.enemies.get(entity).max_hp - registry.enemies.get(entity).hp;
 		glUniform1f(colorScale, color_scale_value);
-
 		GLint inInvin = glGetUniformLocation(program, "inInvin");
 		glUniform1i(inInvin, registry.enemies.get(entity).isInvin);
-
 		gl_has_errors();
-
 	}
 	else
 	{
@@ -131,7 +123,6 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			glUniform1i(in_shop, 0);
 		}
 	}
-	 
 	GLint ambient_light = glGetUniformLocation(program, "ambient_light");
 	GLint light_source_pos = glGetUniformLocation(program, "light_source_pos");
 	GLint light_col = glGetUniformLocation(program, "light_col");
