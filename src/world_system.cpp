@@ -1162,7 +1162,9 @@ void WorldSystem::spawnPowerups(int n) {
 
 	for (int i = 0; i < n; i++) {
 		float xPos = colWidth * (i + 1);
-		chooseRandomPowerUp({ xPos, yPos}); 	
+		Entity powerUpEntity = chooseRandomPowerUp({ xPos, yPos}); 	
+		float priceYPositionAdjustment = 70.f * defaultResolution.scaling;
+		createNumber(renderer, vec2(xPos, yPos + priceYPositionAdjustment), registry.powerups.get(powerUpEntity).cost);
 	}
 }
 
@@ -1170,24 +1172,16 @@ Entity WorldSystem::chooseRandomPowerUp(vec2 pos) {
 	float random_choice = uniform_dist(rng);
 	float pricePlacementAdjustment = 70.f * defaultResolution.scaling;
 	if (random_choice < 0.25f) {
-		Entity powerUpEntity = createHpPowerup(pos);
-		createNumber(renderer, vec2(pos.x, pos.y - pricePlacementAdjustment), registry.powerups.get(powerUpEntity).cost);
-		return powerUpEntity;
+		return createHpPowerup(pos);
 	}
 	else if (random_choice >= 0.25f && random_choice <= 0.5f) {
-		Entity powerUpEntity = createDamagePowerup(pos);
-		createNumber(renderer, vec2(pos.x, pos.y - pricePlacementAdjustment), registry.powerups.get(powerUpEntity).cost);
-		return powerUpEntity;
+		return createDamagePowerup(pos);
 	}
 	else if (random_choice > 0.5f && random_choice <= 0.75f) {
-		Entity powerUpEntity = createAttackSpeedPowerup(pos);
-		createNumber(renderer, vec2(pos.x, pos.y - pricePlacementAdjustment), registry.powerups.get(powerUpEntity).cost);
-		return powerUpEntity;
+		return createAttackSpeedPowerup(pos);
 	}
 	else {
-		Entity powerUpEntity = createMovementSpeedPowerup(pos);
-		createNumber(renderer, vec2(pos.x, pos.y - pricePlacementAdjustment), registry.powerups.get(powerUpEntity).cost);
-		return powerUpEntity;
+		return createMovementSpeedPowerup(pos);
 	}
 }
 void WorldSystem::reviveKnight(Player& p1, PlayerStat& p1Stat) {
