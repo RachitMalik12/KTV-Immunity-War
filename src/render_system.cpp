@@ -100,6 +100,13 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glUniform1i(inInvin, registry.enemies.get(entity).isInvin);
 		gl_has_errors();
 	}
+	else if (render_request.used_effect == EFFECT_ASSET_ID::NUMBER)
+	{
+		textureEffectSetup(program, entity);
+		GLint frame = glGetUniformLocation(program, "frame");
+		glUniform1i(frame, registry.numbers.get(entity).frame);
+		gl_has_errors();
+	}
 	else
 	{
 		assert(false && "Type of render request not supported");

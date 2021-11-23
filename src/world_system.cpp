@@ -1168,17 +1168,26 @@ void WorldSystem::spawnPowerups(int n) {
 
 Entity WorldSystem::chooseRandomPowerUp(vec2 pos) {
 	float random_choice = uniform_dist(rng);
+	float pricePlacementAdjustment = 70.f * defaultResolution.scaling;
 	if (random_choice < 0.25f) {
-		return createHpPowerup(pos);
+		Entity powerUpEntity = createHpPowerup(pos);
+		createNumber(renderer, vec2(pos.x, pos.y - pricePlacementAdjustment), registry.powerups.get(powerUpEntity).cost);
+		return powerUpEntity;
 	}
 	else if (random_choice >= 0.25f && random_choice <= 0.5f) {
-		return createDamagePowerup(pos);
+		Entity powerUpEntity = createDamagePowerup(pos);
+		createNumber(renderer, vec2(pos.x, pos.y - pricePlacementAdjustment), registry.powerups.get(powerUpEntity).cost);
+		return powerUpEntity;
 	}
 	else if (random_choice > 0.5f && random_choice <= 0.75f) {
-		return createAttackSpeedPowerup(pos);
+		Entity powerUpEntity = createAttackSpeedPowerup(pos);
+		createNumber(renderer, vec2(pos.x, pos.y - pricePlacementAdjustment), registry.powerups.get(powerUpEntity).cost);
+		return powerUpEntity;
 	}
 	else {
-		return createMovementSpeedPowerup(pos); 
+		Entity powerUpEntity = createMovementSpeedPowerup(pos);
+		createNumber(renderer, vec2(pos.x, pos.y - pricePlacementAdjustment), registry.powerups.get(powerUpEntity).cost);
+		return powerUpEntity;
 	}
 }
 void WorldSystem::reviveKnight(Player& p1, PlayerStat& p1Stat) {

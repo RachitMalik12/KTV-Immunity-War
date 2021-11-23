@@ -80,7 +80,9 @@ class RenderSystem {
 			textures_path("attackSpeedUp.png"),
 			textures_path("movementUp.png"), 
 			textures_path("dmgUp.png"),
-			textures_path("background_new.png")
+			textures_path("background_new.png"),
+			textures_path("numbers.png"),
+			textures_path("coin.png"),
 
 	};
 
@@ -93,7 +95,8 @@ class RenderSystem {
 		shader_path("water"),
 		shader_path("knight"),
 		shader_path("wizard"),
-		shader_path("enemy")
+		shader_path("enemy"),
+		shader_path("number")
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;

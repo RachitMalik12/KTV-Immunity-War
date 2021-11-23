@@ -721,3 +721,48 @@ Entity createMovementSpeedPowerup(vec2 position) {
 
 	return entity;
 }
+
+/**
+	* Render a number between 0 and 99 inclusive on screen at the desierd position. If input number isn't in the correct range, render 0 instead.
+	*
+	* @param  singleDigitNumber   the number to be displayed on screen, non-negative single digit only or double digits only, meaning 0 - 99
+	* @return					  the newly created entity
+	*/
+Entity createNumber(RenderSystem* renderer, vec2 position, int number) {
+	// To avoid unexpected behaviour, any incorrect input will be treated as rendering a 0 on screen
+	if (number < 0 || number > 99) {
+		return createSingleDigitNumber(renderer, position, 0);
+	}
+	if (number < 10) {
+		return createSingleDigitNumber(renderer, position, number);
+	}
+	else {
+		return createDoubleDigitNumber(renderer, position, number);
+	}
+}
+
+Entity createSingleDigitNumber(RenderSystem* renderer, vec2 position, int singleDigitNumber) {
+	auto entity = Entity();
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = position;
+	motion.scale = vec2(NUMBER_BB_WIDTH * defaultResolution.scaling, NUMBER_BB_HEIGHT * defaultResolution.scaling);
+
+	Number& number = registry.numbers.emplace(entity);
+	number.frame = singleDigitNumber;
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::NUMBER,
+		  EFFECT_ASSET_ID::NUMBER,
+		  GEOMETRY_BUFFER_ID::SPRITE });
+	return entity;
+}
+
+Entity createDoubleDigitNumber(RenderSystem* renderer, vec2 position, int doubleDigitNumber) {
+	createSingleDigitNumber(renderer, vec2(position.x + (NUMBER_BB_HEIGHT * defaultResolution.scaling / 2), position.y), doubleDigitNumber % 10);
+	return createSingleDigitNumber(renderer, vec2(position.x - (NUMBER_BB_HEIGHT * defaultResolution.scaling / 2), position.y), doubleDigitNumber / 10);
+}

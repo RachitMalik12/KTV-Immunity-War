@@ -141,8 +141,8 @@ struct EnemySwarm {
 
 struct Powerup 
 {
+	// Please keep this between 0 and 99 inclusive to not mess up number rendering
 	int cost = 5; 
-
 };
 
 struct Wall
@@ -368,6 +368,10 @@ struct WizardAnimation {
 	bool isAnimatingHurt = false;
 };
 
+struct Number {
+	int frame;
+};
+
 struct Sword {
 	Entity belongToPlayer;
 	float max_distance_modifier = 2.f / 3.f;
@@ -482,8 +486,10 @@ enum class TEXTURE_ASSET_ID {
 	ATTACKPOWERUP = HPPOWERUP + 1, 
 	MOVEMENTSPEEDPOWERUP = ATTACKPOWERUP + 1, 
 	DAMAGEPOWERUP = MOVEMENTSPEEDPOWERUP + 1, 
-	BACKGROUND = DAMAGEPOWERUP + 1, 
-	TEXTURE_COUNT = BACKGROUND + 1
+	BACKGROUND = DAMAGEPOWERUP + 1,
+	NUMBER = BACKGROUND + 1,
+	COIN = NUMBER + 1,
+	TEXTURE_COUNT = COIN + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -495,7 +501,8 @@ enum class EFFECT_ASSET_ID {
 	KNIGHT = WATER + 1,
 	WIZARD = KNIGHT + 1,
 	ENEMY = WIZARD + 1,
-	EFFECT_COUNT = ENEMY + 1
+	NUMBER = ENEMY + 1,
+	EFFECT_COUNT = NUMBER + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
