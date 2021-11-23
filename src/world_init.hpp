@@ -45,8 +45,8 @@ const float ATTACK_POWERUP_WIDTH = 0.0615f * 1218.f;
 const float ATTACK_POWERUP_HEIGHT = 0.05112f * 1467.f; 
 const float BACKGROUND_BB_WIDTH = 1200.f;
 const float BACKGROUND_BB_HEIGHT = 1600.f;
-const float NUMBER_BB_HEIGHT = 0.6 * 85.f;
 const float NUMBER_BB_WIDTH = 0.6 * 69.7;
+const float NUMBER_BB_HEIGHT = 0.6 * 85.f;
 
 // background
 Entity createBackground(RenderSystem* renderer, vec2 pos);
