@@ -1336,6 +1336,8 @@ void WorldSystem::setupLevel(int levelNum) {
 		registry.remove_all_components_of(registry.walls.entities.back());
 	while (registry.doors.entities.size() > 0)
 		registry.remove_all_components_of(registry.doors.entities.back());
+	while (registry.numbers.entities.size() > 0)
+		registry.remove_all_components_of(registry.numbers.entities.back());
 
 	// Close the door at the start of every level after player leaves the shop. 
 	createADoor(screen_width, screen_height);
