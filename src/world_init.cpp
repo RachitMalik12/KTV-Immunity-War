@@ -762,6 +762,6 @@ Entity createSingleDigitNumber(RenderSystem* renderer, vec2 position, int single
 }
 
 Entity createDoubleDigitNumber(RenderSystem* renderer, vec2 position, int doubleDigitNumber) {
-	createSingleDigitNumber(renderer, vec2(position.x + (NUMBER_BB_HEIGHT * defaultResolution.scaling / 2), position.y), doubleDigitNumber % 10);
-	return createSingleDigitNumber(renderer, vec2(position.x - (NUMBER_BB_HEIGHT * defaultResolution.scaling / 2), position.y), doubleDigitNumber / 10);
+	createSingleDigitNumber(renderer, vec2(position.x + (NUMBER_BB_WIDTH * defaultResolution.scaling / 2), position.y), doubleDigitNumber % 10);
+	return createSingleDigitNumber(renderer, vec2(position.x - (NUMBER_BB_WIDTH * defaultResolution.scaling / 2), position.y), doubleDigitNumber / 10);
 }
