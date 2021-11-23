@@ -130,7 +130,6 @@ void PhysicsSystem::handlePowerUpCollisions(Player& playerCom, PlayerStat& playe
 		HpPowerUp& hpPowerup = registry.hpPowerup.get(entity);
 		playerStatCom.maxHp += hpPowerup.hpUpFactor;
 		playerCom.hp += hpPowerup.hpUpFactor;
-		registry.remove_all_components_of(entity);
 		if (isPlayerOne) {
 			title.p1hp = playerCom.hp;
 		}
@@ -142,21 +141,21 @@ void PhysicsSystem::handlePowerUpCollisions(Player& playerCom, PlayerStat& playe
 	if (registry.damagePowerUp.has(entity)) {
 		DamagePowerUp& damagePowerup = registry.damagePowerUp.get(entity);
 		playerStatCom.damage += damagePowerup.damageUpFactor;
-		registry.remove_all_components_of(entity);
 	}
 	if (registry.movementSpeedPowerup.has(entity)) {
 		MovementSpeedPowerUp& movementSpeedPowerup = registry.movementSpeedPowerup.get(entity);
 		playerStatCom.movementSpeed += (movementSpeedPowerup.movementSpeedUpFactor * defaultResolution.scaling);
-		registry.remove_all_components_of(entity);
 	}
 
 	if (registry.attackSpeedPowerUp.has(entity)) {
 		AtackSpeedPowerUp& attackSpeedPowerup = registry.attackSpeedPowerUp.get(entity);
 		playerStatCom.attackDelay -= (attackSpeedPowerup.delayReductionFactor * playerStatCom.attackDelay);
 		playerStatCom.projectileSpeed += (attackSpeedPowerup.projectileSpeedUpFactor * defaultResolution.scaling);
-		registry.remove_all_components_of(entity);
 	}
-
+	for (Entity numberEntity : registry.powerups.get(entity).priceNumbers) {
+		registry.remove_all_components_of(numberEntity);
+	}
+	registry.remove_all_components_of(entity);
 }
 
 void PhysicsSystem::resolvePlayerDamage(Entity playerEntity, int enemyDamage) {

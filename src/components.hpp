@@ -143,6 +143,7 @@ struct Powerup
 {
 	// Please keep this between 0 and 99 inclusive to not mess up number rendering
 	int cost = 5; 
+	std::vector<Entity> priceNumbers;
 };
 
 struct Wall

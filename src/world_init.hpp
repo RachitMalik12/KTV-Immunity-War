@@ -3,6 +3,7 @@
 #include "common.hpp"
 #include "tiny_ecs.hpp"
 #include "render_system.hpp"
+#include <vector>
 
 // These are hard coded to the dimensions of the entity texture
 const float WIZARD_BB_WIDTH = 0.08f * 1231.f;
@@ -124,6 +125,6 @@ Entity createAttackSpeedPowerup(vec2 position);
 Entity createMovementSpeedPowerup(vec2 position);
 
 // on screen text
-Entity createNumber(RenderSystem* renderer, vec2 position, int number);
+std::vector<Entity> createNumber(RenderSystem* renderer, vec2 position, int number);
 Entity createSingleDigitNumber(RenderSystem* renderer, vec2 position, int singleDigitNumber);
-Entity createDoubleDigitNumber(RenderSystem* renderer, vec2 position, int doubleDigitNumber);
+std::vector<Entity> createDoubleDigitNumber(RenderSystem* renderer, vec2 position, int doubleDigitNumber);

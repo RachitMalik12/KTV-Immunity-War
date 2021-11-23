@@ -728,12 +728,15 @@ Entity createMovementSpeedPowerup(vec2 position) {
 	* @param  singleDigitNumber   the number to be displayed on screen, non-negative single digit or double digits only, meaning 0 - 99
 	* @return					  the newly created entity
 	*/
-Entity createNumber(RenderSystem* renderer, vec2 position, int number) {
+std::vector<Entity> createNumber(RenderSystem* renderer, vec2 position, int number) {
+	std::vector<Entity> numberEntity;
 	if (number < 0 || number > 99) {
-		return createSingleDigitNumber(renderer, position, 0);
+		numberEntity.push_back(createSingleDigitNumber(renderer, position, 0));
+		return numberEntity;
 	}
 	if (number < 10) {
-		return createSingleDigitNumber(renderer, position, number);
+		numberEntity.push_back(createSingleDigitNumber(renderer, position, number));
+		return numberEntity;
 	}
 	else {
 		return createDoubleDigitNumber(renderer, position, number);
@@ -761,7 +764,11 @@ Entity createSingleDigitNumber(RenderSystem* renderer, vec2 position, int single
 	return entity;
 }
 
-Entity createDoubleDigitNumber(RenderSystem* renderer, vec2 position, int doubleDigitNumber) {
-	createSingleDigitNumber(renderer, vec2(position.x + (NUMBER_BB_WIDTH * defaultResolution.scaling / 2), position.y), doubleDigitNumber % 10);
-	return createSingleDigitNumber(renderer, vec2(position.x - (NUMBER_BB_WIDTH * defaultResolution.scaling / 2), position.y), doubleDigitNumber / 10);
+std::vector<Entity> createDoubleDigitNumber(RenderSystem* renderer, vec2 position, int doubleDigitNumber) {
+	std::vector<Entity> numberEntity;
+	Entity firstNumberEntity = createSingleDigitNumber(renderer, vec2(position.x + (NUMBER_BB_WIDTH * defaultResolution.scaling / 2), position.y), doubleDigitNumber % 10);
+	Entity secondNumberEntity = createSingleDigitNumber(renderer, vec2(position.x - (NUMBER_BB_WIDTH * defaultResolution.scaling / 2), position.y), doubleDigitNumber / 10);
+	numberEntity.push_back(firstNumberEntity);
+	numberEntity.push_back(secondNumberEntity);
+	return numberEntity;
 }
