@@ -674,7 +674,7 @@ Entity createDamagePowerup(vec2 position) {
 
 	registry.damagePowerUp.emplace(entity);
 	Powerup& powerup = registry.powerups.emplace(entity);
-	powerup.cost = 5;
+	powerup.cost = 10;
 
 	return entity;
 }
