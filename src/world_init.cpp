@@ -725,11 +725,10 @@ Entity createMovementSpeedPowerup(vec2 position) {
 /**
 	* Render a number between 0 and 99 inclusive on screen at the desierd position. If input number isn't in the correct range, render 0 instead.
 	*
-	* @param  singleDigitNumber   the number to be displayed on screen, non-negative single digit only or double digits only, meaning 0 - 99
+	* @param  singleDigitNumber   the number to be displayed on screen, non-negative single digit or double digits only, meaning 0 - 99
 	* @return					  the newly created entity
 	*/
 Entity createNumber(RenderSystem* renderer, vec2 position, int number) {
-	// To avoid unexpected behaviour, any incorrect input will be treated as rendering a 0 on screen
 	if (number < 0 || number > 99) {
 		return createSingleDigitNumber(renderer, position, 0);
 	}
