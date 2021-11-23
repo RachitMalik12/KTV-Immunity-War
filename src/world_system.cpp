@@ -1164,7 +1164,7 @@ void WorldSystem::spawnPowerups(int n) {
 		float xPos = colWidth * (i + 1);
 		Entity powerUpEntity = chooseRandomPowerUp({ xPos, yPos}); 	
 		float priceYPositionAdjustment = 70.f * defaultResolution.scaling;
-		attachAndRenderPriceNumbersToPowerup(powerUpEntity, vec2(xPos, yPos + priceYPositionAdjustment));
+		attachAndRenderPriceNumbers(powerUpEntity, vec2(xPos, yPos + priceYPositionAdjustment));
 	}
 }
 
@@ -1646,7 +1646,7 @@ bool WorldSystem::withinButtonBounds(float mouse_position, vec2 bounds) {
 
 }
 
-void WorldSystem::attachAndRenderPriceNumbersToPowerup(Entity powerUp, vec2 pos) {
+void WorldSystem::attachAndRenderPriceNumbers(Entity powerUp, vec2 pos) {
 	Powerup& powerup = registry.powerups.get(powerUp);
 	powerup.priceNumbers = createNumber(renderer, pos, powerup.cost);
 }

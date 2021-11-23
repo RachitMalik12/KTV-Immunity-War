@@ -101,7 +101,7 @@ private:
 	// misc
 	void playerTwoJoinOrLeave();
 	void updateTitle(int level);
-	void attachAndRenderPriceNumbersToPowerup(Entity powerUp, vec2 pos);
+	void attachAndRenderPriceNumbers(Entity powerUp, vec2 pos);
 	// animation
 	void knightFrameSetter(float elapsed_ms, KnightAnimation& knightAnimation);
 	void wizardAttackFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation);
