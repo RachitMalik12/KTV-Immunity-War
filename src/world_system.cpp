@@ -1170,7 +1170,6 @@ void WorldSystem::spawnPowerups(int n) {
 
 Entity WorldSystem::chooseRandomPowerUp(vec2 pos) {
 	float random_choice = uniform_dist(rng);
-	float pricePlacementAdjustment = 70.f * defaultResolution.scaling;
 	if (random_choice < 0.25f) {
 		return createHpPowerup(pos);
 	}
