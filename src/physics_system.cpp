@@ -25,45 +25,18 @@ void PhysicsSystem::handle_collision() {
 		// Checking collision of projectiles with other entities (enemies or enemies run)
 		if (registry.projectiles.has(entity)) {
 			if (registry.enemies.has(entity_other)) {
-				Enemy& enemyCom = registry.enemies.get(entity_other);
 				Player& playerCom = registry.players.get(registry.projectiles.get(entity).belongToPlayer);
 				PlayerStat& playerStatCom = registry.playerStats.get(playerCom.playerStat);
 				registry.remove_all_components_of(entity);
-				if (!enemyCom.isInvin) {
-					enemyCom.hp -= playerStatCom.damage;
-					if (enemyCom.hp <= 0) {
-						playerStatCom.money += enemyCom.loot;
-						title.p2money = playerStatCom.money;
-						title.updateWindowTitle();
-						registry.remove_all_components_of(entity_other);
-					} else {
-						enemyCom.isInvin = true;
-						enemyCom.invinTimerInMs = enemyCom.invinFrame;
-						enemyHitHandling(entity_other);
-					}
-				}
+				resolveEnemyHit(title, entity_other, playerStatCom);
 			}
 		}
 
 		if (registry.swords.has(entity)) {
 			if (registry.enemies.has(entity_other)) {
-				Enemy& enemyCom = registry.enemies.get(entity_other);
 				Player& playerCom = registry.players.get(registry.swords.get(entity).belongToPlayer);
 				PlayerStat& playerStatCom = registry.playerStats.get(playerCom.playerStat);
-				if (!enemyCom.isInvin) {
-					enemyCom.hp -= playerStatCom.damage;
-					if (enemyCom.hp <= 0) {
-						playerStatCom.money += enemyCom.loot;
-						title.p1money = playerStatCom.money;
-						title.updateWindowTitle();
-						registry.remove_all_components_of(entity_other);
-					}
-					else {
-						enemyCom.isInvin = true;
-						enemyCom.invinTimerInMs = enemyCom.invinFrame;
-						enemyHitHandling(entity_other);
-					}
-				}
+				resolveEnemyHit(title, entity_other, playerStatCom);
 			}
 		}
 
@@ -541,5 +514,26 @@ void PhysicsSystem::enemyHitHandling(Entity enemyEntity) {
 	}
 	else {
 		// TODO:: Implement enemy hit handling for rest of the enemies with fragment shaders
+	}
+}
+
+void PhysicsSystem::resolveEnemyHit(Title& title, Entity enemyEntity, PlayerStat& playerStatCom) {
+	Enemy& enemyCom = registry.enemies.get(enemyEntity);
+	if (!enemyCom.isInvin) {
+		enemyCom.hp -= playerStatCom.damage;
+		if (enemyCom.hp <= 0) {
+			playerStatCom.money += enemyCom.loot;
+			if (playerStatCom.money > 99) {
+				playerStatCom.money = 99;
+			}
+			title.p1money = playerStatCom.money;
+			title.updateWindowTitle();
+			registry.remove_all_components_of(enemyEntity);
+		}
+		else {
+			enemyCom.isInvin = true;
+			enemyCom.invinTimerInMs = enemyCom.invinFrame;
+			enemyHitHandling(enemyEntity);
+		}
 	}
 }

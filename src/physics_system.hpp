@@ -43,5 +43,6 @@ private:
 	void rotateSword(Entity entity, float elapsed_ms);
 	void enemyHitHandling(Entity enemyEntity);
 	void handlePowerUpCollisions(Player& playerCom, PlayerStat& playerStatCom, Entity entity, Title& title,
-		bool isPlayerOne, bool isPlayerTwo, int powerUpCost); 
+	bool isPlayerOne, bool isPlayerTwo, int powerUpCost);
+	void resolveEnemyHit(Title& title, Entity enemyEntity, PlayerStat& playerStatCom);
 };
