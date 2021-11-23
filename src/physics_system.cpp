@@ -25,45 +25,18 @@ void PhysicsSystem::handle_collision() {
 		// Checking collision of projectiles with other entities (enemies or enemies run)
 		if (registry.projectiles.has(entity)) {
 			if (registry.enemies.has(entity_other)) {
-				Enemy& enemyCom = registry.enemies.get(entity_other);
 				Player& playerCom = registry.players.get(registry.projectiles.get(entity).belongToPlayer);
 				PlayerStat& playerStatCom = registry.playerStats.get(playerCom.playerStat);
 				registry.remove_all_components_of(entity);
-				if (!enemyCom.isInvin) {
-					enemyCom.hp -= playerStatCom.damage;
-					if (enemyCom.hp <= 0) {
-						playerStatCom.money += enemyCom.loot;
-						title.p2money = playerStatCom.money;
-						title.updateWindowTitle();
-						registry.remove_all_components_of(entity_other);
-					} else {
-						enemyCom.isInvin = true;
-						enemyCom.invinTimerInMs = enemyCom.invinFrame;
-						enemyHitHandling(entity_other);
-					}
-				}
+				enemyHitStatUpdate(title, entity_other, playerStatCom);
 			}
 		}
 
 		if (registry.swords.has(entity)) {
 			if (registry.enemies.has(entity_other)) {
-				Enemy& enemyCom = registry.enemies.get(entity_other);
 				Player& playerCom = registry.players.get(registry.swords.get(entity).belongToPlayer);
 				PlayerStat& playerStatCom = registry.playerStats.get(playerCom.playerStat);
-				if (!enemyCom.isInvin) {
-					enemyCom.hp -= playerStatCom.damage;
-					if (enemyCom.hp <= 0) {
-						playerStatCom.money += enemyCom.loot;
-						title.p1money = playerStatCom.money;
-						title.updateWindowTitle();
-						registry.remove_all_components_of(entity_other);
-					}
-					else {
-						enemyCom.isInvin = true;
-						enemyCom.invinTimerInMs = enemyCom.invinFrame;
-						enemyHitHandling(entity_other);
-					}
-				}
+				enemyHitStatUpdate(title, entity_other, playerStatCom);
 			}
 		}
 
@@ -130,7 +103,6 @@ void PhysicsSystem::handlePowerUpCollisions(Player& playerCom, PlayerStat& playe
 		HpPowerUp& hpPowerup = registry.hpPowerup.get(entity);
 		playerStatCom.maxHp += hpPowerup.hpUpFactor;
 		playerCom.hp += hpPowerup.hpUpFactor;
-		registry.remove_all_components_of(entity);
 		if (isPlayerOne) {
 			title.p1hp = playerCom.hp;
 		}
@@ -142,21 +114,21 @@ void PhysicsSystem::handlePowerUpCollisions(Player& playerCom, PlayerStat& playe
 	if (registry.damagePowerUp.has(entity)) {
 		DamagePowerUp& damagePowerup = registry.damagePowerUp.get(entity);
 		playerStatCom.damage += damagePowerup.damageUpFactor;
-		registry.remove_all_components_of(entity);
 	}
 	if (registry.movementSpeedPowerup.has(entity)) {
 		MovementSpeedPowerUp& movementSpeedPowerup = registry.movementSpeedPowerup.get(entity);
 		playerStatCom.movementSpeed += (movementSpeedPowerup.movementSpeedUpFactor * defaultResolution.scaling);
-		registry.remove_all_components_of(entity);
 	}
 
 	if (registry.attackSpeedPowerUp.has(entity)) {
 		AtackSpeedPowerUp& attackSpeedPowerup = registry.attackSpeedPowerUp.get(entity);
 		playerStatCom.attackDelay -= (attackSpeedPowerup.delayReductionFactor * playerStatCom.attackDelay);
 		playerStatCom.projectileSpeed += (attackSpeedPowerup.projectileSpeedUpFactor * defaultResolution.scaling);
-		registry.remove_all_components_of(entity);
 	}
-
+	for (Entity numberEntity : registry.powerups.get(entity).priceNumbers) {
+		registry.remove_all_components_of(numberEntity);
+	}
+	registry.remove_all_components_of(entity);
 }
 
 void PhysicsSystem::resolvePlayerDamage(Entity playerEntity, int enemyDamage) {
@@ -183,7 +155,7 @@ void PhysicsSystem::resolvePlayerDamage(Entity playerEntity, int enemyDamage) {
 				registry.wizardAnimations.get(playerEntity).animationMode = registry.wizardAnimations.get(playerEntity).hurtMode;
 			}
 			else {
-				// TODO: Implement knight hit animation with fragment shader
+				// TODO: Implement knight hit animation with vertex shader
 			}
 		}
 	}
@@ -541,6 +513,27 @@ void PhysicsSystem::enemyHitHandling(Entity enemyEntity) {
 		registry.enemySwarms.get(enemyEntity).isAnimatingHurt = true;
 	}
 	else {
-		// TODO:: Implement enemy hit handling for rest of the enemies with fragment shaders
+		// TODO:: Implement enemy hit handling for rest of the enemies with vertex shaders
+	}
+}
+
+void PhysicsSystem::enemyHitStatUpdate(Title& title, Entity enemyEntity, PlayerStat& playerStatCom) {
+	Enemy& enemyCom = registry.enemies.get(enemyEntity);
+	if (!enemyCom.isInvin) {
+		enemyCom.hp -= playerStatCom.damage;
+		if (enemyCom.hp <= 0) {
+			playerStatCom.money += enemyCom.loot;
+			if (playerStatCom.money > 99) {
+				playerStatCom.money = 99;
+			}
+			title.p1money = playerStatCom.money;
+			title.updateWindowTitle();
+			registry.remove_all_components_of(enemyEntity);
+		}
+		else {
+			enemyCom.isInvin = true;
+			enemyCom.invinTimerInMs = enemyCom.invinFrame;
+			enemyHitHandling(enemyEntity);
+		}
 	}
 }

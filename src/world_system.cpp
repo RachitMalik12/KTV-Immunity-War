@@ -1162,7 +1162,9 @@ void WorldSystem::spawnPowerups(int n) {
 
 	for (int i = 0; i < n; i++) {
 		float xPos = colWidth * (i + 1);
-		chooseRandomPowerUp({ xPos, yPos}); 	
+		Entity powerUpEntity = chooseRandomPowerUp({ xPos, yPos}); 	
+		float priceYPositionAdjustment = 70.f * defaultResolution.scaling;
+		attachAndRenderPriceNumbers(powerUpEntity, vec2(xPos, yPos + priceYPositionAdjustment));
 	}
 }
 
@@ -1178,7 +1180,7 @@ Entity WorldSystem::chooseRandomPowerUp(vec2 pos) {
 		return createAttackSpeedPowerup(pos);
 	}
 	else {
-		return createMovementSpeedPowerup(pos); 
+		return createMovementSpeedPowerup(pos);
 	}
 }
 void WorldSystem::reviveKnight(Player& p1, PlayerStat& p1Stat) {
@@ -1333,6 +1335,8 @@ void WorldSystem::setupLevel(int levelNum) {
 		registry.remove_all_components_of(registry.walls.entities.back());
 	while (registry.doors.entities.size() > 0)
 		registry.remove_all_components_of(registry.doors.entities.back());
+	while (registry.numbers.entities.size() > 0)
+		registry.remove_all_components_of(registry.numbers.entities.back());
 
 	// Close the door at the start of every level after player leaves the shop. 
 	createADoor(screen_width, screen_height);
@@ -1640,4 +1644,9 @@ bool WorldSystem::withinButtonBounds(float mouse_position, vec2 bounds) {
 
 	return mouse_position > bounds[0] && mouse_position < bounds[1];
 
+}
+
+void WorldSystem::attachAndRenderPriceNumbers(Entity powerUp, vec2 pos) {
+	Powerup& powerup = registry.powerups.get(powerUp);
+	powerup.priceNumbers = createNumber(renderer, pos, powerup.cost);
 }

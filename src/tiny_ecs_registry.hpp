@@ -46,6 +46,7 @@ public:
 	ComponentContainer<Step> steps;
 	ComponentContainer<KnightAnimation> knightAnimations;
 	ComponentContainer<WizardAnimation> wizardAnimations;
+	ComponentContainer<Number> numbers;
 	ComponentContainer<StoryMode> storyModes;
 	ComponentContainer<Sword> swords;
 	ComponentContainer<Title> titles;
@@ -95,6 +96,7 @@ public:
 		registry_list.push_back(&steps);
 		registry_list.push_back(&knightAnimations);
 		registry_list.push_back(&wizardAnimations);
+		registry_list.push_back(&numbers);
 		registry_list.push_back(&storyModes);
 		registry_list.push_back(&swords);
 		registry_list.push_back(&titles);
