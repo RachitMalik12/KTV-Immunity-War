@@ -28,7 +28,7 @@ void PhysicsSystem::handle_collision() {
 				Player& playerCom = registry.players.get(registry.projectiles.get(entity).belongToPlayer);
 				PlayerStat& playerStatCom = registry.playerStats.get(playerCom.playerStat);
 				registry.remove_all_components_of(entity);
-				resolveEnemyHit(title, entity_other, playerStatCom);
+				enemyHitStatUpdate(title, entity_other, playerStatCom);
 			}
 		}
 
@@ -36,7 +36,7 @@ void PhysicsSystem::handle_collision() {
 			if (registry.enemies.has(entity_other)) {
 				Player& playerCom = registry.players.get(registry.swords.get(entity).belongToPlayer);
 				PlayerStat& playerStatCom = registry.playerStats.get(playerCom.playerStat);
-				resolveEnemyHit(title, entity_other, playerStatCom);
+				enemyHitStatUpdate(title, entity_other, playerStatCom);
 			}
 		}
 
@@ -155,7 +155,7 @@ void PhysicsSystem::resolvePlayerDamage(Entity playerEntity, int enemyDamage) {
 				registry.wizardAnimations.get(playerEntity).animationMode = registry.wizardAnimations.get(playerEntity).hurtMode;
 			}
 			else {
-				// TODO: Implement knight hit animation with fragment shader
+				// TODO: Implement knight hit animation with vertex shader
 			}
 		}
 	}
@@ -513,11 +513,11 @@ void PhysicsSystem::enemyHitHandling(Entity enemyEntity) {
 		registry.enemySwarms.get(enemyEntity).isAnimatingHurt = true;
 	}
 	else {
-		// TODO:: Implement enemy hit handling for rest of the enemies with fragment shaders
+		// TODO:: Implement enemy hit handling for rest of the enemies with vertex shaders
 	}
 }
 
-void PhysicsSystem::resolveEnemyHit(Title& title, Entity enemyEntity, PlayerStat& playerStatCom) {
+void PhysicsSystem::enemyHitStatUpdate(Title& title, Entity enemyEntity, PlayerStat& playerStatCom) {
 	Enemy& enemyCom = registry.enemies.get(enemyEntity);
 	if (!enemyCom.isInvin) {
 		enemyCom.hp -= playerStatCom.damage;

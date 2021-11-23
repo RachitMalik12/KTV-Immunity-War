@@ -44,5 +44,5 @@ private:
 	void enemyHitHandling(Entity enemyEntity);
 	void handlePowerUpCollisions(Player& playerCom, PlayerStat& playerStatCom, Entity entity, Title& title,
 	bool isPlayerOne, bool isPlayerTwo, int powerUpCost);
-	void resolveEnemyHit(Title& title, Entity enemyEntity, PlayerStat& playerStatCom);
+	void enemyHitStatUpdate(Title& title, Entity enemyEntity, PlayerStat& playerStatCom);
 };
