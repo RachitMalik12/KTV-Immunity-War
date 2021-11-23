@@ -124,6 +124,6 @@ Entity createAttackSpeedPowerup(vec2 position);
 Entity createMovementSpeedPowerup(vec2 position);
 
 // on screen text
-Entity createNumber(RenderSystem* renderer, vec2 position, int singleDigitNumber);
+Entity createNumber(RenderSystem* renderer, vec2 position, int number);
 Entity createSingleDigitNumber(RenderSystem* renderer, vec2 position, int singleDigitNumber);
 Entity createDoubleDigitNumber(RenderSystem* renderer, vec2 position, int doubleDigitNumber);
