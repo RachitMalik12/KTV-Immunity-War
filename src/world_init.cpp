@@ -729,14 +729,14 @@ Entity createMovementSpeedPowerup(vec2 position) {
 	* @return					  the newly created entity
 	*/
 std::vector<Entity> createNumber(RenderSystem* renderer, vec2 position, int number) {
-	std::vector<Entity> numberEntity;
+	std::vector<Entity> numberEntities;
 	if (number < 0 || number > 99) {
-		numberEntity.push_back(createSingleDigitNumber(renderer, position, 0));
-		return numberEntity;
+		numberEntities.push_back(createSingleDigitNumber(renderer, position, 0));
+		return numberEntities;
 	}
 	if (number < 10) {
-		numberEntity.push_back(createSingleDigitNumber(renderer, position, number));
-		return numberEntity;
+		numberEntities.push_back(createSingleDigitNumber(renderer, position, number));
+		return numberEntities;
 	}
 	else {
 		return createDoubleDigitNumber(renderer, position, number);
@@ -765,10 +765,10 @@ Entity createSingleDigitNumber(RenderSystem* renderer, vec2 position, int single
 }
 
 std::vector<Entity> createDoubleDigitNumber(RenderSystem* renderer, vec2 position, int doubleDigitNumber) {
-	std::vector<Entity> numberEntity;
+	std::vector<Entity> numberEntities;
 	Entity firstNumberEntity = createSingleDigitNumber(renderer, vec2(position.x + (NUMBER_BB_WIDTH * defaultResolution.scaling / 2), position.y), doubleDigitNumber % 10);
 	Entity secondNumberEntity = createSingleDigitNumber(renderer, vec2(position.x - (NUMBER_BB_WIDTH * defaultResolution.scaling / 2), position.y), doubleDigitNumber / 10);
-	numberEntity.push_back(firstNumberEntity);
-	numberEntity.push_back(secondNumberEntity);
-	return numberEntity;
+	numberEntities.push_back(firstNumberEntity);
+	numberEntities.push_back(secondNumberEntity);
+	return numberEntities;
 }
