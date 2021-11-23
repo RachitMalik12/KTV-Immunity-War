@@ -141,7 +141,7 @@ struct EnemySwarm {
 
 struct Powerup 
 {
-	// Please keep this between 0 and 99 inclusive to not mess up number rendering
+	// Price rendering only supports 0 - 99 inclusive
 	int cost = 5; 
 	std::vector<Entity> priceNumbers;
 };

@@ -723,20 +723,21 @@ Entity createMovementSpeedPowerup(vec2 position) {
 }
 
 /**
-	* Render a number between 0 and 99 inclusive on screen at the desierd position. If input number isn't in the correct range, render 0 instead.
+	* Render a number between 0 and 99 inclusive on screen at the desierd position. Will render 0 if range is incorrect.
 	*
 	* @param  singleDigitNumber   the number to be displayed on screen, non-negative single digit or double digits only, meaning 0 - 99
 	* @return					  the newly created entity
 	*/
 std::vector<Entity> createNumber(RenderSystem* renderer, vec2 position, int number) {
-	std::vector<Entity> numberEntities;
 	if (number < 0 || number > 99) {
-		numberEntities.push_back(createSingleDigitNumber(renderer, position, 0));
-		return numberEntities;
+		std::vector<Entity> numberEntity;
+		numberEntity.push_back(createSingleDigitNumber(renderer, position, 0));
+		return numberEntity;
 	}
 	if (number < 10) {
-		numberEntities.push_back(createSingleDigitNumber(renderer, position, number));
-		return numberEntities;
+		std::vector<Entity> numberEntity;
+		numberEntity.push_back(createSingleDigitNumber(renderer, position, number));
+		return numberEntity;
 	}
 	else {
 		return createDoubleDigitNumber(renderer, position, number);
@@ -766,9 +767,7 @@ Entity createSingleDigitNumber(RenderSystem* renderer, vec2 position, int single
 
 std::vector<Entity> createDoubleDigitNumber(RenderSystem* renderer, vec2 position, int doubleDigitNumber) {
 	std::vector<Entity> numberEntities;
-	Entity firstNumberEntity = createSingleDigitNumber(renderer, vec2(position.x + (NUMBER_BB_WIDTH * defaultResolution.scaling / 2), position.y), doubleDigitNumber % 10);
-	Entity secondNumberEntity = createSingleDigitNumber(renderer, vec2(position.x - (NUMBER_BB_WIDTH * defaultResolution.scaling / 2), position.y), doubleDigitNumber / 10);
-	numberEntities.push_back(firstNumberEntity);
-	numberEntities.push_back(secondNumberEntity);
+	numberEntities.push_back(createSingleDigitNumber(renderer, vec2(position.x + (NUMBER_BB_WIDTH * defaultResolution.scaling / 2), position.y), doubleDigitNumber % 10));
+	numberEntities.push_back(createSingleDigitNumber(renderer, vec2(position.x - (NUMBER_BB_WIDTH * defaultResolution.scaling / 2), position.y), doubleDigitNumber / 10));
 	return numberEntities;
 }
