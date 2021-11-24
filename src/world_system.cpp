@@ -1647,8 +1647,7 @@ bool WorldSystem::withinButtonBounds(float mouse_position, vec2 bounds) {
 
 void WorldSystem::attachAndRenderPriceNumbers(Entity powerUp, vec2 pos) {
 	Powerup& powerup = registry.powerups.get(powerUp);
-	vec2 priceNumberScale = vec2(NUMBER_BB_WIDTH, NUMBER_BB_HEIGHT);
-	powerup.priceNumbers = createNumber(pos, powerup.cost, priceNumberScale);
+	powerup.priceNumbers = createNumber(pos, powerup.cost);
 }
 
 void WorldSystem::scaleGameHUD() {
