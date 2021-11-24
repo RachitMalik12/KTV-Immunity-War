@@ -233,8 +233,8 @@ struct DefaultResolution {
 	float scaling;
 	float defaultHeight = 800.f;
 	float wallThickness = 40.f;
-	float shopWallThickness = 100.f;
-	float shopBufferZone = 50.f;
+	float shopWallThickness = 40.f;
+	float shopBufferZone = 40.f;
 };
 extern DefaultResolution defaultResolution;
 
