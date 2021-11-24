@@ -749,7 +749,7 @@ Entity createSingleDigitNumber(vec2 position, int singleDigitNumber, vec2 scale)
 
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = position;
-	motion.scale = scale;
+	motion.scale = scale * defaultResolution.scaling;
 
 	Number& number = registry.numbers.emplace(entity);
 	number.frame = singleDigitNumber;
@@ -779,7 +779,7 @@ Entity createHUD(vec2 position, Entity playerEntity) {
 	hud.headShot = createHeadshot(headShotPosition, playerEntity);
 	hud.coin = createCoin(vec2(position.x + HUD_COIN_BB_WIDTH * defaultResolution.scaling, position.y + (HUD_HP_BB_HEIGHT * defaultResolution.scaling)));
 	vec2 coinCountPosition = vec2(position.x + (2 * HUD_COIN_BB_WIDTH + (HUD_NUMBER_BB_WIDTH / 2)) * defaultResolution.scaling, position.y + HUD_HP_BB_HEIGHT * defaultResolution.scaling);
-	vec2 coinCountScaling = vec2(HUD_NUMBER_BB_WIDTH * defaultResolution.scaling, HUD_NUMBER_BB_HEIGHT * defaultResolution.scaling);
+	vec2 coinCountScaling = vec2(HUD_NUMBER_BB_WIDTH, HUD_NUMBER_BB_HEIGHT);
 	hud.coinCount = createNumber(coinCountPosition, playerStat.money, coinCountScaling);
 	return entity;
 }
