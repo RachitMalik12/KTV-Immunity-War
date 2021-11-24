@@ -459,12 +459,12 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		int moneyLimit = ps1.playerMoneyLimit;
 		if (twoPlayer.inTwoPlayerMode) {
 			PlayerStat& ps2 = registry.playerStats.get(player2_stat); 
-			ps1.money += moneyLimit;
-			ps2.money += moneyLimit;
+			ps1.money = moneyLimit;
+			ps2.money = moneyLimit;
 			updateWizardHudCoin();
 		}
 		else {
-			ps1.money += moneyLimit;
+			ps1.money = moneyLimit;
 		}
 		updateTitle(level_number); 
 		updateKnightHudCoin();
@@ -1408,11 +1408,9 @@ void WorldSystem::setupLevel(int levelNum) {
 	isTransitionOver = false;
 	firstEntranceToShop = true; 
 	updateTitle(levelNum);
-	gameHud.playerOneBattleRoomHudEntity = createHUD(gameHud.playerOneBattleRoomLocation, player_knight);
-	gameHud.playerOneShopRoomHudEntity = createHUD(gameHud.playerOneShopRoomLocation, player_knight);
+	gameHud.playerOneHudEntity = createHUD(gameHud.playerOneBattleRoomLocation, player_knight);
 	if (twoPlayer.inTwoPlayerMode) {
-		gameHud.playerTwoBattleRoomHudEntity = createHUD(gameHud.playerTwoBattleRoomLocation, player2_wizard);
-		gameHud.playerTwoShopRoomHudEntity = createHUD(gameHud.playerTwoShopRoomLocation, player2_wizard);
+		gameHud.playerTwoHudEntity = createHUD(gameHud.playerTwoBattleRoomLocation, player2_wizard);
 	}
 }
 
@@ -1677,12 +1675,7 @@ void WorldSystem::scaleGameHUD() {
 }
 
 void WorldSystem::removeWizardHud() {
-	removeHud(gameHud.playerTwoBattleRoomHudEntity);
-	removeHud(gameHud.playerTwoShopRoomHudEntity);
-}
-
-void WorldSystem::removeHud(Entity hudEntity) {
-	HUD& hud = registry.huds.get(hudEntity);
+	HUD& hud = registry.huds.get(gameHud.playerTwoHudEntity);
 	registry.remove_all_components_of(hud.coin);
 	registry.remove_all_components_of(hud.headShot);
 	while (!hud.hps.empty()) {
@@ -1693,5 +1686,5 @@ void WorldSystem::removeHud(Entity hudEntity) {
 		registry.remove_all_components_of(hud.coinCount.back());
 		hud.coinCount.pop_back();
 	}
-	registry.remove_all_components_of(hudEntity);
+	registry.remove_all_components_of(gameHud.playerTwoHudEntity);
 }

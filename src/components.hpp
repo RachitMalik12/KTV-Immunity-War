@@ -238,15 +238,18 @@ struct DefaultResolution {
 };
 extern DefaultResolution defaultResolution;
 
+enum HUDLocation {
+	BATTLE_ROOM,
+	SHOP_ROOM,
+};
 struct GameHUD {
 	vec2 playerOneBattleRoomLocation = vec2(50, 50);
 	vec2 playerTwoBattleRoomLocation = vec2(950, 50);
 	vec2 playerOneShopRoomLocation = vec2(50, 850);
 	vec2 playerTwoShopRoomLocation = vec2(950, 850);
-	Entity playerOneBattleRoomHudEntity;
-	Entity playerTwoBattleRoomHudEntity;
-	Entity playerOneShopRoomHudEntity;
-	Entity playerTwoShopRoomHudEntity;
+	Entity playerOneHudEntity;
+	Entity playerTwoHudEntity;
+	HUDLocation currentLocation = BATTLE_ROOM;
 };
 extern GameHUD gameHud;
 

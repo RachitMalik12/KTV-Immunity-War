@@ -153,3 +153,6 @@ void updateWizardHudHp();
 void updateWizardHudCoin();
 void updateHudHp(vec2 position, Entity hudEntity, Entity playerEntity);
 void updateHudCoin(vec2 position, Entity hudEntity, Entity playerEntity);
+void HUDLocationSwitch(Entity hudEntity);
+void moveHudFromShopToBattleRoom(Entity hudEntity);
+void moveHudFromBattleToShopRoom(Entity hudEntity);

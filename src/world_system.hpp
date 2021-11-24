@@ -109,7 +109,7 @@ private:
 	void attachAndRenderPriceNumbers(Entity powerUp, vec2 pos);
 	void scaleGameHUD();
 	void removeWizardHud();
-	void removeHud(Entity hudEntity);
+
 	// menu
 	void menuLogic(int menuType);
 	void createTitleScreen(vec2 mouse_position);

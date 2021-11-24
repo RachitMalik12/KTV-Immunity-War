@@ -4,6 +4,7 @@
 #include <SDL.h>
 
 #include "tiny_ecs_registry.hpp"
+#include "world_init.hpp"
 
 void RenderSystem::drawTexturedMesh(Entity entity,
 									const mat3 &projection)
@@ -285,8 +286,14 @@ void RenderSystem::playerOneTransition(bool leaveShop) {
 	Entity player2Entity = registry.players.entities[1];
 	if (leaveShop) {
 		registry.inShops.remove(player2Entity);
+		gameHud.currentLocation = BATTLE_ROOM;
+		HUDLocationSwitch(gameHud.playerOneHudEntity);
+		HUDLocationSwitch(gameHud.playerTwoHudEntity);
 	} else {
 		registry.inShops.emplace(player2Entity);
+		gameHud.currentLocation = SHOP_ROOM;
+		HUDLocationSwitch(gameHud.playerOneHudEntity);
+		HUDLocationSwitch(gameHud.playerTwoHudEntity);
 	}
 	registry.motions.get(player2Entity).velocity = vec2(0, 0);
 	if (registry.mouseDestinations.has(player2Entity))
@@ -306,9 +313,15 @@ void RenderSystem::playerTwoTransition(bool leaveShop, vec2 player2Pos) {
 	if (leaveShop) {
 		registry.motions.get(player2Entity).position.y -= defaultResolution.shopBufferZone * 3;
 		registry.inShops.remove(player2Entity);
+		gameHud.currentLocation = BATTLE_ROOM;
+		HUDLocationSwitch(gameHud.playerOneHudEntity);
+		HUDLocationSwitch(gameHud.playerTwoHudEntity);
 	} else {
 		registry.motions.get(player2Entity).position.y += defaultResolution.shopBufferZone * 3;
 		registry.inShops.emplace(player2Entity);
+		gameHud.currentLocation = SHOP_ROOM;
+		HUDLocationSwitch(gameHud.playerOneHudEntity);
+		HUDLocationSwitch(gameHud.playerTwoHudEntity);
 	}
 	registry.motions.get(player2Entity).velocity = vec2(0, 0);
 	if (registry.mouseDestinations.has(player2Entity)) {
@@ -383,12 +396,16 @@ mat3 RenderSystem::createProjectionMatrix(float left, float top)
 			// In the shop 
 			if (!registry.inShops.has(p1)) {
 				registry.inShops.emplace(p1);
+				gameHud.currentLocation = SHOP_ROOM;
+				HUDLocationSwitch(gameHud.playerOneHudEntity);
 			}
 		}
 		else if (player1Pos.y - h < defaultResolution.shopBufferZone) {
 			projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f} };
 			if (registry.inShops.has(p1)) {
 				registry.inShops.remove(p1);
+				gameHud.currentLocation = BATTLE_ROOM;
+				HUDLocationSwitch(gameHud.playerOneHudEntity);
 			}
 		}
 		else {
