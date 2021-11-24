@@ -867,40 +867,44 @@ void updateHudCoin(vec2 position, Entity hudEntity, Entity playerEntity) {
 	hud.coinCount = createNumber(coinCountPosition, playerStat.money, vec2(HUD_NUMBER_BB_WIDTH * defaultResolution.scaling, HUD_NUMBER_BB_HEIGHT * defaultResolution.scaling));
 }
 
-void updateKnightHudHp() {
-	Entity player_knight = registry.players.entities.front();
-	if (gameHud.currentLocation == BATTLE_ROOM) {
-		updateHudHp(gameHud.playerOneBattleRoomLocation, gameHud.playerOneHudEntity, player_knight);
+void updateHudHp(PlayerCharacter player) {
+	if (player == KNIGHT) {
+		Entity player_entity = registry.players.entities.front();
+		if (gameHud.currentLocation == BATTLE_ROOM) {
+			updateHudHp(gameHud.playerOneBattleRoomLocation, gameHud.playerOneHudEntity, player_entity);
+		}
+		else {
+			updateHudHp(gameHud.playerOneShopRoomLocation, gameHud.playerOneHudEntity, player_entity);
+		}
 	}
 	else {
-		updateHudHp(gameHud.playerOneShopRoomLocation, gameHud.playerOneHudEntity, player_knight);
+		Entity player_entity = registry.players.entities.back();
+		if (gameHud.currentLocation == BATTLE_ROOM) {
+			updateHudHp(gameHud.playerTwoBattleRoomLocation, gameHud.playerTwoHudEntity, player_entity);
+		}
+		else {
+			updateHudHp(gameHud.playerTwoShopRoomLocation, gameHud.playerTwoHudEntity, player_entity);
+		}
 	}
 }
-void updateKnightHudCoin() {
-	Entity player_knight = registry.players.entities.front();
-	if (gameHud.currentLocation == BATTLE_ROOM) {
-		updateHudCoin(gameHud.playerOneBattleRoomLocation, gameHud.playerOneHudEntity, player_knight);
+void updateHudCoin(PlayerCharacter player) {
+	if (player == KNIGHT) {
+		Entity player_entity = registry.players.entities.front();
+		if (gameHud.currentLocation == BATTLE_ROOM) {
+			updateHudCoin(gameHud.playerOneBattleRoomLocation, gameHud.playerOneHudEntity, player_entity);
+		}
+		else {
+			updateHudCoin(gameHud.playerOneShopRoomLocation, gameHud.playerOneHudEntity, player_entity);
+		}
 	}
 	else {
-		updateHudCoin(gameHud.playerOneShopRoomLocation, gameHud.playerOneHudEntity, player_knight);
-	}
-}
-void updateWizardHudHp() {
-	Entity player_wizard = registry.players.entities.back();
-	if (gameHud.currentLocation == BATTLE_ROOM) {
-		updateHudHp(gameHud.playerTwoBattleRoomLocation, gameHud.playerTwoHudEntity, player_wizard);
-	}
-	else {
-		updateHudHp(gameHud.playerTwoShopRoomLocation, gameHud.playerTwoHudEntity, player_wizard);
-	}
-}
-void updateWizardHudCoin() {
-	Entity player_wizard = registry.players.entities.back();
-	if (gameHud.currentLocation == BATTLE_ROOM) {
-		updateHudCoin(gameHud.playerTwoBattleRoomLocation, gameHud.playerTwoHudEntity, player_wizard);
-	}
-	else {
-		updateHudCoin(gameHud.playerTwoShopRoomLocation, gameHud.playerTwoHudEntity, player_wizard);
+		Entity player_entity = registry.players.entities.back();
+		if (gameHud.currentLocation == BATTLE_ROOM) {
+			updateHudCoin(gameHud.playerTwoBattleRoomLocation, gameHud.playerTwoHudEntity, player_entity);
+		}
+		else {
+			updateHudCoin(gameHud.playerTwoShopRoomLocation, gameHud.playerTwoHudEntity, player_entity);
+		}
 	}
 }
 

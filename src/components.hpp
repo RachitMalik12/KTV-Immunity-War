@@ -389,6 +389,11 @@ struct Number {
 	int frame;
 };
 
+enum PlayerCharacter {
+	KNIGHT,
+	WIZARD,
+};
+
 struct HUD {
 	Entity headShot;
 	Entity coin;

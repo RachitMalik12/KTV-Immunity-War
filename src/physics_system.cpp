@@ -64,10 +64,10 @@ void PhysicsSystem::handle_collision() {
 				}
 				title.updateWindowTitle();
 				if (entity_other.getId() == registry.players.entities.front()) {
-					updateKnightHudCoin();
+					updateHudCoin(KNIGHT);
 				}
 				else {
-					updateWizardHudCoin();
+					updateHudCoin(WIZARD);
 				}
 			}
 		}
@@ -109,11 +109,11 @@ void PhysicsSystem::handlePowerUpCollisions(Player& playerCom, PlayerStat& playe
 		playerCom.hp += hpPowerup.hpUpFactor;
 		if (isPlayerOne) {
 			title.p1hp = playerCom.hp;
-			updateKnightHudHp();
+			updateHudHp(KNIGHT);
 		}
 		else if (isPlayerTwo) {
 			title.p2hp = playerCom.hp;
-			updateWizardHudHp();
+			updateHudHp(WIZARD);
 		}
 		title.updateWindowTitle();
 	}
@@ -168,11 +168,11 @@ void PhysicsSystem::resolvePlayerDamage(Entity playerEntity, int enemyDamage) {
 	}
 	if (playerEntity.getId() == registry.players.entities[0].getId()) {
 		title.p1hp = player.hp;
-		updateKnightHudHp();
+		updateHudHp(KNIGHT);
 	}
 	else if (twoPlayer.inTwoPlayerMode) {
 		title.p2hp = player.hp;
-		updateWizardHudHp();
+		updateHudHp(WIZARD);
 	}
 	title.updateWindowTitle();
 }
@@ -540,11 +540,11 @@ void PhysicsSystem::enemyHitStatUpdate(Title& title, Entity enemyEntity, Entity 
 			}
 			if (playerEntity.getId() == registry.players.entities.front()) {
 				title.p1money = playerStatCom.money;
-				updateKnightHudCoin();
+				updateHudCoin(KNIGHT);
 			}
 			else {
 				title.p2money = playerStatCom.money;
-				updateWizardHudCoin();
+				updateHudCoin(WIZARD);
 			}
 			title.updateWindowTitle();
 			registry.remove_all_components_of(enemyEntity);

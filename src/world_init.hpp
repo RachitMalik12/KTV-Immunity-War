@@ -147,10 +147,8 @@ Entity createHp(vec2 position);
 std::vector<Entity> createHps(vec2 position, int hpCount);
 
 // hud update
-void updateKnightHudHp();
-void updateKnightHudCoin();
-void updateWizardHudHp();
-void updateWizardHudCoin();
+void updateHudHp(PlayerCharacter player);
+void updateHudCoin(PlayerCharacter player);
 void updateHudHp(vec2 position, Entity hudEntity, Entity playerEntity);
 void updateHudCoin(vec2 position, Entity hudEntity, Entity playerEntity);
 void HUDLocationSwitch(Entity hudEntity);

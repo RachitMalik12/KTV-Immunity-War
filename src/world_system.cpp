@@ -461,13 +461,13 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			PlayerStat& ps2 = registry.playerStats.get(player2_stat); 
 			ps1.money = moneyLimit;
 			ps2.money = moneyLimit;
-			updateWizardHudCoin();
+			updateHudCoin(WIZARD);
 		}
 		else {
 			ps1.money = moneyLimit;
 		}
 		updateTitle(level_number); 
-		updateKnightHudCoin();
+		updateHudCoin(KNIGHT);
 	}
 
 	// Debugging
@@ -1247,11 +1247,11 @@ void WorldSystem::reviveDeadPlayerInShop() {
 		// Restore the dead player so they can buy stuff. 
 		if (p1.isDead) {
 			reviveKnight(p1, p1Stat);
-			updateKnightHudHp();
+			updateHudHp(KNIGHT);
 		}
 		if (p2.isDead) {
 			reviveWizard(p2, p2Stat);
-			updateWizardHudHp();
+			updateHudHp(WIZARD);
 		}
 		updateTitle(level_number);
 	}
