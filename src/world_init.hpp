@@ -52,8 +52,6 @@ const float HUD_HP_BB_WIDTH = 0.0249 * 2048.f;
 const float HUD_HP_BB_HEIGHT = 0.0249 * 2048.f;
 const float HUD_COIN_BB_WIDTH = 0.0249 * 2048.f;
 const float HUD_COIN_BB_HEIGHT = 0.0249 * 2048.f;
-const float HUD_NUMBER_BB_WIDTH = 0.6 * 69.7;
-const float HUD_NUMBER_BB_HEIGHT = 0.6 * 85.f;
 const float HUD_KNIGHT_HEAD_BB_WIDTH = 1.7 * 30.f;
 const float HUD_KNIGHT_HEAD_BB_HEIGHT = 1.7 * 28.f;
 const float HUD_WIZARD_HEAD_BB_WIDTH = 0.02886 * 1231.f;
@@ -135,9 +133,9 @@ Entity createAttackSpeedPowerup(vec2 position);
 Entity createMovementSpeedPowerup(vec2 position);
 
 // on screen text
-std::vector<Entity> createNumber(vec2 position, int number, vec2 scale);
-Entity createSingleDigitNumber(vec2 position, int singleDigitNumber, vec2 scale);
-std::vector<Entity> createDoubleDigitNumber(vec2 position, int doubleDigitNumber, vec2 scale);
+std::vector<Entity> createNumber(vec2 position, int number);
+Entity createSingleDigitNumber(vec2 position, int singleDigitNumber);
+std::vector<Entity> createDoubleDigitNumber(vec2 position, int doubleDigitNumber);
 
 // HUD
 Entity createHUD(vec2 position, Entity playerEntity);

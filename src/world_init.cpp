@@ -728,28 +728,28 @@ Entity createMovementSpeedPowerup(vec2 position) {
 	* @param  singleDigitNumber   the number to be displayed on screen, non-negative single digit or double digits only, meaning 0 - 99
 	* @return					  the newly created entity
 	*/
-std::vector<Entity> createNumber(vec2 position, int number, vec2 scale) {
+std::vector<Entity> createNumber(vec2 position, int number) {
 	if (number < 0 || number > 99) {
 		std::vector<Entity> numberEntity;
-		numberEntity.push_back(createSingleDigitNumber(position, 0, scale));
+		numberEntity.push_back(createSingleDigitNumber(position, 0));
 		return numberEntity;
 	}
 	if (number < 10) {
 		std::vector<Entity> numberEntity;
-		numberEntity.push_back(createSingleDigitNumber(position, number, scale));
+		numberEntity.push_back(createSingleDigitNumber(position, number));
 		return numberEntity;
 	}
 	else {
-		return createDoubleDigitNumber(position, number, scale);
+		return createDoubleDigitNumber(position, number);
 	}
 }
 
-Entity createSingleDigitNumber(vec2 position, int singleDigitNumber, vec2 scale) {
+Entity createSingleDigitNumber(vec2 position, int singleDigitNumber) {
 	auto entity = Entity();
 
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = position;
-	motion.scale = scale * defaultResolution.scaling;
+	motion.scale = vec2(NUMBER_BB_WIDTH * defaultResolution.scaling, NUMBER_BB_HEIGHT * defaultResolution.scaling);
 
 	Number& number = registry.numbers.emplace(entity);
 	number.frame = singleDigitNumber;
@@ -762,10 +762,10 @@ Entity createSingleDigitNumber(vec2 position, int singleDigitNumber, vec2 scale)
 	return entity;
 }
 
-std::vector<Entity> createDoubleDigitNumber(vec2 position, int doubleDigitNumber, vec2 scale) {
+std::vector<Entity> createDoubleDigitNumber(vec2 position, int doubleDigitNumber) {
 	std::vector<Entity> numberEntities;
-	numberEntities.push_back(createSingleDigitNumber(vec2(position.x + (scale.x / 2) * defaultResolution.scaling, position.y), doubleDigitNumber % 10, scale));
-	numberEntities.push_back(createSingleDigitNumber(vec2(position.x - (scale.x / 2) * defaultResolution.scaling, position.y), doubleDigitNumber / 10, scale));
+	numberEntities.push_back(createSingleDigitNumber(vec2(position.x + (NUMBER_BB_WIDTH / 2) * defaultResolution.scaling, position.y), doubleDigitNumber % 10));
+	numberEntities.push_back(createSingleDigitNumber(vec2(position.x - (NUMBER_BB_WIDTH / 2) * defaultResolution.scaling, position.y), doubleDigitNumber / 10));
 	return numberEntities;
 }
 
@@ -778,9 +778,8 @@ Entity createHUD(vec2 position, Entity playerEntity) {
 	vec2 headShotPosition = vec2(position.x, position.y + (HUD_HP_BB_HEIGHT * defaultResolution.scaling));
 	hud.headShot = createHeadshot(headShotPosition, playerEntity);
 	hud.coin = createCoin(vec2(position.x + HUD_COIN_BB_WIDTH * defaultResolution.scaling, position.y + (HUD_HP_BB_HEIGHT * defaultResolution.scaling)));
-	vec2 coinCountPosition = vec2(position.x + (2 * HUD_COIN_BB_WIDTH + (HUD_NUMBER_BB_WIDTH / 2)) * defaultResolution.scaling, position.y + HUD_HP_BB_HEIGHT * defaultResolution.scaling);
-	vec2 coinCountScaling = vec2(HUD_NUMBER_BB_WIDTH, HUD_NUMBER_BB_HEIGHT);
-	hud.coinCount = createNumber(coinCountPosition, playerStat.money, coinCountScaling);
+	vec2 coinCountPosition = vec2(position.x + (2 * HUD_COIN_BB_WIDTH + (NUMBER_BB_WIDTH / 2)) * defaultResolution.scaling, position.y + HUD_HP_BB_HEIGHT * defaultResolution.scaling);
+	hud.coinCount = createNumber(coinCountPosition, playerStat.money);
 	return entity;
 }
 
@@ -866,8 +865,8 @@ void updateHudCoin(vec2 position, Entity hudEntity, Entity playerEntity) {
 		registry.remove_all_components_of(hud.coinCount.back());
 		hud.coinCount.pop_back();
 	}
-	vec2 coinCountPosition = vec2(position.x + (2 * HUD_COIN_BB_WIDTH + (HUD_NUMBER_BB_WIDTH / 2)) * defaultResolution.scaling, position.y + HUD_HP_BB_HEIGHT * defaultResolution.scaling);
-	hud.coinCount = createNumber(coinCountPosition, playerStat.money, vec2(HUD_NUMBER_BB_WIDTH, HUD_NUMBER_BB_HEIGHT));
+	vec2 coinCountPosition = vec2(position.x + (2 * HUD_COIN_BB_WIDTH + (NUMBER_BB_WIDTH / 2)) * defaultResolution.scaling, position.y + HUD_HP_BB_HEIGHT * defaultResolution.scaling);
+	hud.coinCount = createNumber(coinCountPosition, playerStat.money);
 }
 
 void updateHudHp(PlayerCharacter player) {
