@@ -1157,9 +1157,6 @@ void WorldSystem::spawnPowerups(int n) {
 	// We want to divide the screen width into n+1 equal columns to space the powerups
 	float numCols = static_cast<float>(n + 1); 
 	float colWidth = width / numCols; 
-	// Clear all the old powerups from the previous level. 
-	while (registry.powerups.entities.size() > 0)
-		registry.remove_all_components_of(registry.powerups.entities.back());
 
 	for (int i = 0; i < n; i++) {
 		float xPos = colWidth * (i + 1);
@@ -1343,6 +1340,8 @@ void WorldSystem::setupLevel(int levelNum) {
 		registry.remove_all_components_of(registry.hudElements.entities.back());
 	while (registry.huds.entities.size() > 0)
 		registry.remove_all_components_of(registry.huds.entities.back());
+	while (registry.powerups.entities.size() > 0)
+		registry.remove_all_components_of(registry.powerups.entities.back());
 
 	// Close the door at the start of every level after player leaves the shop. 
 	createADoor(screen_width, screen_height);
