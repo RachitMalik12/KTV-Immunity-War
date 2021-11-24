@@ -115,6 +115,7 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 	auto entity = Entity();
 	registry.titles.emplace(entity);
 	registry.titles.get(entity).window = window;
+	scaleGameHUD();
     restart_game();
 }
 
@@ -452,18 +453,21 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		while (registry.enemies.entities.size() > 0)
 			registry.remove_all_components_of(registry.enemies.entities.back());
 	}
-	// Debug mode - give player 1000 dollars.
+	// Debug mode - give player 99 dollars.
 	if (action == GLFW_RELEASE && key == GLFW_KEY_N) {
 		PlayerStat& ps1 = registry.playerStats.get(player_stat);
+		int moneyLimit = ps1.playerMoneyLimit;
 		if (twoPlayer.inTwoPlayerMode) {
 			PlayerStat& ps2 = registry.playerStats.get(player2_stat); 
-			ps1.money += 1000.f; 
-			ps2.money += 1000.f; 
+			ps1.money += moneyLimit;
+			ps2.money += moneyLimit;
+			updateWizardHudCoin();
 		}
 		else {
-			ps1.money += 1000.f; 
+			ps1.money += moneyLimit;
 		}
 		updateTitle(level_number); 
+		updateKnightHudCoin();
 	}
 
 	// Debugging
@@ -1243,9 +1247,11 @@ void WorldSystem::reviveDeadPlayerInShop() {
 		// Restore the dead player so they can buy stuff. 
 		if (p1.isDead) {
 			reviveKnight(p1, p1Stat);
+			updateKnightHudHp();
 		}
 		if (p2.isDead) {
 			reviveWizard(p2, p2Stat);
+			updateWizardHudHp();
 		}
 		updateTitle(level_number);
 	}
@@ -1337,6 +1343,10 @@ void WorldSystem::setupLevel(int levelNum) {
 		registry.remove_all_components_of(registry.doors.entities.back());
 	while (registry.numbers.entities.size() > 0)
 		registry.remove_all_components_of(registry.numbers.entities.back());
+	while (registry.hudElements.entities.size() > 0)
+		registry.remove_all_components_of(registry.hudElements.entities.back());
+	while (registry.huds.entities.size() > 0)
+		registry.remove_all_components_of(registry.huds.entities.back());
 
 	// Close the door at the start of every level after player leaves the shop. 
 	createADoor(screen_width, screen_height);
@@ -1398,6 +1408,12 @@ void WorldSystem::setupLevel(int levelNum) {
 	isTransitionOver = false;
 	firstEntranceToShop = true; 
 	updateTitle(levelNum);
+	gameHud.playerOneBattleRoomHudEntity = createHUD(gameHud.playerOneBattleRoomLocation, player_knight);
+	gameHud.playerOneShopRoomHudEntity = createHUD(gameHud.playerOneShopRoomLocation, player_knight);
+	if (twoPlayer.inTwoPlayerMode) {
+		gameHud.playerTwoBattleRoomHudEntity = createHUD(gameHud.playerTwoBattleRoomLocation, player2_wizard);
+		gameHud.playerTwoShopRoomHudEntity = createHUD(gameHud.playerTwoShopRoomLocation, player2_wizard);
+	}
 }
 
 void WorldSystem::playerTwoJoinOrLeave() {
@@ -1408,6 +1424,7 @@ void WorldSystem::playerTwoJoinOrLeave() {
 		registry.remove_all_components_of(player2_wizard);
 		registry.remove_all_components_of(player2_stat);
 		updateTitle(level_number);
+		removeWizardHud();
 	}
 	else {
 		twoPlayer.inTwoPlayerMode = true;
@@ -1648,5 +1665,33 @@ bool WorldSystem::withinButtonBounds(float mouse_position, vec2 bounds) {
 
 void WorldSystem::attachAndRenderPriceNumbers(Entity powerUp, vec2 pos) {
 	Powerup& powerup = registry.powerups.get(powerUp);
-	powerup.priceNumbers = createNumber(renderer, pos, powerup.cost);
+	vec2 priceNumberScale = vec2(NUMBER_BB_WIDTH * defaultResolution.scaling, NUMBER_BB_HEIGHT * defaultResolution.scaling);
+	powerup.priceNumbers = createNumber(pos, powerup.cost, priceNumberScale);
+}
+
+void WorldSystem::scaleGameHUD() {
+	gameHud.playerOneBattleRoomLocation *= defaultResolution.scaling;
+	gameHud.playerTwoBattleRoomLocation *= defaultResolution.scaling;
+	gameHud.playerOneShopRoomLocation *= defaultResolution.scaling;
+	gameHud.playerTwoShopRoomLocation *= defaultResolution.scaling;
+}
+
+void WorldSystem::removeWizardHud() {
+	removeHud(gameHud.playerTwoBattleRoomHudEntity);
+	removeHud(gameHud.playerTwoShopRoomHudEntity);
+}
+
+void WorldSystem::removeHud(Entity hudEntity) {
+	HUD& hud = registry.huds.get(hudEntity);
+	registry.remove_all_components_of(hud.coin);
+	registry.remove_all_components_of(hud.headShot);
+	while (!hud.hps.empty()) {
+		registry.remove_all_components_of(hud.hps.back());
+		hud.hps.pop_back();
+	}
+	while (!hud.coinCount.empty()) {
+		registry.remove_all_components_of(hud.coinCount.back());
+		hud.coinCount.pop_back();
+	}
+	registry.remove_all_components_of(hudEntity);
 }

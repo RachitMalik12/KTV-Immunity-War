@@ -22,6 +22,7 @@ struct Player
 
 struct PlayerStat
 {
+	int playerMoneyLimit = 99;
 	float projectileSpeed = 300.f;
 	float attackDelay = 500.f;
 	float movementSpeed = 150.f;
@@ -237,6 +238,18 @@ struct DefaultResolution {
 };
 extern DefaultResolution defaultResolution;
 
+struct GameHUD {
+	vec2 playerOneBattleRoomLocation = vec2(50, 50);
+	vec2 playerTwoBattleRoomLocation = vec2(950, 50);
+	vec2 playerOneShopRoomLocation = vec2(50, 850);
+	vec2 playerTwoShopRoomLocation = vec2(950, 850);
+	Entity playerOneBattleRoomHudEntity;
+	Entity playerTwoBattleRoomHudEntity;
+	Entity playerOneShopRoomHudEntity;
+	Entity playerTwoShopRoomHudEntity;
+};
+extern GameHUD gameHud;
+
 // SOURCE of lighting implementation
 // https://gamedev.stackexchange.com/questions/135458/combining-and-drawing-2d-lights-in-opengl
 struct Lighting {
@@ -373,6 +386,17 @@ struct Number {
 	int frame;
 };
 
+struct HUD {
+	Entity headShot;
+	Entity coin;
+	std::vector<Entity> hps;
+	std::vector<Entity> coinCount;
+};
+
+struct HUDElement {
+
+};
+
 struct Sword {
 	Entity belongToPlayer;
 	float max_distance_modifier = 2.f / 3.f;
@@ -491,7 +515,9 @@ enum class TEXTURE_ASSET_ID {
 	NUMBER = BACKGROUND + 1,
 	COIN = NUMBER + 1,
 	HP = COIN + 1,
-	TEXTURE_COUNT = HP + 1
+	KNIGHTICON = HP + 1,
+	WIZARDICON = KNIGHTICON + 1,
+	TEXTURE_COUNT = WIZARDICON + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

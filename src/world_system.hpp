@@ -101,12 +101,15 @@ private:
 	// misc
 	void playerTwoJoinOrLeave();
 	void updateTitle(int level);
-	void attachAndRenderPriceNumbers(Entity powerUp, vec2 pos);
 	// animation
 	void knightFrameSetter(float elapsed_ms, KnightAnimation& knightAnimation);
 	void wizardAttackFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation);
 	void wizardWalkFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation);
 	void wizardIdleFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation);
+	void attachAndRenderPriceNumbers(Entity powerUp, vec2 pos);
+	void scaleGameHUD();
+	void removeWizardHud();
+	void removeHud(Entity hudEntity);
 	// menu
 	void menuLogic(int menuType);
 	void createTitleScreen(vec2 mouse_position);

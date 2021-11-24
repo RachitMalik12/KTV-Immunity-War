@@ -728,31 +728,28 @@ Entity createMovementSpeedPowerup(vec2 position) {
 	* @param  singleDigitNumber   the number to be displayed on screen, non-negative single digit or double digits only, meaning 0 - 99
 	* @return					  the newly created entity
 	*/
-std::vector<Entity> createNumber(RenderSystem* renderer, vec2 position, int number) {
+std::vector<Entity> createNumber(vec2 position, int number, vec2 scale) {
 	if (number < 0 || number > 99) {
 		std::vector<Entity> numberEntity;
-		numberEntity.push_back(createSingleDigitNumber(renderer, position, 0));
+		numberEntity.push_back(createSingleDigitNumber(position, 0, scale));
 		return numberEntity;
 	}
 	if (number < 10) {
 		std::vector<Entity> numberEntity;
-		numberEntity.push_back(createSingleDigitNumber(renderer, position, number));
+		numberEntity.push_back(createSingleDigitNumber(position, number, scale));
 		return numberEntity;
 	}
 	else {
-		return createDoubleDigitNumber(renderer, position, number);
+		return createDoubleDigitNumber(position, number, scale);
 	}
 }
 
-Entity createSingleDigitNumber(RenderSystem* renderer, vec2 position, int singleDigitNumber) {
+Entity createSingleDigitNumber(vec2 position, int singleDigitNumber, vec2 scale) {
 	auto entity = Entity();
-
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
 
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = position;
-	motion.scale = vec2(NUMBER_BB_WIDTH * defaultResolution.scaling, NUMBER_BB_HEIGHT * defaultResolution.scaling);
+	motion.scale = scale;
 
 	Number& number = registry.numbers.emplace(entity);
 	number.frame = singleDigitNumber;
@@ -765,9 +762,128 @@ Entity createSingleDigitNumber(RenderSystem* renderer, vec2 position, int single
 	return entity;
 }
 
-std::vector<Entity> createDoubleDigitNumber(RenderSystem* renderer, vec2 position, int doubleDigitNumber) {
+std::vector<Entity> createDoubleDigitNumber(vec2 position, int doubleDigitNumber, vec2 scale) {
 	std::vector<Entity> numberEntities;
-	numberEntities.push_back(createSingleDigitNumber(renderer, vec2(position.x + (NUMBER_BB_WIDTH * defaultResolution.scaling / 2), position.y), doubleDigitNumber % 10));
-	numberEntities.push_back(createSingleDigitNumber(renderer, vec2(position.x - (NUMBER_BB_WIDTH * defaultResolution.scaling / 2), position.y), doubleDigitNumber / 10));
+	numberEntities.push_back(createSingleDigitNumber(vec2(position.x + (scale.x * defaultResolution.scaling / 2), position.y), doubleDigitNumber % 10, scale));
+	numberEntities.push_back(createSingleDigitNumber(vec2(position.x - (scale.x * defaultResolution.scaling / 2), position.y), doubleDigitNumber / 10, scale));
 	return numberEntities;
+}
+
+Entity createHUD(vec2 position, Entity playerEntity) {
+	auto entity = Entity();
+	HUD& hud = registry.huds.emplace(entity);
+	Player& player = registry.players.get(playerEntity);
+	PlayerStat& playerStat = registry.playerStats.get(player.playerStat);
+	hud.hps = createHps(position, player.hp);
+	hud.headShot = createHeadshot(vec2(position.x, position.y + (HUD_HP_BB_HEIGHT * defaultResolution.scaling)), playerEntity);
+	hud.coin = createCoin(vec2(position.x + HUD_COIN_BB_WIDTH * defaultResolution.scaling, position.y + (HUD_HP_BB_HEIGHT * defaultResolution.scaling)));
+	vec2 coinCountPosition = vec2(position.x + (2 * HUD_COIN_BB_WIDTH + (HUD_NUMBER_BB_WIDTH / 2)) * defaultResolution.scaling, position.y + HUD_HP_BB_HEIGHT * defaultResolution.scaling);
+	hud.coinCount = createNumber(coinCountPosition, playerStat.money, vec2(HUD_NUMBER_BB_WIDTH * defaultResolution.scaling, HUD_NUMBER_BB_HEIGHT * defaultResolution.scaling));
+	return entity;
+}
+
+Entity createHeadshot(vec2 position, Entity playerEntity) {
+	auto entity = Entity();
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = position;
+	registry.hudElements.emplace(entity);
+	if (playerEntity.getId() == registry.players.entities.front()) {
+		motion.scale = vec2(HUD_KNIGHT_HEAD_BB_WIDTH * defaultResolution.scaling, HUD_KNIGHT_HEAD_BB_HEIGHT * defaultResolution.scaling);
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::KNIGHTICON,
+			  EFFECT_ASSET_ID::TEXTURED,
+			  GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	else {
+		motion.scale = vec2(HUD_WIZARD_HEAD_BB_WIDTH * defaultResolution.scaling, HUD_WIZARD_HEAD_BB_HEIGHT * defaultResolution.scaling);
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::WIZARDICON,
+			  EFFECT_ASSET_ID::TEXTURED,
+			  GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	return entity;
+}
+
+Entity createCoin(vec2 position) {
+	auto entity = Entity();
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = position;
+	motion.scale = vec2(HUD_COIN_BB_WIDTH * defaultResolution.scaling, HUD_COIN_BB_HEIGHT * defaultResolution.scaling);
+	registry.hudElements.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::COIN,
+		  EFFECT_ASSET_ID::TEXTURED,
+		  GEOMETRY_BUFFER_ID::SPRITE });
+	return entity;
+}
+
+Entity createHp(vec2 position) {
+	auto entity = Entity();
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = position;
+	motion.scale = vec2(HUD_HP_BB_WIDTH * defaultResolution.scaling, HUD_HP_BB_HEIGHT * defaultResolution.scaling);
+	registry.hudElements.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::HP,
+		  EFFECT_ASSET_ID::TEXTURED,
+		  GEOMETRY_BUFFER_ID::SPRITE });
+	return entity;
+}
+
+std::vector<Entity> createHps(vec2 position, int hpCount) {
+	const int maxHpShownOnHUD = 5;
+	if (hpCount > maxHpShownOnHUD) {
+		hpCount = maxHpShownOnHUD;
+	}
+	std::vector<Entity> hps;
+	for (int i = 0; i < hpCount; i++) {
+		hps.push_back(createHp(vec2(position.x + (i * HUD_HP_BB_WIDTH * defaultResolution.scaling), position.y)));
+	}
+	return hps;
+}
+
+void updateHudHp(vec2 position, Entity hudEntity, Entity playerEntity) {
+	HUD& hud = registry.huds.get(hudEntity);
+	Player& player = registry.players.get(playerEntity);
+	while (!hud.hps.empty()) {
+		registry.remove_all_components_of(hud.hps.back());
+		hud.hps.pop_back();
+	}
+	hud.hps = createHps(position, player.hp);
+}
+void updateHudCoin(vec2 position, Entity hudEntity, Entity playerEntity) {
+	HUD& hud = registry.huds.get(hudEntity);
+	Player& player = registry.players.get(playerEntity);
+	PlayerStat& playerStat = registry.playerStats.get(player.playerStat);
+	while (!hud.coinCount.empty()) {
+		registry.remove_all_components_of(hud.coinCount.back());
+		hud.coinCount.pop_back();
+	}
+	vec2 coinCountPosition = vec2(position.x + (2 * HUD_COIN_BB_WIDTH + (HUD_NUMBER_BB_WIDTH / 2)) * defaultResolution.scaling, position.y + HUD_HP_BB_HEIGHT * defaultResolution.scaling);
+	hud.coinCount = createNumber(coinCountPosition, playerStat.money, vec2(HUD_NUMBER_BB_WIDTH * defaultResolution.scaling, HUD_NUMBER_BB_HEIGHT * defaultResolution.scaling));
+}
+
+void updateKnightHudHp() {
+	Entity player_knight = registry.players.entities.front();
+	updateHudHp(gameHud.playerOneBattleRoomLocation, gameHud.playerOneBattleRoomHudEntity, player_knight);
+	updateHudHp(gameHud.playerOneShopRoomLocation, gameHud.playerOneShopRoomHudEntity, player_knight);
+}
+void updateKnightHudCoin() {
+	Entity player_knight = registry.players.entities.front();
+	updateHudCoin(gameHud.playerOneBattleRoomLocation, gameHud.playerOneBattleRoomHudEntity, player_knight);
+	updateHudCoin(gameHud.playerOneShopRoomLocation, gameHud.playerOneShopRoomHudEntity, player_knight);
+}
+void updateWizardHudHp() {
+	Entity player2_wizard = registry.players.entities.back();
+	updateHudHp(gameHud.playerTwoBattleRoomLocation, gameHud.playerTwoBattleRoomHudEntity, player2_wizard);
+	updateHudHp(gameHud.playerTwoShopRoomLocation, gameHud.playerTwoShopRoomHudEntity, player2_wizard);
+}
+void updateWizardHudCoin() {
+	Entity player2_wizard = registry.players.entities.back();
+	updateHudCoin(gameHud.playerTwoBattleRoomLocation, gameHud.playerTwoBattleRoomHudEntity, player2_wizard);
+	updateHudCoin(gameHud.playerTwoShopRoomLocation, gameHud.playerTwoShopRoomHudEntity, player2_wizard);
 }

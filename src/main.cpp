@@ -18,6 +18,7 @@ HelpMode helpMode;
 StoryMode storyMode;
 Step stepProgress;
 MenuMode menuMode;
+GameHUD gameHud;
 
 // Entry point
 int main()
