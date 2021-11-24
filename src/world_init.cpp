@@ -764,8 +764,8 @@ Entity createSingleDigitNumber(vec2 position, int singleDigitNumber, vec2 scale)
 
 std::vector<Entity> createDoubleDigitNumber(vec2 position, int doubleDigitNumber, vec2 scale) {
 	std::vector<Entity> numberEntities;
-	numberEntities.push_back(createSingleDigitNumber(vec2(position.x + (scale.x * defaultResolution.scaling / 2), position.y), doubleDigitNumber % 10, scale));
-	numberEntities.push_back(createSingleDigitNumber(vec2(position.x - (scale.x * defaultResolution.scaling / 2), position.y), doubleDigitNumber / 10, scale));
+	numberEntities.push_back(createSingleDigitNumber(vec2(position.x + (scale.x / 2) * defaultResolution.scaling, position.y), doubleDigitNumber % 10, scale));
+	numberEntities.push_back(createSingleDigitNumber(vec2(position.x - (scale.x / 2) * defaultResolution.scaling, position.y), doubleDigitNumber / 10, scale));
 	return numberEntities;
 }
 
