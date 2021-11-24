@@ -867,7 +867,7 @@ void updateHudCoin(vec2 position, Entity hudEntity, Entity playerEntity) {
 		hud.coinCount.pop_back();
 	}
 	vec2 coinCountPosition = vec2(position.x + (2 * HUD_COIN_BB_WIDTH + (HUD_NUMBER_BB_WIDTH / 2)) * defaultResolution.scaling, position.y + HUD_HP_BB_HEIGHT * defaultResolution.scaling);
-	hud.coinCount = createNumber(coinCountPosition, playerStat.money, vec2(HUD_NUMBER_BB_WIDTH * defaultResolution.scaling, HUD_NUMBER_BB_HEIGHT * defaultResolution.scaling));
+	hud.coinCount = createNumber(coinCountPosition, playerStat.money, vec2(HUD_NUMBER_BB_WIDTH, HUD_NUMBER_BB_HEIGHT));
 }
 
 void updateHudHp(PlayerCharacter player) {

@@ -1406,6 +1406,9 @@ void WorldSystem::setupLevel(int levelNum) {
 	if (twoPlayer.inTwoPlayerMode) {
 		gameHud.playerTwoHudEntity = createHUD(gameHud.playerTwoBattleRoomLocation, player2_wizard);
 	}
+	std::stringstream ss;
+	ss << "ktv: immunity war Level: " << levelNum;
+	glfwSetWindowTitle(window, ss.str().c_str());
 }
 
 void WorldSystem::playerTwoJoinOrLeave() {
