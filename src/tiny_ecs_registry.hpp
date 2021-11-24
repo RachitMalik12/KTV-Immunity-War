@@ -47,9 +47,10 @@ public:
 	ComponentContainer<KnightAnimation> knightAnimations;
 	ComponentContainer<WizardAnimation> wizardAnimations;
 	ComponentContainer<Number> numbers;
+	ComponentContainer<HUD> huds;
+	ComponentContainer<HUDElement> hudElements;
 	ComponentContainer<StoryMode> storyModes;
 	ComponentContainer<Sword> swords;
-	ComponentContainer<Title> titles;
 	ComponentContainer<MenuMode> menuModes;
 	ComponentContainer<MovementSpeedPowerUp> movementSpeedPowerup; 
 	ComponentContainer<HpPowerUp> hpPowerup; 
@@ -97,9 +98,10 @@ public:
 		registry_list.push_back(&knightAnimations);
 		registry_list.push_back(&wizardAnimations);
 		registry_list.push_back(&numbers);
+		registry_list.push_back(&huds);
+		registry_list.push_back(&hudElements);
 		registry_list.push_back(&storyModes);
 		registry_list.push_back(&swords);
-		registry_list.push_back(&titles);
 		registry_list.push_back(&menuModes);
 		registry_list.push_back(&movementSpeedPowerup); 
 		registry_list.push_back(&hpPowerup); 

@@ -22,6 +22,7 @@ struct Player
 
 struct PlayerStat
 {
+	int playerMoneyLimit = 99;
 	float projectileSpeed = 300.f;
 	float attackDelay = 500.f;
 	float movementSpeed = 150.f;
@@ -232,10 +233,25 @@ struct DefaultResolution {
 	float scaling;
 	float defaultHeight = 800.f;
 	float wallThickness = 40.f;
-	float shopWallThickness = 100.f;
-	float shopBufferZone = 50.f;
+	float shopWallThickness = 40.f;
+	float shopBufferZone = 40.f;
 };
 extern DefaultResolution defaultResolution;
+
+enum HUDLocation {
+	BATTLE_ROOM,
+	SHOP_ROOM,
+};
+struct GameHUD {
+	vec2 playerOneBattleRoomLocation = vec2(50, 50);
+	vec2 playerTwoBattleRoomLocation = vec2(950, 50);
+	vec2 playerOneShopRoomLocation = vec2(50, 850);
+	vec2 playerTwoShopRoomLocation = vec2(950, 850);
+	Entity playerOneHudEntity;
+	Entity playerTwoHudEntity;
+	HUDLocation currentLocation = BATTLE_ROOM;
+};
+extern GameHUD gameHud;
 
 // SOURCE of lighting implementation
 // https://gamedev.stackexchange.com/questions/135458/combining-and-drawing-2d-lights-in-opengl
@@ -373,6 +389,22 @@ struct Number {
 	int frame;
 };
 
+enum PlayerCharacter {
+	KNIGHT,
+	WIZARD,
+};
+
+struct HUD {
+	Entity headShot;
+	Entity coin;
+	std::vector<Entity> hps;
+	std::vector<Entity> coinCount;
+};
+
+struct HUDElement {
+
+};
+
 struct Sword {
 	Entity belongToPlayer;
 	float max_distance_modifier = 2.f / 3.f;
@@ -380,29 +412,6 @@ struct Sword {
 	float distance_traveled = 0;
 	float angular_velocity = M_PI / 8;
 	mat3 rotation;
-};
-
-struct Title {
-	GLFWwindow* window;
-	int level;
-	int p1hp;
-	int p2hp;
-	int p1money;
-	int p2money;
-	void updateWindowTitle() {
-		// Updating window title with money
-		std::stringstream title_ss;
-		// Get hp of player 1 and player 2 
-		title_ss << "Level: " << level;
-		if (twoPlayer.inTwoPlayerMode) {
-			title_ss << " P1 Money: " << p1money << " Health: " << p1hp
-				<< " & P2 Money: " << p2money << " Health: " << p2hp;
-		}
-		else {
-			title_ss << " Money: " << p1money << " & Health P1 " << p1hp;
-		}
-		glfwSetWindowTitle(window, title_ss.str().c_str());
-	}
 };
 
 struct Background {
@@ -491,7 +500,9 @@ enum class TEXTURE_ASSET_ID {
 	NUMBER = BACKGROUND + 1,
 	COIN = NUMBER + 1,
 	HP = COIN + 1,
-	TEXTURE_COUNT = HP + 1
+	KNIGHTICON = HP + 1,
+	WIZARDICON = KNIGHTICON + 1,
+	TEXTURE_COUNT = WIZARDICON + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

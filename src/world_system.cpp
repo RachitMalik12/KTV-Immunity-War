@@ -60,7 +60,7 @@ GLFWwindow* WorldSystem::create_window(int width, int height) {
 	glfwWindowHint(GLFW_RESIZABLE, 0);
 
 	// Create the main window (for rendering, keyboard, and mouse input)
-	window = glfwCreateWindow(width, height, "Project KTV", nullptr, nullptr);
+	window = glfwCreateWindow(width, height, "ktv: immunity war", nullptr, nullptr);
 	if (window == nullptr) {
 		fprintf(stderr, "Failed to glfwCreateWindow");
 		return nullptr;
@@ -113,8 +113,7 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 	// Playing background music indefinitely
 	Mix_PlayMusic(background_music, -1);
 	auto entity = Entity();
-	registry.titles.emplace(entity);
-	registry.titles.get(entity).window = window;
+	scaleGameHUD();
     restart_game();
 }
 
@@ -452,18 +451,20 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		while (registry.enemies.entities.size() > 0)
 			registry.remove_all_components_of(registry.enemies.entities.back());
 	}
-	// Debug mode - give player 1000 dollars.
+	// Debug mode - give player 99 dollars.
 	if (action == GLFW_RELEASE && key == GLFW_KEY_N) {
 		PlayerStat& ps1 = registry.playerStats.get(player_stat);
+		int moneyLimit = ps1.playerMoneyLimit;
 		if (twoPlayer.inTwoPlayerMode) {
 			PlayerStat& ps2 = registry.playerStats.get(player2_stat); 
-			ps1.money += 1000.f; 
-			ps2.money += 1000.f; 
+			ps1.money = moneyLimit;
+			ps2.money = moneyLimit;
+			updateHudCoin(WIZARD);
 		}
 		else {
-			ps1.money += 1000.f; 
+			ps1.money = moneyLimit;
 		}
-		updateTitle(level_number); 
+		updateHudCoin(KNIGHT);
 	}
 
 	// Debugging
@@ -1156,9 +1157,6 @@ void WorldSystem::spawnPowerups(int n) {
 	// We want to divide the screen width into n+1 equal columns to space the powerups
 	float numCols = static_cast<float>(n + 1); 
 	float colWidth = width / numCols; 
-	// Clear all the old powerups from the previous level. 
-	while (registry.powerups.entities.size() > 0)
-		registry.remove_all_components_of(registry.powerups.entities.back());
 
 	for (int i = 0; i < n; i++) {
 		float xPos = colWidth * (i + 1);
@@ -1243,11 +1241,12 @@ void WorldSystem::reviveDeadPlayerInShop() {
 		// Restore the dead player so they can buy stuff. 
 		if (p1.isDead) {
 			reviveKnight(p1, p1Stat);
+			updateHudHp(KNIGHT);
 		}
 		if (p2.isDead) {
 			reviveWizard(p2, p2Stat);
+			updateHudHp(WIZARD);
 		}
-		updateTitle(level_number);
 	}
 }
 
@@ -1337,6 +1336,12 @@ void WorldSystem::setupLevel(int levelNum) {
 		registry.remove_all_components_of(registry.doors.entities.back());
 	while (registry.numbers.entities.size() > 0)
 		registry.remove_all_components_of(registry.numbers.entities.back());
+	while (registry.hudElements.entities.size() > 0)
+		registry.remove_all_components_of(registry.hudElements.entities.back());
+	while (registry.huds.entities.size() > 0)
+		registry.remove_all_components_of(registry.huds.entities.back());
+	while (registry.powerups.entities.size() > 0)
+		registry.remove_all_components_of(registry.powerups.entities.back());
 
 	// Close the door at the start of every level after player leaves the shop. 
 	createADoor(screen_width, screen_height);
@@ -1397,7 +1402,13 @@ void WorldSystem::setupLevel(int levelNum) {
 	isLevelOver = false;
 	isTransitionOver = false;
 	firstEntranceToShop = true; 
-	updateTitle(levelNum);
+	gameHud.playerOneHudEntity = createHUD(gameHud.playerOneBattleRoomLocation, player_knight);
+	if (twoPlayer.inTwoPlayerMode) {
+		gameHud.playerTwoHudEntity = createHUD(gameHud.playerTwoBattleRoomLocation, player2_wizard);
+	}
+	std::stringstream ss;
+	ss << "ktv: immunity war Level: " << levelNum;
+	glfwSetWindowTitle(window, ss.str().c_str());
 }
 
 void WorldSystem::playerTwoJoinOrLeave() {
@@ -1407,7 +1418,7 @@ void WorldSystem::playerTwoJoinOrLeave() {
 		twoPlayer.inTwoPlayerMode = false;
 		registry.remove_all_components_of(player2_wizard);
 		registry.remove_all_components_of(player2_stat);
-		updateTitle(level_number);
+		removeWizardHud();
 	}
 	else {
 		twoPlayer.inTwoPlayerMode = true;
@@ -1438,18 +1449,6 @@ void WorldSystem::checkIfPlayersAreMoving() {
 					GEOMETRY_BUFFER_ID::SPRITE });
 		}
 	}
-}
-
-void WorldSystem::updateTitle(int level) {
-	Title& title = registry.titles.components[0];
-	title.level = level; 
-	title.p1hp = registry.players.get(player_knight).hp;
-	title.p1money = registry.playerStats.get(registry.players.get(player_knight).playerStat).money;
-	if (twoPlayer.inTwoPlayerMode) {
-		title.p2hp = registry.players.get(player2_wizard).hp;
-		title.p2money = registry.playerStats.get(registry.players.get(player2_wizard).playerStat).money;
-	}
-	title.updateWindowTitle();
 }
 
 void WorldSystem::knightFrameSetter(float elapsed_ms, KnightAnimation& knightAnimation)
@@ -1648,5 +1647,28 @@ bool WorldSystem::withinButtonBounds(float mouse_position, vec2 bounds) {
 
 void WorldSystem::attachAndRenderPriceNumbers(Entity powerUp, vec2 pos) {
 	Powerup& powerup = registry.powerups.get(powerUp);
-	powerup.priceNumbers = createNumber(renderer, pos, powerup.cost);
+	vec2 priceNumberScale = vec2(NUMBER_BB_WIDTH * defaultResolution.scaling, NUMBER_BB_HEIGHT * defaultResolution.scaling);
+	powerup.priceNumbers = createNumber(pos, powerup.cost, priceNumberScale);
+}
+
+void WorldSystem::scaleGameHUD() {
+	gameHud.playerOneBattleRoomLocation *= defaultResolution.scaling;
+	gameHud.playerTwoBattleRoomLocation *= defaultResolution.scaling;
+	gameHud.playerOneShopRoomLocation *= defaultResolution.scaling;
+	gameHud.playerTwoShopRoomLocation *= defaultResolution.scaling;
+}
+
+void WorldSystem::removeWizardHud() {
+	HUD& hud = registry.huds.get(gameHud.playerTwoHudEntity);
+	registry.remove_all_components_of(hud.coin);
+	registry.remove_all_components_of(hud.headShot);
+	while (!hud.hps.empty()) {
+		registry.remove_all_components_of(hud.hps.back());
+		hud.hps.pop_back();
+	}
+	while (!hud.coinCount.empty()) {
+		registry.remove_all_components_of(hud.coinCount.back());
+		hud.coinCount.pop_back();
+	}
+	registry.remove_all_components_of(gameHud.playerTwoHudEntity);
 }

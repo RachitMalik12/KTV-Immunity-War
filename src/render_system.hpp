@@ -83,7 +83,9 @@ class RenderSystem {
 			textures_path("background_new.png"),
 			textures_path("numbers.png"),
 			textures_path("coin.png"),
-			textures_path("hp.png")
+			textures_path("hp.png"),
+			textures_path("knightIcon.png"),
+			textures_path("wizard_earring.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
