@@ -775,10 +775,12 @@ Entity createHUD(vec2 position, Entity playerEntity) {
 	Player& player = registry.players.get(playerEntity);
 	PlayerStat& playerStat = registry.playerStats.get(player.playerStat);
 	hud.hps = createHps(position, player.hp);
-	hud.headShot = createHeadshot(vec2(position.x, position.y + (HUD_HP_BB_HEIGHT * defaultResolution.scaling)), playerEntity);
+	vec2 headShotPosition = vec2(position.x, position.y + (HUD_HP_BB_HEIGHT * defaultResolution.scaling));
+	hud.headShot = createHeadshot(headShotPosition, playerEntity);
 	hud.coin = createCoin(vec2(position.x + HUD_COIN_BB_WIDTH * defaultResolution.scaling, position.y + (HUD_HP_BB_HEIGHT * defaultResolution.scaling)));
 	vec2 coinCountPosition = vec2(position.x + (2 * HUD_COIN_BB_WIDTH + (HUD_NUMBER_BB_WIDTH / 2)) * defaultResolution.scaling, position.y + HUD_HP_BB_HEIGHT * defaultResolution.scaling);
-	hud.coinCount = createNumber(coinCountPosition, playerStat.money, vec2(HUD_NUMBER_BB_WIDTH * defaultResolution.scaling, HUD_NUMBER_BB_HEIGHT * defaultResolution.scaling));
+	vec2 coinCountScaling = vec2(HUD_NUMBER_BB_WIDTH * defaultResolution.scaling, HUD_NUMBER_BB_HEIGHT * defaultResolution.scaling);
+	hud.coinCount = createNumber(coinCountPosition, playerStat.money, coinCountScaling);
 	return entity;
 }
 
@@ -841,7 +843,8 @@ std::vector<Entity> createHps(vec2 position, int hpCount) {
 	}
 	std::vector<Entity> hps;
 	for (int i = 0; i < hpCount; i++) {
-		hps.push_back(createHp(vec2(position.x + (i * HUD_HP_BB_WIDTH * defaultResolution.scaling), position.y)));
+		vec2 curHpPosition = vec2(position.x + (i * HUD_HP_BB_WIDTH * defaultResolution.scaling), position.y);
+		hps.push_back(createHp(curHpPosition));
 	}
 	return hps;
 }

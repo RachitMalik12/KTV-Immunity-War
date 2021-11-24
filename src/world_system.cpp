@@ -60,7 +60,7 @@ GLFWwindow* WorldSystem::create_window(int width, int height) {
 	glfwWindowHint(GLFW_RESIZABLE, 0);
 
 	// Create the main window (for rendering, keyboard, and mouse input)
-	window = glfwCreateWindow(width, height, "Project KTV", nullptr, nullptr);
+	window = glfwCreateWindow(width, height, "ktv: immunity war", nullptr, nullptr);
 	if (window == nullptr) {
 		fprintf(stderr, "Failed to glfwCreateWindow");
 		return nullptr;
@@ -113,8 +113,6 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 	// Playing background music indefinitely
 	Mix_PlayMusic(background_music, -1);
 	auto entity = Entity();
-	registry.titles.emplace(entity);
-	registry.titles.get(entity).window = window;
 	scaleGameHUD();
     restart_game();
 }
@@ -466,7 +464,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		else {
 			ps1.money = moneyLimit;
 		}
-		updateTitle(level_number); 
 		updateHudCoin(KNIGHT);
 	}
 
@@ -1253,7 +1250,6 @@ void WorldSystem::reviveDeadPlayerInShop() {
 			reviveWizard(p2, p2Stat);
 			updateHudHp(WIZARD);
 		}
-		updateTitle(level_number);
 	}
 }
 
@@ -1407,7 +1403,6 @@ void WorldSystem::setupLevel(int levelNum) {
 	isLevelOver = false;
 	isTransitionOver = false;
 	firstEntranceToShop = true; 
-	updateTitle(levelNum);
 	gameHud.playerOneHudEntity = createHUD(gameHud.playerOneBattleRoomLocation, player_knight);
 	if (twoPlayer.inTwoPlayerMode) {
 		gameHud.playerTwoHudEntity = createHUD(gameHud.playerTwoBattleRoomLocation, player2_wizard);
@@ -1421,7 +1416,6 @@ void WorldSystem::playerTwoJoinOrLeave() {
 		twoPlayer.inTwoPlayerMode = false;
 		registry.remove_all_components_of(player2_wizard);
 		registry.remove_all_components_of(player2_stat);
-		updateTitle(level_number);
 		removeWizardHud();
 	}
 	else {
@@ -1453,18 +1447,6 @@ void WorldSystem::checkIfPlayersAreMoving() {
 					GEOMETRY_BUFFER_ID::SPRITE });
 		}
 	}
-}
-
-void WorldSystem::updateTitle(int level) {
-	Title& title = registry.titles.components[0];
-	title.level = level; 
-	title.p1hp = registry.players.get(player_knight).hp;
-	title.p1money = registry.playerStats.get(registry.players.get(player_knight).playerStat).money;
-	if (twoPlayer.inTwoPlayerMode) {
-		title.p2hp = registry.players.get(player2_wizard).hp;
-		title.p2money = registry.playerStats.get(registry.players.get(player2_wizard).playerStat).money;
-	}
-	title.updateWindowTitle();
 }
 
 void WorldSystem::knightFrameSetter(float elapsed_ms, KnightAnimation& knightAnimation)

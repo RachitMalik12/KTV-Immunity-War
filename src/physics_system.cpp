@@ -16,7 +16,6 @@ bool inline checkIfFundsArePresent(int playerMoney, int cost) {
 void PhysicsSystem::handle_collision() {
 	// Loop over all collisions detected by the physics system
 	auto& collisionsRegistry = registry.collisions;
-	Title& title = registry.titles.components[0];
 	for (uint i = 0; i < collisionsRegistry.components.size(); i++) {
 		// The entity and its collider
 		Entity entity = collisionsRegistry.entities[i];
@@ -27,14 +26,14 @@ void PhysicsSystem::handle_collision() {
 			if (registry.enemies.has(entity_other)) {
 				Entity playerEntity = registry.projectiles.get(entity).belongToPlayer;
 				registry.remove_all_components_of(entity);
-				enemyHitStatUpdate(title, entity_other, playerEntity);
+				enemyHitStatUpdate(entity_other, playerEntity);
 			}
 		}
 
 		if (registry.swords.has(entity)) {
 			if (registry.enemies.has(entity_other)) {
 				Entity playerEntity = registry.swords.get(entity).belongToPlayer;
-				enemyHitStatUpdate(title, entity_other, playerEntity);
+				enemyHitStatUpdate(entity_other, playerEntity);
 			}
 		}
 
@@ -59,10 +58,8 @@ void PhysicsSystem::handle_collision() {
 				// Check if player can afford powerup 
 				int powerUpCost = registry.powerups.get(entity).cost; 
 				if (checkIfFundsArePresent(playerStatCom.money, powerUpCost)) {
-					handlePowerUpCollisions(playerCom, playerStatCom,entity, title, isPlayerOne, 
-						isPlayerTwo, powerUpCost);
+					handlePowerUpCollisions(playerCom, playerStatCom, entity, isPlayerOne, isPlayerTwo, powerUpCost);
 				}
-				title.updateWindowTitle();
 				if (entity_other.getId() == registry.players.entities.front()) {
 					updateHudCoin(KNIGHT);
 				}
@@ -93,29 +90,19 @@ void PhysicsSystem::handle_collision() {
 	registry.collisions.clear();
 }
 
-void PhysicsSystem::handlePowerUpCollisions(Player& playerCom, PlayerStat& playerStatCom, Entity entity,  Title& title, 
-	bool isPlayerOne, bool isPlayerTwo, int powerUpCost) 
+void PhysicsSystem::handlePowerUpCollisions(Player& playerCom, PlayerStat& playerStatCom, Entity entity, bool isPlayerOne, bool isPlayerTwo, int powerUpCost) 
 {
 	playerStatCom.money -= powerUpCost;
-	if (isPlayerOne) {
-		title.p1money = playerStatCom.money;
-	}
-	else if (isPlayerTwo) {
-		title.p2money = playerStatCom.money;
-	}
 	if (registry.hpPowerup.has(entity)) {
 		HpPowerUp& hpPowerup = registry.hpPowerup.get(entity);
 		playerStatCom.maxHp += hpPowerup.hpUpFactor;
 		playerCom.hp += hpPowerup.hpUpFactor;
 		if (isPlayerOne) {
-			title.p1hp = playerCom.hp;
 			updateHudHp(KNIGHT);
 		}
 		else if (isPlayerTwo) {
-			title.p2hp = playerCom.hp;
 			updateHudHp(WIZARD);
 		}
-		title.updateWindowTitle();
 	}
 
 	if (registry.damagePowerUp.has(entity)) {
@@ -139,7 +126,6 @@ void PhysicsSystem::handlePowerUpCollisions(Player& playerCom, PlayerStat& playe
 }
 
 void PhysicsSystem::resolvePlayerDamage(Entity playerEntity, int enemyDamage) {
-	Title& title = registry.titles.components[0];
 	Player& player = registry.players.get(playerEntity);
 	if (!player.isInvin) {
 		player.hp -= enemyDamage;
@@ -167,14 +153,11 @@ void PhysicsSystem::resolvePlayerDamage(Entity playerEntity, int enemyDamage) {
 		}
 	}
 	if (playerEntity.getId() == registry.players.entities[0].getId()) {
-		title.p1hp = player.hp;
 		updateHudHp(KNIGHT);
 	}
 	else if (twoPlayer.inTwoPlayerMode) {
-		title.p2hp = player.hp;
 		updateHudHp(WIZARD);
 	}
-	title.updateWindowTitle();
 }
 
 // Returns the local bounding coordinates scaled by the current size of the entity
@@ -527,7 +510,7 @@ void PhysicsSystem::enemyHitHandling(Entity enemyEntity) {
 	}
 }
 
-void PhysicsSystem::enemyHitStatUpdate(Title& title, Entity enemyEntity, Entity playerEntity) {
+void PhysicsSystem::enemyHitStatUpdate(Entity enemyEntity, Entity playerEntity) {
 	Player& playerCom = registry.players.get(playerEntity);
 	PlayerStat& playerStatCom = registry.playerStats.get(playerCom.playerStat);
 	Enemy& enemyCom = registry.enemies.get(enemyEntity);
@@ -539,14 +522,11 @@ void PhysicsSystem::enemyHitStatUpdate(Title& title, Entity enemyEntity, Entity 
 				playerStatCom.money = playerStatCom.playerMoneyLimit;
 			}
 			if (playerEntity.getId() == registry.players.entities.front()) {
-				title.p1money = playerStatCom.money;
 				updateHudCoin(KNIGHT);
 			}
 			else {
-				title.p2money = playerStatCom.money;
 				updateHudCoin(WIZARD);
 			}
-			title.updateWindowTitle();
 			registry.remove_all_components_of(enemyEntity);
 		}
 		else {

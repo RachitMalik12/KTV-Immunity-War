@@ -100,7 +100,6 @@ private:
 	void checkIfPlayersAreMoving();
 	// misc
 	void playerTwoJoinOrLeave();
-	void updateTitle(int level);
 	// animation
 	void knightFrameSetter(float elapsed_ms, KnightAnimation& knightAnimation);
 	void wizardAttackFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation);
