@@ -147,9 +147,6 @@ void PhysicsSystem::resolvePlayerDamage(Entity playerEntity, int enemyDamage) {
 				registry.wizardAnimations.get(playerEntity).isAnimatingHurt = true;
 				registry.wizardAnimations.get(playerEntity).animationMode = registry.wizardAnimations.get(playerEntity).hurtMode;
 			}
-			else {
-				// TODO: Implement knight hit animation with geometry shader
-			}
 		}
 	}
 	if (playerEntity.getId() == registry.players.entities[0].getId()) {
@@ -504,9 +501,6 @@ void PhysicsSystem::enemyHitHandling(Entity enemyEntity) {
 				EFFECT_ASSET_ID::ENEMY,
 				GEOMETRY_BUFFER_ID::SPRITE });
 		registry.enemySwarms.get(enemyEntity).isAnimatingHurt = true;
-	}
-	else {
-		// TODO:: Implement enemy hit handling for rest of the enemies with geometry shaders
 	}
 }
 
