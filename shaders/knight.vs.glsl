@@ -10,12 +10,31 @@ out vec2 world_pos;
 out vec2 local_pos;
 
 // Application data
+uniform mat3 translate;
+uniform mat3 rotation;
+uniform mat3 scale;
 uniform mat3 transform;
 uniform mat3 projection;
 uniform int xFrame;
 uniform int yFrame;
 uniform float time;
 uniform int inInvin;
+uniform int isDead;
+uniform float animationTime;
+
+vec4 deathAnimation() {
+	mat3 newRotation = rotation;
+	float radians = 90.0 * (3.1415926 / 180.0) * animationTime;
+	float c = cos(radians);
+	float s = sin(radians);
+	newRotation[0][0] = c;
+	newRotation[0][1] = s;
+	newRotation[1][0] = -s;
+	newRotation[1][1] = c;
+	mat3 newTransform = translate * newRotation * scale;
+	vec3 pos = projection * newTransform * vec3(in_position.xy, 1.0);
+	return vec4(pos.xy,  in_position.z, 1.0);
+}
 
 void main()
 {
@@ -40,7 +59,10 @@ void main()
 		float shakeDistance = 0.005;
 		float shakeFrequencyModifier = 5.0;
 		gl_Position = vec4(pos.x + shakeDistance * cos(time * shakeFrequencyModifier), pos.y + shakeDistance * sin(time * shakeFrequencyModifier),  in_position.z, 1.0);
-	} else {
+	} else if (isDead == 1) {
+		gl_Position = deathAnimation();
+	}
+	else {
 		gl_Position = vec4(pos.xy,  in_position.z, 1.0);
 	}
 	world_pos = gl_Position.xy;

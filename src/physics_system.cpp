@@ -128,12 +128,14 @@ void PhysicsSystem::handlePowerUpCollisions(Player& playerCom, PlayerStat& playe
 
 void PhysicsSystem::resolvePlayerDamage(Entity playerEntity, int enemyDamage) {
 	Player& player = registry.players.get(playerEntity);
-	if (!player.isInvin) {
+	Motion& playerMotion = registry.motions.get(playerEntity);
+	if (!player.isInvin && !player.isDead) {
 		player.hp -= enemyDamage;
-		// if hp - 1 is <= 0 then initiate death unless already dying 
 		if (player.hp <= 0) {
 			player.hp = 0;
 			player.isDead = true;
+			registry.deadPlayers.emplace(playerEntity);
+			playerMotion.velocity = vec2(0, 0);
 		}
 		else {
 			player.isInvin = true;

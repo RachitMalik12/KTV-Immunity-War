@@ -138,7 +138,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	handlePlayerOneAttack(elapsed_ms_since_last_update);
 	handlePlayerTwoProjectile(elapsed_ms_since_last_update);
 	deathHandling();
-	playDeathAnimations(elapsed_ms_since_last_update);
+	removeDeadPlayersAndEnemies(elapsed_ms_since_last_update);
 	return true;
 }
 
@@ -147,18 +147,6 @@ void WorldSystem::deathHandling() {
 	if (twoPlayer.inTwoPlayerMode) {
 		Player& player1 = registry.players.get(player_knight);
 		Player& player2 = registry.players.get(player2_wizard);
-		if (player1.isDead) {
-			Motion& player1Motion = registry.motions.get(player_knight);
-			player1Motion.velocity = vec2(0, 0);
-			registry.renderRequests.remove(player_knight);
-			// TODO: Implement player death animation
-		}
-		if (player2.isDead) {
-			Motion& player2Motion = registry.motions.get(player2_wizard);
-			player2Motion.velocity = vec2(0, 0);
-			registry.renderRequests.remove(player2_wizard);
-			// TODO: Implement player death animation
-		}
 		if (player1.isDead && player2.isDead) {
 			setupLevel(level_number);
 		}
@@ -1671,7 +1659,7 @@ void WorldSystem::removeWizardHud() {
 	registry.remove_all_components_of(gameHud.playerTwoHudEntity);
 }
 
-void WorldSystem::playDeathAnimations(float elapsed_ms) {
+void WorldSystem::removeDeadPlayersAndEnemies(float elapsed_ms) {
 	for (Entity deadEnemyEntity : registry.deadEnemies.entities) {
 		DeadEnemy& deadEnemy = registry.deadEnemies.get(deadEnemyEntity);
 		if (deadEnemy.deathTimer > deadEnemy.deathAnimationTime) {
@@ -1679,6 +1667,16 @@ void WorldSystem::playDeathAnimations(float elapsed_ms) {
 		}
 		else {
 			deadEnemy.deathTimer += elapsed_ms;
+		}
+	}
+
+	for (Entity deadPlayerEntity : registry.deadPlayers.entities) {
+		DeadPlayer& deadPlayer = registry.deadPlayers.get(deadPlayerEntity);
+		if (deadPlayer.deathTimer > deadPlayer.deathAnimationTime) {
+			registry.renderRequests.remove(deadPlayerEntity);
+		}
+		else {
+			deadPlayer.deathTimer += elapsed_ms;
 		}
 	}
 }

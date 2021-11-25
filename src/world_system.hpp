@@ -98,7 +98,7 @@ private:
 	void animateKnight(float elapsed_ms_since_last_update);
 	void animateWizard(float elpased_ms_since_last_update);
 	void checkIfPlayersAreMoving();
-	void playDeathAnimations(float elapsed_ms);
+	void removeDeadPlayersAndEnemies(float elapsed_ms);
 	// misc
 	void playerTwoJoinOrLeave();
 	// animation

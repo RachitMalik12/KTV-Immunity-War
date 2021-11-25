@@ -37,6 +37,11 @@ struct PlayerStat
 	int damage = 1;
 };
 
+struct DeadPlayer {
+	float deathAnimationTime = 1500.f;
+	float deathTimer = 0.f;
+};
+
 // The projectile shot by the wizard character.
 struct Projectile
 {
