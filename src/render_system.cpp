@@ -11,11 +11,6 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 {
 	Motion &motion = registry.motions.get(entity);
 
-	Transform transform;
-	transform.translate(motion.position);
-	transform.rotate(motion.angle);
-	transform.scale(motion.scale);
-
 	assert(registry.renderRequests.has(entity));
 	const RenderRequest &render_request = registry.renderRequests.get(entity);
 
@@ -167,6 +162,27 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 	GLint currProgram;
 	glGetIntegerv(GL_CURRENT_PROGRAM, &currProgram);
+
+	Transform transformSeparate;
+	transformSeparate.translate(motion.position);
+	GLuint translate_loc = glGetUniformLocation(currProgram, "translate");
+	glUniformMatrix3fv(translate_loc, 1, GL_FALSE, (float *)&transformSeparate.mat);
+	transformSeparate.reset();
+
+	transformSeparate.rotate(motion.angle);
+	GLuint rotation_loc = glGetUniformLocation(currProgram, "rotation");
+	glUniformMatrix3fv(rotation_loc, 1, GL_FALSE, (float *)&transformSeparate.mat);
+	transformSeparate.reset();
+
+	transformSeparate.scale(motion.scale);
+	GLuint scale_loc = glGetUniformLocation(currProgram, "scale");
+	glUniformMatrix3fv(scale_loc, 1, GL_FALSE, (float *)&transformSeparate.mat);
+
+	Transform transform;
+	transform.translate(motion.position);
+	transform.rotate(motion.angle);
+	transform.scale(motion.scale);
+
 	// Setting uniform values to the currently bound program
 	GLuint transform_loc = glGetUniformLocation(currProgram, "transform");
 	glUniformMatrix3fv(transform_loc, 1, GL_FALSE, (float *)&transform.mat);

@@ -10,6 +10,9 @@ out vec2 vpos;
 out vec2 world_pos;
 
 // Application data
+uniform mat3 translate;
+uniform mat3 rotation;
+uniform mat3 scale;
 uniform mat3 transform;
 uniform mat3 projection;
 uniform float time;
@@ -23,8 +26,8 @@ uniform float animationTime;
 vec4 invincibilityAnimation(vec3 pos) {
 	float knockBackDistance = 0.1;
 	float knockBackPlayerDamageModifier = 0.02;
-	pos.x = pos.x + (sin(time) + 1.0) / 2 * (knockBackDistance * velocityOfPlayerHit.x + knockBackPlayerDamageModifier * playerDamage);
-	pos.y = pos.y + (sin(time) + 1.0) / 2 * (knockBackDistance * velocityOfPlayerHit.y + knockBackPlayerDamageModifier * playerDamage);
+	pos.x = pos.x + (sin(time) + 1.0) / 2.0 * (knockBackDistance * velocityOfPlayerHit.x + knockBackPlayerDamageModifier * playerDamage);
+	pos.y = pos.y + (sin(time) + 1.0) / 2.0 * (knockBackDistance * velocityOfPlayerHit.y + knockBackPlayerDamageModifier * playerDamage);
 	float shakeDistance = 0.01;
 	float shakeFrequencyModifier = 5.0;
 	return vec4(pos.x + shakeDistance * cos(time * shakeFrequencyModifier), pos.y + shakeDistance * sin(time * shakeFrequencyModifier),  in_position.z, 1.0);
@@ -40,6 +43,12 @@ vec4 deathAnimation(vec3 pos) {
 			pos.x = pos.x + cutDistance * animationTime;
 			pos.y = pos.y + cutDistance * animationTime;
 		}
+	} else {
+		mat3 newScale = scale;
+		newScale[0][0] = scale[0][0] * (1.0 - animationTime);
+		newScale[1][1] = scale[1][1] * (1.0 - animationTime);
+		mat3 newTransform = translate * rotation * newScale;
+		pos = projection * newTransform * vec3(in_position.xy, 1.0);
 	}
 	return vec4(pos.xy,  in_position.z, 1.0);
 }
