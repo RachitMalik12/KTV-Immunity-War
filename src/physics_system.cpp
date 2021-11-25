@@ -25,15 +25,16 @@ void PhysicsSystem::handle_collision() {
 		if (registry.projectiles.has(entity)) {
 			if (registry.enemies.has(entity_other)) {
 				Entity playerEntity = registry.projectiles.get(entity).belongToPlayer;
+				Motion& projectileMotion = registry.motions.get(entity);
+				enemyHitStatUpdate(entity_other, playerEntity, projectileMotion.velocity);
 				registry.remove_all_components_of(entity);
-				enemyHitStatUpdate(entity_other, playerEntity);
 			}
 		}
 
 		if (registry.swords.has(entity)) {
 			if (registry.enemies.has(entity_other)) {
 				Entity playerEntity = registry.swords.get(entity).belongToPlayer;
-				enemyHitStatUpdate(entity_other, playerEntity);
+				enemyHitStatUpdate(entity_other, playerEntity, vec2(0, 0));
 			}
 		}
 
@@ -504,7 +505,7 @@ void PhysicsSystem::enemyHitHandling(Entity enemyEntity) {
 	}
 }
 
-void PhysicsSystem::enemyHitStatUpdate(Entity enemyEntity, Entity playerEntity) {
+void PhysicsSystem::enemyHitStatUpdate(Entity enemyEntity, Entity playerEntity, vec2 waterBallVelocity) {
 	Player& playerCom = registry.players.get(playerEntity);
 	PlayerStat& playerStatCom = registry.playerStats.get(playerCom.playerStat);
 	Enemy& enemyCom = registry.enemies.get(enemyEntity);
@@ -527,6 +528,40 @@ void PhysicsSystem::enemyHitStatUpdate(Entity enemyEntity, Entity playerEntity) 
 			enemyCom.isInvin = true;
 			enemyCom.invinTimerInMs = enemyCom.invinFrame;
 			enemyHitHandling(enemyEntity);
+			if (playerEntity.getId() == registry.players.entities.front()) {
+				calculateSwordKnockBack(enemyCom, playerEntity);
+			}
+			else {
+				calculateWaterBallKnockBack(enemyCom, playerEntity, waterBallVelocity);
+			}
 		}
 	}
+}
+
+void PhysicsSystem::calculateSwordKnockBack(Enemy& enemyCom, Entity playerEntity) {
+	Player& playerCom = registry.players.get(playerEntity);
+	PlayerStat& playerStat = registry.playerStats.get(playerCom.playerStat);
+	if (playerCom.attackDirection == UP) {
+		enemyCom.velocityOfPlayerHit = vec2(0.0, 1.0);
+	}
+	else if (playerCom.attackDirection == LEFT) {
+		enemyCom.velocityOfPlayerHit = vec2(-1.0, 0.0);
+	}
+	else if (playerCom.attackDirection == DOWN) {
+		enemyCom.velocityOfPlayerHit = vec2(0.0, -1.0);
+	}
+	else {
+		// playerCom.attackDirection == RIGHT
+		enemyCom.velocityOfPlayerHit = vec2(1.0, 0.0);
+	}
+	enemyCom.damageOfPlayerHit = playerStat.damage;
+}
+
+void PhysicsSystem::calculateWaterBallKnockBack(Enemy& enemyCom, Entity playerEntity, vec2 waterBallVelocity) {
+	Player& playerCom = registry.players.get(playerEntity);
+	PlayerStat& playerStat = registry.playerStats.get(playerCom.playerStat);
+	vec2 normalizedDirection = vec2(waterBallVelocity.x / sqrt(pow(waterBallVelocity.x, 2) + pow(waterBallVelocity.y, 2)),
+		waterBallVelocity.y / sqrt(pow(waterBallVelocity.x, 2) + pow(waterBallVelocity.y, 2)));
+	enemyCom.velocityOfPlayerHit = vec2(normalizedDirection.x, normalizedDirection.y * -1);
+	enemyCom.damageOfPlayerHit = playerStat.damage;
 }

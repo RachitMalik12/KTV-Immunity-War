@@ -43,5 +43,7 @@ private:
 	void rotateSword(Entity entity, float elapsed_ms);
 	void enemyHitHandling(Entity enemyEntity);
 	void handlePowerUpCollisions(Player& playerCom, PlayerStat& playerStatCom, Entity entity, bool isPlayerOne, bool isPlayerTwo, int powerUpCost);
-	void enemyHitStatUpdate(Entity enemyEntity, Entity playerEntity);
+	void enemyHitStatUpdate(Entity enemyEntity, Entity playerEntity, vec2 waterBallVelocity);
+	void calculateSwordKnockBack(Enemy& enemyCom, Entity playerEntity);
+	void calculateWaterBallKnockBack(Enemy& enemyCom, Entity playerEntity, vec2 waterBallVelocity);
 };

@@ -101,12 +101,17 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		textureEffectSetup(program, entity);
 		gl_has_errors();
 		GLfloat colorScale = glGetUniformLocation(program, "color_scale");
-		float color_scale_value = registry.enemies.get(entity).max_hp - registry.enemies.get(entity).hp;
+		Enemy& enemy = registry.enemies.get(entity);
+		float color_scale_value = enemy.max_hp - enemy.hp;
 		glUniform1f(colorScale, color_scale_value);
 		GLint inInvin = glGetUniformLocation(program, "inInvin");
 		glUniform1i(inInvin, registry.enemies.get(entity).isInvin);
 		GLfloat time_loc = glGetUniformLocation(program, "time");
 		glUniform1f(time_loc, (float)(glfwGetTime() * 10.0f));
+		GLint hitVelocityLoc = glGetUniformLocation(program, "velocityOfPlayerHit");
+		glUniform2f(hitVelocityLoc, enemy.velocityOfPlayerHit.x, enemy.velocityOfPlayerHit.y);
+		GLint playerDamageLoc = glGetUniformLocation(program, "playerDamage");
+		glUniform1i(playerDamageLoc, enemy.damageOfPlayerHit);
 		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::NUMBER)

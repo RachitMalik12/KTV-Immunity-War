@@ -39,7 +39,9 @@ void main()
 
 	vec3 pos = projection * transform * vec3(in_position.xy, 1.0);
 	if (inInvin == 1) {
-		gl_Position = vec4(pos.x + 0.005 * cos(time * 5), pos.y + 0.01 * sin(time * 5),  in_position.z, 1.0);
+		float shakeDistance = 0.005;
+		float shakeFrequencyModifier = 5.0;
+		gl_Position = vec4(pos.x + shakeDistance * cos(time * shakeFrequencyModifier), pos.y + shakeDistance * sin(time * shakeFrequencyModifier),  in_position.z, 1.0);
 	} else {
 		gl_Position = vec4(pos.xy,  in_position.z, 1.0);
 	}

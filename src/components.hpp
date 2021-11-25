@@ -7,7 +7,13 @@
 #include <queue>
 #include <stack>
 
-// Player component
+enum AttackDirection {
+	UP,
+	LEFT,
+	DOWN,
+	RIGHT,
+};
+
 struct Player
 {
 	int hp = 0;
@@ -15,7 +21,7 @@ struct Player
 	float invinTimerInMs = 0;
 	bool isInvin = false;
 	bool isFiringProjectile = false;
-	int firingDirection = 0;
+	AttackDirection attackDirection = UP;
 	bool isDead = false;
 	Entity playerStat;
 };
@@ -58,6 +64,8 @@ struct Enemy
 	float invinFrame = 500.f;
 	float invinTimerInMs = 0;
 	bool isInvin = false;
+	vec2 velocityOfPlayerHit = vec2(0, 0);
+	int damageOfPlayerHit = 0;
 };
 
 struct EnemyBlob
