@@ -108,6 +108,13 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glUniform1i(frame, registry.numbers.get(entity).frame);
 		gl_has_errors();
 	}
+	else if (render_request.used_effect == EFFECT_ASSET_ID::POWERUP)
+	{
+		textureEffectSetup(program, entity);
+		GLfloat time_loc = glGetUniformLocation(program, "time");
+		glUniform1f(time_loc, (float)(glfwGetTime() * 10.0f));
+		gl_has_errors();
+	}
 	else
 	{
 		assert(false && "Type of render request not supported");

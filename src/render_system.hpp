@@ -98,7 +98,8 @@ class RenderSystem {
 		shader_path("knight"),
 		shader_path("wizard"),
 		shader_path("enemy"),
-		shader_path("number")
+		shader_path("number"),
+		shader_path("powerup")
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
