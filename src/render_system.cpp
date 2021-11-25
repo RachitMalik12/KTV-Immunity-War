@@ -72,6 +72,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glUniform1f(colorScale, color_scale_value);
 		GLint inInvin = glGetUniformLocation(program, "inInvin");
 		glUniform1i(inInvin, registry.players.get(entity).isInvin);
+		GLfloat time_loc = glGetUniformLocation(program, "time");
+		glUniform1f(time_loc, (float)(glfwGetTime() * 10.0f));
 		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::WIZARD) {
@@ -88,6 +90,10 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		GLfloat colorScale = glGetUniformLocation(program, "color_scale");
 		float color_scale_value = registry.playerStats.get(registry.players.get(entity).playerStat).maxHp - registry.players.get(entity).hp;
 		glUniform1f(colorScale, color_scale_value);
+		GLfloat time_loc = glGetUniformLocation(program, "time");
+		glUniform1f(time_loc, (float)(glfwGetTime() * 10.0f));
+		GLint inInvin = glGetUniformLocation(program, "inInvin");
+		glUniform1i(inInvin, registry.players.get(entity).isInvin);
 		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::ENEMY)
@@ -99,6 +105,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glUniform1f(colorScale, color_scale_value);
 		GLint inInvin = glGetUniformLocation(program, "inInvin");
 		glUniform1i(inInvin, registry.enemies.get(entity).isInvin);
+		GLfloat time_loc = glGetUniformLocation(program, "time");
+		glUniform1f(time_loc, (float)(glfwGetTime() * 10.0f));
 		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::NUMBER)

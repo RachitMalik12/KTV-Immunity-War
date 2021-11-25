@@ -14,6 +14,8 @@ uniform mat3 transform;
 uniform mat3 projection;
 uniform int xFrame;
 uniform int yFrame;
+uniform float time;
+uniform int inInvin;
 
 void main()
 {
@@ -34,6 +36,10 @@ void main()
 	
 	
 	vec3 pos = projection * transform * vec3(in_position.xy, 1.0);
-	gl_Position = vec4(pos.xy, in_position.z, 1.0);
-	world_pos = pos.xy;
+	if (inInvin == 1) {
+		gl_Position = vec4(pos.x + 0.005 * cos(time * 5), pos.y + 0.01 * sin(time * 5),  in_position.z, 1.0);
+	} else {
+		gl_Position = vec4(pos.xy,  in_position.z, 1.0);
+	}
+	world_pos = gl_Position.xy;
 }
