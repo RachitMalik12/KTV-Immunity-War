@@ -23,10 +23,10 @@ void main()
 	texcoord = in_texcoord;
 	vec3 pos = projection * transform * vec3(in_position.xy, 1.0);
 	if (inInvin == 1) {
-		float knockBackDistance = 0.05;
-		float knockBackPlayerDamageModifier = 0.01;
-		pos.x = pos.x + knockBackDistance * velocityOfPlayerHit.x + knockBackPlayerDamageModifier * playerDamage;
-		pos.y = pos.y + knockBackDistance * velocityOfPlayerHit.y + knockBackPlayerDamageModifier * playerDamage;
+		float knockBackDistance = 0.1;
+		float knockBackPlayerDamageModifier = 0.02;
+		pos.x = pos.x + (sin(time) + 1.0) / 2 * (knockBackDistance * velocityOfPlayerHit.x + knockBackPlayerDamageModifier * playerDamage);
+		pos.y = pos.y + (sin(time) + 1.0) / 2 * (knockBackDistance * velocityOfPlayerHit.y + knockBackPlayerDamageModifier * playerDamage);
 		float shakeDistance = 0.01;
 		float shakeFrequencyModifier = 5.0;
 		gl_Position = vec4(pos.x + shakeDistance * cos(time * shakeFrequencyModifier), pos.y + shakeDistance * sin(time * shakeFrequencyModifier),  in_position.z, 1.0);
