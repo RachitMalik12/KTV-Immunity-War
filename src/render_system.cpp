@@ -57,31 +57,16 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	else if (render_request.used_effect == EFFECT_ASSET_ID::KNIGHT)
 	{
 		textureEffectSetup(program, entity);
-		Player& player = registry.players.get(entity);
 		KnightAnimation& knightAnimation = registry.knightAnimations.get(registry.players.entities.front());
 		GLint xFrame = glGetUniformLocation(program, "xFrame");
 		GLint yFrame = glGetUniformLocation(program, "yFrame");
 		glUniform1i(xFrame, knightAnimation.xFrame);
 		glUniform1i(yFrame, knightAnimation.yFrame);
-		GLfloat colorScale = glGetUniformLocation(program, "color_scale");
-		float color_scale_value = registry.playerStats.get(player.playerStat).maxHp - player.hp;
-		glUniform1f(colorScale, color_scale_value);
-		GLint inInvin = glGetUniformLocation(program, "inInvin");
-		glUniform1i(inInvin, player.isInvin);
-		GLfloat time_loc = glGetUniformLocation(program, "time");
-		glUniform1f(time_loc, (float)(glfwGetTime() * 10.0f));
-		GLint isDeadLoc = glGetUniformLocation(program, "isDead");
-		glUniform1i(isDeadLoc, player.isDead);
-		if (player.isDead) {
-			DeadPlayer& deadPlayer = registry.deadPlayers.get(entity);
-			GLfloat animationTimeLoc = glGetUniformLocation(program, "animationTime");
-			glUniform1f(animationTimeLoc, deadPlayer.deathTimer / deadPlayer.deathAnimationTime);
-		}
+		playerEffects(program, entity);
 		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::WIZARD) {
 		textureEffectSetup(program, entity);
-		Player& player = registry.players.get(entity);
 		WizardAnimation& wizardAnimation = registry.wizardAnimations.get(registry.players.entities.back());
 		GLint frameWalk = glGetUniformLocation(program, "frameWalk");
 		GLint frameIdle = glGetUniformLocation(program, "frameIdle");
@@ -91,20 +76,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glUniform1i(frameIdle, wizardAnimation.frameIdle);
 		glUniform1i(frameAttack, wizardAnimation.frameAttack);
 		glUniform1i(animationMode, wizardAnimation.animationMode);
-		GLfloat colorScale = glGetUniformLocation(program, "color_scale");
-		float color_scale_value = registry.playerStats.get(player.playerStat).maxHp - player.hp;
-		glUniform1f(colorScale, color_scale_value);
-		GLfloat time_loc = glGetUniformLocation(program, "time");
-		glUniform1f(time_loc, (float)(glfwGetTime() * 10.0f));
-		GLint inInvin = glGetUniformLocation(program, "inInvin");
-		glUniform1i(inInvin, player.isInvin);
-		GLint isDeadLoc = glGetUniformLocation(program, "isDead");
-		glUniform1i(isDeadLoc, player.isDead);
-		if (player.isDead) {
-			DeadPlayer& deadPlayer = registry.deadPlayers.get(entity);
-			GLfloat animationTimeLoc = glGetUniformLocation(program, "animationTime");
-			glUniform1f(animationTimeLoc, deadPlayer.deathTimer / deadPlayer.deathAnimationTime);
-		}
+		playerEffects(program, entity);
 		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::ENEMY)
@@ -507,5 +479,23 @@ void RenderSystem::enemyEffects(const GLuint program, Entity entity) {
 		glUniform1i(gotCutLoc, deadEnemy.gotCut);
 		GLfloat animationTimeLoc = glGetUniformLocation(program, "animationTime");
 		glUniform1f(animationTimeLoc, deadEnemy.deathTimer / deadEnemy.deathAnimationTime);
+	}
+}
+
+void RenderSystem::playerEffects(const GLuint program, Entity entity) {
+	Player& player = registry.players.get(entity);
+	GLfloat colorScale = glGetUniformLocation(program, "color_scale");
+	float color_scale_value = registry.playerStats.get(player.playerStat).maxHp - player.hp;
+	glUniform1f(colorScale, color_scale_value);
+	GLint inInvin = glGetUniformLocation(program, "inInvin");
+	glUniform1i(inInvin, player.isInvin);
+	GLfloat time_loc = glGetUniformLocation(program, "time");
+	glUniform1f(time_loc, (float)(glfwGetTime() * 10.0f));
+	GLint isDeadLoc = glGetUniformLocation(program, "isDead");
+	glUniform1i(isDeadLoc, player.isDead);
+	if (player.isDead) {
+		DeadPlayer& deadPlayer = registry.deadPlayers.get(entity);
+		GLfloat animationTimeLoc = glGetUniformLocation(program, "animationTime");
+		glUniform1f(animationTimeLoc, deadPlayer.deathTimer / deadPlayer.deathAnimationTime);
 	}
 }

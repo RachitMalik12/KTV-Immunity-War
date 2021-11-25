@@ -142,6 +142,7 @@ private:
 	void playerTwoTransition(bool leaveShop, vec2 player2Pos);
 	void textureEffectSetup(const GLuint program, Entity entity);
 	void enemyEffects(const GLuint program, Entity entity);
+	void playerEffects(const GLuint program, Entity entity);
 
 	// Window handle
 	GLFWwindow* window;
