@@ -23,7 +23,7 @@ void PhysicsSystem::handle_collision() {
 
 		// Checking collision of projectiles with other entities (enemies or enemies run)
 		if (registry.projectiles.has(entity)) {
-			if (registry.enemies.has(entity_other)) {
+			if (registry.enemies.has(entity_other) && !registry.enemies.get(entity_other).isDead) {
 				Entity playerEntity = registry.projectiles.get(entity).belongToPlayer;
 				Motion& projectileMotion = registry.motions.get(entity);
 				enemyHitStatUpdate(entity_other, playerEntity, projectileMotion.velocity);
@@ -32,7 +32,7 @@ void PhysicsSystem::handle_collision() {
 		}
 
 		if (registry.swords.has(entity)) {
-			if (registry.enemies.has(entity_other)) {
+			if (registry.enemies.has(entity_other) && !registry.enemies.get(entity_other).isDead) {
 				Entity playerEntity = registry.swords.get(entity).belongToPlayer;
 				enemyHitStatUpdate(entity_other, playerEntity, vec2(0, 0));
 			}
@@ -72,7 +72,7 @@ void PhysicsSystem::handle_collision() {
 
 		if (registry.players.has(entity)) {
 			// Check Player - Enemy collisions 
-			if (registry.enemies.has(entity_other)) {
+			if (registry.enemies.has(entity_other) && !registry.enemies.get(entity_other).isDead) {
 				int enemyDamage = registry.enemies.get(entity_other).damage;
 				resolvePlayerDamage(entity, enemyDamage);
 			}
@@ -516,13 +516,17 @@ void PhysicsSystem::enemyHitStatUpdate(Entity enemyEntity, Entity playerEntity, 
 			if (playerStatCom.money > playerStatCom.playerMoneyLimit) {
 				playerStatCom.money = playerStatCom.playerMoneyLimit;
 			}
+			DeadEnemy& deadEnemy = registry.deadEnemies.emplace(enemyEntity);
+			Motion& enemyMotion = registry.motions.get(enemyEntity);
+			enemyMotion.velocity = vec2(0, 0);
 			if (playerEntity.getId() == registry.players.entities.front()) {
 				updateHudCoin(KNIGHT);
+				deadEnemy.gotCut = true;
 			}
 			else {
 				updateHudCoin(WIZARD);
 			}
-			registry.remove_all_components_of(enemyEntity);
+			enemyCom.isDead = true;
 		}
 		else {
 			enemyCom.isInvin = true;

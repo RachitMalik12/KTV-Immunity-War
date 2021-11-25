@@ -31,6 +31,7 @@ public:
 	ComponentContainer<Door> doors;
 	ComponentContainer<vec3> colors;
 	ComponentContainer<Enemy> enemies;
+	ComponentContainer<DeadEnemy> deadEnemies;
 	ComponentContainer<EnemyBlob> enemyBlobs;
 	ComponentContainer<EnemyRun> enemiesrun;
 	ComponentContainer<EnemyHunter> enemyHunters;
@@ -82,6 +83,7 @@ public:
 		registry_list.push_back(&doors);
 		registry_list.push_back(&colors);
 		registry_list.push_back(&enemies);
+		registry_list.push_back(&deadEnemies);
 		registry_list.push_back(&enemyBlobs);
 		registry_list.push_back(&enemiesrun);
 		registry_list.push_back(&enemyHunters);

@@ -98,6 +98,7 @@ private:
 	void animateKnight(float elapsed_ms_since_last_update);
 	void animateWizard(float elpased_ms_since_last_update);
 	void checkIfPlayersAreMoving();
+	void playDeathAnimations(float elapsed_ms);
 	// misc
 	void playerTwoJoinOrLeave();
 	// animation
@@ -108,7 +109,6 @@ private:
 	void attachAndRenderPriceNumbers(Entity powerUp, vec2 pos);
 	void scaleGameHUD();
 	void removeWizardHud();
-
 	// menu
 	void menuLogic(int menuType);
 	void createTitleScreen(vec2 mouse_position);

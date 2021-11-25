@@ -66,6 +66,13 @@ struct Enemy
 	bool isInvin = false;
 	vec2 velocityOfPlayerHit = vec2(0, 0);
 	int damageOfPlayerHit = 0;
+	bool isDead = false;
+};
+
+struct DeadEnemy {
+	bool gotCut = false;
+	float deathAnimationTime = 1500.f;
+	float deathTimer = 0;
 };
 
 struct EnemyBlob

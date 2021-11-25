@@ -100,18 +100,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	{
 		textureEffectSetup(program, entity);
 		gl_has_errors();
-		GLfloat colorScale = glGetUniformLocation(program, "color_scale");
-		Enemy& enemy = registry.enemies.get(entity);
-		float color_scale_value = enemy.max_hp - enemy.hp;
-		glUniform1f(colorScale, color_scale_value);
-		GLint inInvin = glGetUniformLocation(program, "inInvin");
-		glUniform1i(inInvin, registry.enemies.get(entity).isInvin);
-		GLfloat time_loc = glGetUniformLocation(program, "time");
-		glUniform1f(time_loc, (float)(glfwGetTime() * 10.0f));
-		GLint hitVelocityLoc = glGetUniformLocation(program, "velocityOfPlayerHit");
-		glUniform2f(hitVelocityLoc, enemy.velocityOfPlayerHit.x, enemy.velocityOfPlayerHit.y);
-		GLint playerDamageLoc = glGetUniformLocation(program, "playerDamage");
-		glUniform1i(playerDamageLoc, enemy.damageOfPlayerHit);
+		enemyEffects(program, entity);
 		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::NUMBER)
@@ -463,4 +452,28 @@ void RenderSystem::textureEffectSetup(const GLuint program, Entity entity) {
 
 	glBindTexture(GL_TEXTURE_2D, texture_id);
 	gl_has_errors();
+}
+
+void RenderSystem::enemyEffects(const GLuint program, Entity entity) {
+	GLfloat colorScale = glGetUniformLocation(program, "color_scale");
+	Enemy& enemy = registry.enemies.get(entity);
+	float color_scale_value = enemy.max_hp - enemy.hp;
+	glUniform1f(colorScale, color_scale_value);
+	GLint inInvin = glGetUniformLocation(program, "inInvin");
+	glUniform1i(inInvin, registry.enemies.get(entity).isInvin);
+	GLfloat time_loc = glGetUniformLocation(program, "time");
+	glUniform1f(time_loc, (float)(glfwGetTime() * 10.0f));
+	GLint hitVelocityLoc = glGetUniformLocation(program, "velocityOfPlayerHit");
+	glUniform2f(hitVelocityLoc, enemy.velocityOfPlayerHit.x, enemy.velocityOfPlayerHit.y);
+	GLint playerDamageLoc = glGetUniformLocation(program, "playerDamage");
+	glUniform1i(playerDamageLoc, enemy.damageOfPlayerHit);
+	GLint isDeadLoc = glGetUniformLocation(program, "isDead");
+	glUniform1i(isDeadLoc, enemy.isDead);
+	if (enemy.isDead) {
+		DeadEnemy& deadEnemy = registry.deadEnemies.get(entity);
+		GLint gotCutLoc = glGetUniformLocation(program, "gotCut");
+		glUniform1i(gotCutLoc, deadEnemy.gotCut);
+		GLfloat animationTimeLoc = glGetUniformLocation(program, "animationTime");
+		glUniform1f(animationTimeLoc, deadEnemy.deathTimer / deadEnemy.deathAnimationTime);
+	}
 }

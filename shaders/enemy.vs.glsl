@@ -16,6 +16,9 @@ uniform float time;
 uniform int inInvin;
 uniform vec2 velocityOfPlayerHit;
 uniform int playerDamage;
+uniform int isDead;
+uniform int gotCut;
+uniform float animationTime;
 
 void main()
 {
@@ -30,7 +33,20 @@ void main()
 		float shakeDistance = 0.01;
 		float shakeFrequencyModifier = 5.0;
 		gl_Position = vec4(pos.x + shakeDistance * cos(time * shakeFrequencyModifier), pos.y + shakeDistance * sin(time * shakeFrequencyModifier),  in_position.z, 1.0);
-	} else {
+	} else if (isDead == 1) {
+		if (gotCut == 1) {
+			float cutDistance = 0.1;
+			if (gl_VertexID == 0 || gl_VertexID == 3 || gl_VertexID == 1) {
+				pos.x = pos.x - cutDistance * animationTime;
+				pos.y = pos.y - cutDistance * animationTime;
+			} else {
+				pos.x = pos.x + cutDistance * animationTime;
+				pos.y = pos.y + cutDistance * animationTime;
+			}
+			gl_Position = vec4(pos.xy,  in_position.z, 1.0);
+		}
+	}
+	else {
 		gl_Position = vec4(pos.xy,  in_position.z, 1.0);
 	}
 	world_pos = gl_Position.xy;

@@ -138,6 +138,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	handlePlayerOneAttack(elapsed_ms_since_last_update);
 	handlePlayerTwoProjectile(elapsed_ms_since_last_update);
 	deathHandling();
+	playDeathAnimations(elapsed_ms_since_last_update);
 	return true;
 }
 
@@ -1668,4 +1669,16 @@ void WorldSystem::removeWizardHud() {
 		hud.coinCount.pop_back();
 	}
 	registry.remove_all_components_of(gameHud.playerTwoHudEntity);
+}
+
+void WorldSystem::playDeathAnimations(float elapsed_ms) {
+	for (Entity deadEnemyEntity : registry.deadEnemies.entities) {
+		DeadEnemy& deadEnemy = registry.deadEnemies.get(deadEnemyEntity);
+		if (deadEnemy.deathTimer > deadEnemy.deathAnimationTime) {
+			registry.remove_all_components_of(deadEnemyEntity);
+		}
+		else {
+			deadEnemy.deathTimer += elapsed_ms;
+		}
+	}
 }

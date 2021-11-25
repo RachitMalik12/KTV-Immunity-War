@@ -13,52 +13,53 @@ void AISystem::stepEnemyHunter(float elapsed_ms) {
 	for (Entity hunterEntity : registry.enemyHunters.entities) {
 		EnemyHunter& hunter = registry.enemyHunters.get(hunterEntity);
 		Enemy& hunterStatus = registry.enemies.get(hunterEntity);
-		if (hunterStatus.hp <= 2) {
-			hunter.currentState = hunter.fleeingMode;
-		}
-		if (hunter.currentState == hunter.fleeingMode && hunter.isFleeing == false) {
-			registry.motions.get(hunterEntity).velocity = vec2(2.0f * hunterStatus.speed, 0);
-			hunter.isFleeing = true;
-			registry.renderRequests.remove(hunterEntity);
-			registry.renderRequests.insert(
-				hunterEntity,
-				{ TEXTURE_ASSET_ID::ENEMYHUNTERFLEE,
-					EFFECT_ASSET_ID::ENEMY,
-					GEOMETRY_BUFFER_ID::SPRITE });
-			hunter.isAnimatingHurt = false;
-		}
-		else {
-			if (hunter.timeToUpdateAi) {
-				if (hunter.currentState == hunter.searchingMode) {
-					if (isEnemyInRangeOfThePlayers(hunterEntity)) {
-						hunter.currentState = hunter.huntingMode;
-						registry.renderRequests.remove(hunterEntity);
-						registry.renderRequests.insert(
-							hunterEntity,
-							{ TEXTURE_ASSET_ID::ENEMYHUNTERMAD,
-								EFFECT_ASSET_ID::ENEMY,
-								GEOMETRY_BUFFER_ID::SPRITE });
-						hunter.isAnimatingHurt = false;
-					}
-					else {
-						setEnemyWonderingRandomly(hunterEntity);
-					}
-				}
-				if (hunter.currentState == hunter.huntingMode) {
-					setEnemyChasingThePlayer(hunterEntity);
-				}
-				hunter.timeToUpdateAi = false;
-				hunter.aiUpdateTimer = hunter.aiUpdateTime;
+		if (!hunterStatus.isDead) {
+			if (hunterStatus.hp <= 2) {
+				hunter.currentState = hunter.fleeingMode;
+			}
+			if (hunter.currentState == hunter.fleeingMode && hunter.isFleeing == false) {
+				registry.motions.get(hunterEntity).velocity = vec2(2.0f * hunterStatus.speed, 0);
+				hunter.isFleeing = true;
+				registry.renderRequests.remove(hunterEntity);
+				registry.renderRequests.insert(
+					hunterEntity,
+					{ TEXTURE_ASSET_ID::ENEMYHUNTERFLEE,
+						EFFECT_ASSET_ID::ENEMY,
+						GEOMETRY_BUFFER_ID::SPRITE });
+				hunter.isAnimatingHurt = false;
 			}
 			else {
-				hunter.aiUpdateTimer -= elapsed_ms;
-				if (hunter.aiUpdateTimer < 0) {
-					hunter.timeToUpdateAi = true;
+				if (hunter.timeToUpdateAi) {
+					if (hunter.currentState == hunter.searchingMode) {
+						if (isEnemyInRangeOfThePlayers(hunterEntity)) {
+							hunter.currentState = hunter.huntingMode;
+							registry.renderRequests.remove(hunterEntity);
+							registry.renderRequests.insert(
+								hunterEntity,
+								{ TEXTURE_ASSET_ID::ENEMYHUNTERMAD,
+									EFFECT_ASSET_ID::ENEMY,
+									GEOMETRY_BUFFER_ID::SPRITE });
+							hunter.isAnimatingHurt = false;
+						}
+						else {
+							setEnemyWonderingRandomly(hunterEntity);
+						}
+					}
+					if (hunter.currentState == hunter.huntingMode) {
+						setEnemyChasingThePlayer(hunterEntity);
+					}
+					hunter.timeToUpdateAi = false;
+					hunter.aiUpdateTimer = hunter.aiUpdateTime;
+				}
+				else {
+					hunter.aiUpdateTimer -= elapsed_ms;
+					if (hunter.aiUpdateTimer < 0) {
+						hunter.timeToUpdateAi = true;
+					}
 				}
 			}
+			resolveHunterAnimation(hunterEntity, hunterStatus, hunter);
 		}
-
-		resolveHunterAnimation(hunterEntity, hunterStatus, hunter);
 	}
 }
 
@@ -305,10 +306,12 @@ void AISystem::createAdj() {
 
 void AISystem::stepEnemyBacteria(float elapsed_ms, float width, float height) {
 	for (Entity bacteriaEntity : registry.enemyBacterias.entities) {
-		registry.enemyBacterias.get(bacteriaEntity).next_bacteria_BFS_calculation -= elapsed_ms;
-		registry.enemyBacterias.get(bacteriaEntity).next_bacteria_PATH_calculation -= elapsed_ms;
-		auto& motions_registry = registry.motions;
-		if (registry.enemyBacterias.get(bacteriaEntity).next_bacteria_BFS_calculation < 0.f) {
+		Enemy& enemy = registry.enemies.get(bacteriaEntity);
+		if (!enemy.isDead) {
+			registry.enemyBacterias.get(bacteriaEntity).next_bacteria_BFS_calculation -= elapsed_ms;
+			registry.enemyBacterias.get(bacteriaEntity).next_bacteria_PATH_calculation -= elapsed_ms;
+			auto& motions_registry = registry.motions;
+			if (registry.enemyBacterias.get(bacteriaEntity).next_bacteria_BFS_calculation < 0.f) {
 				EnemyBacteria& bacteria = registry.enemyBacterias.get(bacteriaEntity);
 				Motion& player1Motion = motions_registry.get(registry.players.entities[0]);
 
@@ -345,13 +348,17 @@ void AISystem::stepEnemyBacteria(float elapsed_ms, float width, float height) {
 						handlePath(width, height, bacteriaEntity);
 					}
 				}
+			}
 		}
 	}
 	for (Entity bacteriaEntity : registry.enemyBacterias.entities) {
-		if (registry.enemyBacterias.get(bacteriaEntity).next_bacteria_PATH_calculation < 0.f) {
-			EnemyBacteria& bacteria = registry.enemyBacterias.get(bacteriaEntity);
-			registry.enemyBacterias.get(bacteriaEntity).next_bacteria_PATH_calculation = bacteria.pathUpdateTime;
-			findPath(bacteriaEntity);
+		Enemy& enemy = registry.enemies.get(bacteriaEntity);
+		if (!enemy.isDead) {
+			if (registry.enemyBacterias.get(bacteriaEntity).next_bacteria_PATH_calculation < 0.f) {
+				EnemyBacteria& bacteria = registry.enemyBacterias.get(bacteriaEntity);
+				registry.enemyBacterias.get(bacteriaEntity).next_bacteria_PATH_calculation = bacteria.pathUpdateTime;
+				findPath(bacteriaEntity);
+			}
 		}
 	}
 
@@ -361,7 +368,8 @@ void AISystem::stepEnemyChase(float elapsed_ms) {
 	// update enemy chase so it chases the player
 	for (Entity entity : registry.enemyChase.entities) {
 		EnemyChase& chase = registry.enemyChase.get(entity);
-		if (chase.timeToUpdateAi) {
+		Enemy& enemy = registry.enemies.get(entity);
+		if (chase.timeToUpdateAi && !enemy.isDead) {
 			auto& enemyCom = registry.enemies.get(entity);
 			Motion& motion = registry.motions.get(entity);
 			Entity playerEntity = pickAPlayer();
@@ -613,27 +621,29 @@ void AISystem::stepEnemySwarm(float elapsed_ms) {
 	for (Entity swarmEntity : registry.enemySwarms.entities) {
 		EnemySwarm& swarm = registry.enemySwarms.get(swarmEntity);
 		Enemy& swarmStatus = registry.enemies.get(swarmEntity);
-		if (swarm.timeToUpdateAi) {
-			swarmSpreadOut(swarmEntity);
-			swarmFireProjectileAtPlayer(swarmEntity);
-			swarm.timeToUpdateAi = false;
-			swarm.aiUpdateTimer = swarm.aiUpdateTime;
-		}
-		else {
-			swarm.aiUpdateTimer -= elapsed_ms;
-			if (swarm.aiUpdateTimer < 0) {
-				swarm.timeToUpdateAi = true;
+		if (!swarmStatus.isDead) {
+			if (swarm.timeToUpdateAi) {
+				swarmSpreadOut(swarmEntity);
+				swarmFireProjectileAtPlayer(swarmEntity);
+				swarm.timeToUpdateAi = false;
+				swarm.aiUpdateTimer = swarm.aiUpdateTime;
 			}
-		}
+			else {
+				swarm.aiUpdateTimer -= elapsed_ms;
+				if (swarm.aiUpdateTimer < 0) {
+					swarm.timeToUpdateAi = true;
+				}
+			}
 
-		if (swarm.isAnimatingHurt && !swarmStatus.isInvin) {
-			registry.renderRequests.remove(swarmEntity);
-			registry.renderRequests.insert(
-				swarmEntity,
-				{ TEXTURE_ASSET_ID::ENEMYSWARM,
-					EFFECT_ASSET_ID::ENEMY,
-					GEOMETRY_BUFFER_ID::SPRITE });
-			swarm.isAnimatingHurt = false;
+			if (swarm.isAnimatingHurt && !swarmStatus.isInvin) {
+				registry.renderRequests.remove(swarmEntity);
+				registry.renderRequests.insert(
+					swarmEntity,
+					{ TEXTURE_ASSET_ID::ENEMYSWARM,
+						EFFECT_ASSET_ID::ENEMY,
+						GEOMETRY_BUFFER_ID::SPRITE });
+				swarm.isAnimatingHurt = false;
+			}
 		}
 	}
 }
