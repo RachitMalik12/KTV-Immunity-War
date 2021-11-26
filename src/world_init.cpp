@@ -36,7 +36,7 @@ Entity createWizard(RenderSystem* renderer, vec2 position) {
 	auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::WIZARD);
 	registry.meshPtrs.emplace(entity, &mesh);
 	Mesh& hitbox = renderer->getMesh(GEOMETRY_BUFFER_ID::WIZARD);
 	registry.hitboxes.emplace(entity, &hitbox);
@@ -641,7 +641,7 @@ Entity createHpPowerup(vec2 position) {
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::HPPOWERUP,
-		  EFFECT_ASSET_ID::TEXTURED,
+		  EFFECT_ASSET_ID::POWERUP,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	Motion& motion = registry.motions.emplace(entity);
@@ -663,7 +663,7 @@ Entity createDamagePowerup(vec2 position) {
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::DAMAGEPOWERUP,
-		  EFFECT_ASSET_ID::TEXTURED,
+		  EFFECT_ASSET_ID::POWERUP,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	Motion& motion = registry.motions.emplace(entity);
@@ -684,7 +684,7 @@ Entity createAttackSpeedPowerup(vec2 position) {
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ATTACKPOWERUP,
-		  EFFECT_ASSET_ID::TEXTURED,
+		  EFFECT_ASSET_ID::POWERUP,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	Motion& motion = registry.motions.emplace(entity);
@@ -706,7 +706,7 @@ Entity createMovementSpeedPowerup(vec2 position) {
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::MOVEMENTSPEEDPOWERUP,
-		  EFFECT_ASSET_ID::TEXTURED,
+		  EFFECT_ASSET_ID::POWERUP,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	Motion& motion = registry.motions.emplace(entity);

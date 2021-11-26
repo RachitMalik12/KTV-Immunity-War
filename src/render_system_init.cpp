@@ -144,18 +144,22 @@ void RenderSystem::initializeGlGeometryBuffers()
 	//////////////////////////
 	// Initialize sprite
 	// The position corresponds to the center of the texture.
-	std::vector<TexturedVertex> textured_vertices(4);
+	std::vector<TexturedVertex> textured_vertices(6);
 	textured_vertices[0].position = { -1.f/2, +1.f/2, 0.f };
 	textured_vertices[1].position = { +1.f/2, +1.f/2, 0.f };
 	textured_vertices[2].position = { +1.f/2, -1.f/2, 0.f };
 	textured_vertices[3].position = { -1.f/2, -1.f/2, 0.f };
+	textured_vertices[4].position = { +1.f / 2, +1.f / 2, 0.f };
+	textured_vertices[5].position = { -1.f / 2, -1.f / 2, 0.f };
 	textured_vertices[0].texcoord = { 0.f, 1.f };
 	textured_vertices[1].texcoord = { 1.f, 1.f };
 	textured_vertices[2].texcoord = { 1.f, 0.f };
 	textured_vertices[3].texcoord = { 0.f, 0.f };
+	textured_vertices[4].texcoord = { 1.f, 1.f };
+	textured_vertices[5].texcoord = { 0.f, 0.f };
 
 	// Counterclockwise as it's the default opengl front winding direction.
-	const std::vector<uint16_t> textured_indices = { 0, 3, 1, 1, 3, 2 };
+	const std::vector<uint16_t> textured_indices = { 0, 3, 1, 4, 5, 2 };
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::SPRITE, textured_vertices, textured_indices);
 
 	//////////////////////////////////

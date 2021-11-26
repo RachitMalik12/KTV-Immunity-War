@@ -7,7 +7,13 @@
 #include <queue>
 #include <stack>
 
-// Player component
+enum AttackDirection {
+	UP,
+	LEFT,
+	DOWN,
+	RIGHT,
+};
+
 struct Player
 {
 	int hp = 0;
@@ -15,7 +21,7 @@ struct Player
 	float invinTimerInMs = 0;
 	bool isInvin = false;
 	bool isFiringProjectile = false;
-	int firingDirection = 0;
+	AttackDirection attackDirection = UP;
 	bool isDead = false;
 	Entity playerStat;
 };
@@ -29,6 +35,11 @@ struct PlayerStat
 	int maxHp = 3;
 	int money = 0;
 	int damage = 1;
+};
+
+struct DeadPlayer {
+	float deathAnimationTime = 500.f;
+	float deathTimer = 0.f;
 };
 
 // The projectile shot by the wizard character.
@@ -58,6 +69,15 @@ struct Enemy
 	float invinFrame = 500.f;
 	float invinTimerInMs = 0;
 	bool isInvin = false;
+	vec2 velocityOfPlayerHit = vec2(0, 0);
+	int damageOfPlayerHit = 0;
+	bool isDead = false;
+};
+
+struct DeadEnemy {
+	bool gotCut = false;
+	float deathAnimationTime = 1000.f;
+	float deathTimer = 0;
 };
 
 struct EnemyBlob
@@ -515,7 +535,8 @@ enum class EFFECT_ASSET_ID {
 	WIZARD = KNIGHT + 1,
 	ENEMY = WIZARD + 1,
 	NUMBER = ENEMY + 1,
-	EFFECT_COUNT = NUMBER + 1
+	POWERUP = NUMBER + 1,
+	EFFECT_COUNT = POWERUP + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 

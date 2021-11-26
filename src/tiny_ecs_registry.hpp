@@ -19,6 +19,7 @@ public:
 	ComponentContainer<Collision> collisions;
 	ComponentContainer<Player> players;
 	ComponentContainer<PlayerStat> playerStats;
+	ComponentContainer<DeadPlayer> deadPlayers;
 	ComponentContainer<Mesh*> meshPtrs;
 	ComponentContainer<RenderRequest> renderRequests;
 	ComponentContainer<ScreenState> screenStates;
@@ -31,6 +32,7 @@ public:
 	ComponentContainer<Door> doors;
 	ComponentContainer<vec3> colors;
 	ComponentContainer<Enemy> enemies;
+	ComponentContainer<DeadEnemy> deadEnemies;
 	ComponentContainer<EnemyBlob> enemyBlobs;
 	ComponentContainer<EnemyRun> enemiesrun;
 	ComponentContainer<EnemyHunter> enemyHunters;
@@ -70,6 +72,7 @@ public:
 		registry_list.push_back(&collisions);
 		registry_list.push_back(&players);
 		registry_list.push_back(&playerStats);
+		registry_list.push_back(&deadPlayers);
 		registry_list.push_back(&meshPtrs);
 		registry_list.push_back(&renderRequests);
 		registry_list.push_back(&screenStates);
@@ -82,6 +85,7 @@ public:
 		registry_list.push_back(&doors);
 		registry_list.push_back(&colors);
 		registry_list.push_back(&enemies);
+		registry_list.push_back(&deadEnemies);
 		registry_list.push_back(&enemyBlobs);
 		registry_list.push_back(&enemiesrun);
 		registry_list.push_back(&enemyHunters);

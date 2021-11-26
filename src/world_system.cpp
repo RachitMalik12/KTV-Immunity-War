@@ -138,6 +138,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	handlePlayerOneAttack(elapsed_ms_since_last_update);
 	handlePlayerTwoProjectile(elapsed_ms_since_last_update);
 	deathHandling();
+	removeDeadPlayersAndEnemies(elapsed_ms_since_last_update);
 	return true;
 }
 
@@ -146,18 +147,6 @@ void WorldSystem::deathHandling() {
 	if (twoPlayer.inTwoPlayerMode) {
 		Player& player1 = registry.players.get(player_knight);
 		Player& player2 = registry.players.get(player2_wizard);
-		if (player1.isDead) {
-			Motion& player1Motion = registry.motions.get(player_knight);
-			player1Motion.velocity = vec2(0, 0);
-			registry.renderRequests.remove(player_knight);
-			// TODO: Implement player death animation
-		}
-		if (player2.isDead) {
-			Motion& player2Motion = registry.motions.get(player2_wizard);
-			player2Motion.velocity = vec2(0, 0);
-			registry.renderRequests.remove(player2_wizard);
-			// TODO: Implement player death animation
-		}
 		if (player1.isDead && player2.isDead) {
 			setupLevel(level_number);
 		}
@@ -334,7 +323,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_T) {
 			player.isFiringProjectile = true;
-			player.firingDirection = 0;
+			player.attackDirection = UP;
 			if (!playerOneAnimation.moving) {
 				playerOneAnimation.yFrame = 0;
 			}
@@ -342,7 +331,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_G) {
 			player.isFiringProjectile = true;
-			player.firingDirection = 2;
+			player.attackDirection = DOWN;
 			if (!playerOneAnimation.moving) {
 				playerOneAnimation.yFrame = 2;
 			}
@@ -350,7 +339,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_H) {
 			player.isFiringProjectile = true;
-			player.firingDirection = 3;
+			player.attackDirection = RIGHT;
 			if (!playerOneAnimation.moving) {
 				playerOneAnimation.yFrame = 3;
 			}
@@ -359,7 +348,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_F) {
 			player.isFiringProjectile = true;
-			player.firingDirection = 1;
+			player.attackDirection = LEFT;
 			if (!playerOneAnimation.moving) {
 				playerOneAnimation.yFrame = 1;
 			}
@@ -991,7 +980,6 @@ void WorldSystem::setPlayerTwoStats() {
 }
 
 void WorldSystem::handlePlayerTwoProjectile(float elapsed_ms_since_last_update) {
-	// handle player2 projectile
 	if (twoPlayer.inTwoPlayerMode) {
 		next_projectile_fire_player2 -= elapsed_ms_since_last_update;
 		Motion player2Motion = registry.motions.get(player2_wizard);
@@ -1015,7 +1003,6 @@ void WorldSystem::handlePlayerTwoProjectile(float elapsed_ms_since_last_update) 
 }
 
 void WorldSystem::handlePlayerOneAttack(float elapsed_ms_since_last_update) {
-	// handle player1 projectiles
 	float angle = 0;
 	float offset = -M_PI / 3.f;
 	next_projectile_fire_player1 -= elapsed_ms_since_last_update;
@@ -1025,17 +1012,17 @@ void WorldSystem::handlePlayerOneAttack(float elapsed_ms_since_last_update) {
 	if (player1.isFiringProjectile && next_projectile_fire_player1 < 0.f) {
 		next_projectile_fire_player1 = playerOneStat.attackDelay;
 		
-		switch (player1.firingDirection) {
-		case 0: // up
+		switch (player1.attackDirection) {
+		case UP:
 			angle = M_PI * 3 / 2;
 			break;
-		case 1: // left
+		case LEFT:
 			angle = M_PI;
 			break;
-		case 2: // down
+		case DOWN:
 			angle = M_PI / 2;
 			break;
-		case 3: // right
+		case RIGHT:
 			// no action
 			break;
 		}
@@ -1670,4 +1657,27 @@ void WorldSystem::removeWizardHud() {
 		hud.coinCount.pop_back();
 	}
 	registry.remove_all_components_of(gameHud.playerTwoHudEntity);
+}
+
+void WorldSystem::removeDeadPlayersAndEnemies(float elapsed_ms) {
+	for (Entity deadEnemyEntity : registry.deadEnemies.entities) {
+		DeadEnemy& deadEnemy = registry.deadEnemies.get(deadEnemyEntity);
+		if (deadEnemy.deathTimer > deadEnemy.deathAnimationTime) {
+			registry.remove_all_components_of(deadEnemyEntity);
+		}
+		else {
+			deadEnemy.deathTimer += elapsed_ms;
+		}
+	}
+
+	for (Entity deadPlayerEntity : registry.deadPlayers.entities) {
+		DeadPlayer& deadPlayer = registry.deadPlayers.get(deadPlayerEntity);
+		if (deadPlayer.deathTimer > deadPlayer.deathAnimationTime) {
+			registry.renderRequests.remove(deadPlayerEntity);
+			registry.deadPlayers.remove(deadPlayerEntity);
+		}
+		else {
+			deadPlayer.deathTimer += elapsed_ms;
+		}
+	}
 }

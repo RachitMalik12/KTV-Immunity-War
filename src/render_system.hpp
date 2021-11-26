@@ -98,7 +98,8 @@ class RenderSystem {
 		shader_path("knight"),
 		shader_path("wizard"),
 		shader_path("enemy"),
-		shader_path("number")
+		shader_path("number"),
+		shader_path("powerup")
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
@@ -140,6 +141,8 @@ private:
 	void playerOneTransition(bool leaveShop);
 	void playerTwoTransition(bool leaveShop, vec2 player2Pos);
 	void textureEffectSetup(const GLuint program, Entity entity);
+	void enemyEffects(const GLuint program, Entity entity);
+	void playerEffects(const GLuint program, Entity entity);
 
 	// Window handle
 	GLFWwindow* window;
