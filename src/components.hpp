@@ -38,7 +38,7 @@ struct PlayerStat
 };
 
 struct DeadPlayer {
-	float deathAnimationTime = 1500.f;
+	float deathAnimationTime = 500.f;
 	float deathTimer = 0.f;
 };
 
@@ -76,7 +76,7 @@ struct Enemy
 
 struct DeadEnemy {
 	bool gotCut = false;
-	float deathAnimationTime = 1500.f;
+	float deathAnimationTime = 1000.f;
 	float deathTimer = 0;
 };
 

@@ -1,4 +1,5 @@
 #version 330
+#define M_PI 3.1415926535897932384626433832795
 
 // Input attributes
 in vec3 in_position;
@@ -26,7 +27,7 @@ uniform float animationTime;
 
 vec4 deathAnimation() {
 	mat3 newRotation = rotation;
-	float radians = 90.0 * (3.1415926 / 180.0) * animationTime;
+	float radians = 90.0 * (M_PI / 180.0) * animationTime;
 	float c = cos(radians);
 	float s = sin(radians);
 	newRotation[0][0] = c;

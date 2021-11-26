@@ -1674,6 +1674,7 @@ void WorldSystem::removeDeadPlayersAndEnemies(float elapsed_ms) {
 		DeadPlayer& deadPlayer = registry.deadPlayers.get(deadPlayerEntity);
 		if (deadPlayer.deathTimer > deadPlayer.deathAnimationTime) {
 			registry.renderRequests.remove(deadPlayerEntity);
+			registry.deadPlayers.remove(deadPlayerEntity);
 		}
 		else {
 			deadPlayer.deathTimer += elapsed_ms;
