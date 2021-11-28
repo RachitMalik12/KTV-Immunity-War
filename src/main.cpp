@@ -44,6 +44,7 @@ int main()
 	glfwGetWindowSize(window, &w, &h);
 	renderer.init(w, h, window);
 	world.init(&renderer);
+	physics.initializeSounds();
 	AISystem ai(&renderer);
 	// variable timestep loop
 	auto t = Clock::now();

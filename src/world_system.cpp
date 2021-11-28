@@ -22,12 +22,10 @@ WorldSystem::WorldSystem()
 
 WorldSystem::~WorldSystem() {
 	// Destroy music components
-	if (background_music != nullptr)
-		Mix_FreeMusic(background_music);
-	if (salmon_dead_sound != nullptr)
-		Mix_FreeChunk(salmon_dead_sound);
-	if (salmon_eat_sound != nullptr)
-		Mix_FreeChunk(salmon_eat_sound);
+	Mix_AllocateChannels(0);
+	Mix_FreeMusic(battle_bgm);
+	Mix_FreeMusic(shop_bgm);
+	Mix_FreeMusic(final_boss_bgm);
 	Mix_CloseAudio();
 
 	// Destroy all created components
@@ -89,17 +87,21 @@ GLFWwindow* WorldSystem::create_window(int width, int height) {
 		return nullptr;
 	}
 
-	background_music = Mix_LoadMUS(audio_path("music.wav").c_str());
-	salmon_dead_sound = Mix_LoadWAV(audio_path("salmon_dead.wav").c_str());
-	salmon_eat_sound = Mix_LoadWAV(audio_path("salmon_eat.wav").c_str());
+	Mix_Volume(-1, volume);
+	battle_bgm = Mix_LoadMUS(audio_path("battle.wav").c_str());
+	shop_bgm = Mix_LoadMUS(audio_path("shop.wav").c_str());
+	final_boss_bgm = Mix_LoadMUS(audio_path("final_boss.wav").c_str());
+	menu_click_sound = Mix_LoadWAV(audio_path("menu_click.wav").c_str());
+	zap_sound = Mix_LoadWAV(audio_path("zap.wav").c_str());
+	swing_sound = Mix_LoadWAV(audio_path("swing.wav").c_str());
+	chainmail1_sound = Mix_LoadWAV(audio_path("chainmail1.wav").c_str());
+	chainmail2_sound = Mix_LoadWAV(audio_path("chainmail2.wav").c_str());
+	cloth1_sound = Mix_LoadWAV(audio_path("cloth1.wav").c_str());
+	cloth2_sound = Mix_LoadWAV(audio_path("cloth2.wav").c_str());
+	level_start_sound = Mix_LoadWAV(audio_path("level_start.wav").c_str());
+	level_end_sound = Mix_LoadWAV(audio_path("level_end.wav").c_str());
 
-	if (background_music == nullptr || salmon_dead_sound == nullptr || salmon_eat_sound == nullptr) {
-		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n make sure the data directory is present",
-			audio_path("music.wav").c_str(),
-			audio_path("salmon_dead.wav").c_str(),
-			audio_path("salmon_eat.wav").c_str());
-		return nullptr;
-	}
+
 
 	// Load level information 
 	levelFileLoader.readFile(); 
@@ -110,8 +112,6 @@ GLFWwindow* WorldSystem::create_window(int width, int height) {
 
 void WorldSystem::init(RenderSystem* renderer_arg) {
 	this->renderer = renderer_arg;
-	// Playing background music indefinitely
-	Mix_PlayMusic(background_music, -1);
 	auto entity = Entity();
 	scaleGameHUD();
     restart_game();
@@ -837,7 +837,9 @@ void WorldSystem::menuLogic(int menuType) {
 			
 		}
 	}
-	
+	if (menuMode.currentButton != None) {
+		Mix_PlayChannel(-1, menu_click_sound, 0);
+	}
 
 }
 
@@ -997,6 +999,7 @@ void WorldSystem::handlePlayerTwoProjectile(float elapsed_ms_since_last_update) 
 			float h = sqrtf(powf(dx, 2) + powf(dy, 2));
 			float scale = playerTwoStat.projectileSpeed / h;
 			float th = atan2(dy, dx);
+			Mix_PlayChannel(-1, zap_sound, 0);
 			createProjectile(renderer, player2Motion.position, { dx * scale, dy * scale }, th, player2_wizard);
 		}
 	}
@@ -1026,6 +1029,7 @@ void WorldSystem::handlePlayerOneAttack(float elapsed_ms_since_last_update) {
 			// no action
 			break;
 		}
+		Mix_PlayChannel(-1, swing_sound, 0);
 		createSword(renderer, angle + offset, player_knight);
 	}
 }
@@ -1127,6 +1131,8 @@ void WorldSystem::transitionToShop() {
 	if (registry.doors.entities.size() > 0) {
 		Entity door = registry.doors.entities.front();
 		registry.remove_all_components_of(door);
+		Mix_FadeOutMusic(fade_duration);
+		Mix_PlayChannel(-1, level_end_sound, 0);
 	}
 	if (!twoPlayer.inTwoPlayerMode) {
 		setTransitionFlag(player_knight);
@@ -1198,6 +1204,9 @@ void WorldSystem::progressBrightenScreen(float elapsed_ms_since_last_update) {
 		startingNewLevel = false;
 		auto entity1 = Entity();
 		registry.startLevelTimers.emplace(entity1);
+		Mix_PlayChannel(-1, level_start_sound, 0);
+		Mix_VolumeMusic(battle_music_volume);
+		Mix_FadeInMusic(battle_bgm, -1, fade_duration);
 	}
 
 	ScreenState& screen = registry.screenStates.components[0];
@@ -1240,6 +1249,8 @@ void WorldSystem::reviveDeadPlayerInShop() {
 void WorldSystem::setTransitionFlag(Entity player) {
 
 	if (registry.inShops.has(player) && firstEntranceToShop) {
+		Mix_VolumeMusic(volume);
+		Mix_PlayMusic(shop_bgm, -1);
 		firstEntranceToShop = false;
 		reviveDeadPlayerInShop();
 		int num_powerUps = 4; 
@@ -1270,10 +1281,21 @@ void WorldSystem::animateKnight(float elapsed_ms_since_last_update) {
 			{ TEXTURE_ASSET_ID::KNIGHT,
 				EFFECT_ASSET_ID::KNIGHT,
 				GEOMETRY_BUFFER_ID::SPRITE }, false);
+		next_step_player1 -= elapsed_ms_since_last_update;
+		if (next_step_player1 < 0.f) {
+			next_step_player1 = step_interval;
+			if (curr_step_player1) {
+				Mix_PlayChannel(-1, chainmail1_sound, 0);
+			}
+			else {
+				Mix_PlayChannel(-1, chainmail2_sound, 0);
+			}
+			curr_step_player1 = !curr_step_player1;
+		}
 	}
 }
 
-void WorldSystem::animateWizard(float elpased_ms_since_last_update) {
+void WorldSystem::animateWizard(float elapsed_ms_since_last_update) {
 	if (twoPlayer.inTwoPlayerMode) {
 		WizardAnimation& animation = registry.wizardAnimations.get(player2_wizard);
 		Player& player = registry.players.get(player2_wizard);
@@ -1291,14 +1313,25 @@ void WorldSystem::animateWizard(float elpased_ms_since_last_update) {
 		}
 
 		if (animation.animationMode == animation.attackMode) {
-			wizardAttackFrameSetter(elpased_ms_since_last_update, animation);
+			wizardAttackFrameSetter(elapsed_ms_since_last_update, animation);
 		}
 		else if (animation.animationMode == animation.walkMode) {
-			wizardWalkFrameSetter(elpased_ms_since_last_update, animation);
+			wizardWalkFrameSetter(elapsed_ms_since_last_update, animation);			
+			next_step_player2 -= elapsed_ms_since_last_update;
+			if (next_step_player2 < 0.f) {
+				next_step_player2 = step_interval;
+				if (curr_step_player2) {
+					Mix_PlayChannel(-1, cloth1_sound, 0);
+				}
+				else {
+					Mix_PlayChannel(-1, cloth2_sound, 0);
+				}
+				curr_step_player2 = !curr_step_player2;
+			}
 		}
 		else {
 			// animation.animationMode = animation.idleMode
-   			wizardIdleFrameSetter(elpased_ms_since_last_update, animation);
+   			wizardIdleFrameSetter(elapsed_ms_since_last_update, animation);
 		}
 	}
 }

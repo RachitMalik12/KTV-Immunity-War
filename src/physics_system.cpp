@@ -124,6 +124,7 @@ void PhysicsSystem::handlePowerUpCollisions(Player& playerCom, PlayerStat& playe
 		registry.remove_all_components_of(numberEntity);
 	}
 	registry.remove_all_components_of(entity);
+	Mix_PlayChannel(-1, buy_sound, 0);
 }
 
 void PhysicsSystem::resolvePlayerDamage(Entity playerEntity, int enemyDamage) {
@@ -149,6 +150,10 @@ void PhysicsSystem::resolvePlayerDamage(Entity playerEntity, int enemyDamage) {
 						GEOMETRY_BUFFER_ID::SPRITE });
 				registry.wizardAnimations.get(playerEntity).isAnimatingHurt = true;
 				registry.wizardAnimations.get(playerEntity).animationMode = registry.wizardAnimations.get(playerEntity).hurtMode;
+				Mix_PlayChannel(-1, wizard_hit_sound, 0);
+			}
+			else {
+				Mix_PlayChannel(-1, knight_hit_sound, 0);
 			}
 		}
 	}
@@ -541,6 +546,7 @@ void PhysicsSystem::enemyHitStatUpdate(Entity enemyEntity, Entity playerEntity, 
 				calculateWaterBallKnockBack(enemyCom, playerEntity, waterBallVelocity);
 			}
 		}
+		playRandomMonsterSound();
 	}
 }
 
@@ -570,4 +576,19 @@ void PhysicsSystem::calculateWaterBallKnockBack(Enemy& enemyCom, Entity playerEn
 		waterBallVelocity.y / sqrt(pow(waterBallVelocity.x, 2) + pow(waterBallVelocity.y, 2)));
 	enemyCom.velocityOfPlayerHit = vec2(normalizedDirection.x, normalizedDirection.y * -1);
 	enemyCom.damageOfPlayerHit = playerStat.damage;
+}
+
+void PhysicsSystem::playRandomMonsterSound() {
+	float rand = uniform_dist1(rng1);
+	int i = (int) floor(rand * number_of_mnstr_sounds);
+	Mix_PlayChannel(-1, mnstr_sounds[i], 0);
+}
+
+void PhysicsSystem::initializeSounds() {
+	for (int i = 0; i < number_of_mnstr_sounds; i++) {
+		mnstr_sounds[i] = Mix_LoadWAV(audio_path("mnstr" + std::to_string(i+1) + ".wav").c_str());
+	}
+	buy_sound = Mix_LoadWAV(audio_path("coin.wav").c_str());
+	wizard_hit_sound = Mix_LoadWAV(audio_path("wizard_hit.wav").c_str());
+	knight_hit_sound = Mix_LoadWAV(audio_path("knight_hit.wav").c_str());
 }

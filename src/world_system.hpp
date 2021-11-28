@@ -68,14 +68,34 @@ private:
 	RenderSystem* renderer;
 	float next_projectile_fire_player1;
 	float next_projectile_fire_player2;
+	float next_step_player1;
+	float next_step_player2;
+	bool curr_step_player1 = 0;
+	bool curr_step_player2 = 0;
+	float step_interval = 600.0f;
 	Entity player_knight;
 	Entity player2_wizard;
 	Entity player_stat;
 	Entity player2_stat;
 	// music references
+	int battle_music_volume = 20;
+	int volume = 40;
+	int fade_duration = 500;
 	Mix_Music* background_music;
 	Mix_Chunk* salmon_dead_sound;
 	Mix_Chunk* salmon_eat_sound;
+	Mix_Chunk* menu_click_sound;
+	Mix_Chunk* swing_sound;
+	Mix_Chunk* zap_sound;
+	Mix_Chunk* chainmail1_sound;
+	Mix_Chunk* chainmail2_sound;
+	Mix_Chunk* cloth1_sound;
+	Mix_Chunk* cloth2_sound;
+	Mix_Chunk* level_start_sound;
+	Mix_Chunk* level_end_sound;
+	Mix_Music* battle_bgm;
+	Mix_Music* shop_bgm;
+	Mix_Music* final_boss_bgm;
 	// C++ random number generator
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
