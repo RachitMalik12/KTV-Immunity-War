@@ -95,6 +95,7 @@ GLFWwindow* WorldSystem::create_window(int width, int height) {
 	}
 
 	Mix_Volume(-1, volume);
+	start_menu_music = Mix_LoadMUS(audio_path("start.wav").c_str());
 	battle0_bgm = Mix_LoadMUS(audio_path("battle0.wav").c_str());
 	battle1_bgm = Mix_LoadMUS(audio_path("battle1.wav").c_str());
 	battle2_bgm = Mix_LoadMUS(audio_path("battle2.wav").c_str());
@@ -759,6 +760,7 @@ void WorldSystem::menuLogic(int menuType) {
 			if (storyMode.inStoryMode == 0) {
 				storyMode.inStoryMode = 1;
 				createStory();
+				Mix_FadeInMusic(start_menu_music, -1, fade_duration);
 			}
 		}
 		// 2P
@@ -772,6 +774,7 @@ void WorldSystem::menuLogic(int menuType) {
 			if (storyMode.inStoryMode == 0) {
 				storyMode.inStoryMode = 1;
 				createStory();
+				Mix_FadeInMusic(start_menu_music, -1, fade_duration);
 			}
 		}
 		// Load
@@ -1261,7 +1264,6 @@ void WorldSystem::reviveDeadPlayerInShop() {
 void WorldSystem::setTransitionFlag(Entity player) {
 
 	if (registry.inShops.has(player) && firstEntranceToShop) {
-		Mix_VolumeMusic(volume);
 		Mix_PlayMusic(shop_bgm, -1);
 		firstEntranceToShop = false;
 		reviveDeadPlayerInShop();

@@ -74,9 +74,9 @@ private:
 	Entity player_stat;
 	Entity player2_stat;
 	// music references
-	int battle_music_volume = 20;
-	int volume = 40;
+	int volume = 20;
 	int fade_duration = 500;
+	Mix_Music* start_menu_music;
 	Mix_Music* background_music;
 	Mix_Chunk* salmon_dead_sound;
 	Mix_Chunk* salmon_eat_sound;
