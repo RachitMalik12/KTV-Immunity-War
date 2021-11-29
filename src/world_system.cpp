@@ -95,6 +95,11 @@ GLFWwindow* WorldSystem::create_window(int width, int height) {
 	}
 
 	Mix_Volume(-1, volume);
+	// SOURCE for battle0-7_bgm and start_menu_music: https://svl.itch.io/rpg-music-pack-svl?download
+	// SOURCE for shop_bgm: https://opengameart.org/content/larik
+	// SOURCE for final_boss_bgm: https://opengameart.org/content/heroic-minority
+	// SOURCE for zap_sound, menu_click_sound, level_start_sound, level_end_sound: https://opengameart.org/content/spell-sounds-starter-pack
+	// SOURCE for swing_sound: https://opengameart.org/content/battle-sound-effects
 	start_menu_music = Mix_LoadMUS(audio_path("start.wav").c_str());
 	battle0_bgm = Mix_LoadMUS(audio_path("battle0.wav").c_str());
 	battle1_bgm = Mix_LoadMUS(audio_path("battle1.wav").c_str());

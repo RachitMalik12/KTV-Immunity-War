@@ -588,6 +588,11 @@ void PhysicsSystem::calculateWaterBallKnockBack(Enemy& enemyCom, Entity playerEn
 }
 
 void PhysicsSystem::initializeSounds() {
+	// SOURCE for buy_sound: https://opengameart.org/content/inventory-sound-effects
+	// SOURCE for knight_hit_sound: https://opengameart.org/content/punch
+	// SOURCE for wizard_hit_sound: https://opengameart.org/content/punch-slap-n-kick
+	// SOURCE for water_sound: https://mixkit.co/free-sound-effects/splash/ "Fish flapping"
+	// SOURCE for slash_sound: https://mixkit.co/free-sound-effects/sword/ "Metal hit woosh"
 	water_sound = Mix_LoadWAV(audio_path("water.wav").c_str());
 	slash_sound = Mix_LoadWAV(audio_path("slash.wav").c_str());
 	buy_sound = Mix_LoadWAV(audio_path("coin.wav").c_str());
