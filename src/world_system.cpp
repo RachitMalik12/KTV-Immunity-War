@@ -638,6 +638,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 	else if (helpMode.clicked == 2) {
 
 		menuMode.inHelpDrawn = false;
+		Mix_PlayChannel(-1, menu_click_sound, 0);
 		// possible bug/edge case
 		menuMode.currentButton = None;
 		for (Entity entity : registry.helpModes.entities) {

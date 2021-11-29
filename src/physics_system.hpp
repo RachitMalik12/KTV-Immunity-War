@@ -47,12 +47,9 @@ private:
 	void enemyHitStatUpdate(Entity enemyEntity, Entity playerEntity, vec2 waterBallVelocity);
 	void calculateSwordKnockBack(Enemy& enemyCom, Entity playerEntity);
 	void calculateWaterBallKnockBack(Enemy& enemyCom, Entity playerEntity, vec2 waterBallVelocity);
-	void playRandomMonsterSound();
 	Mix_Chunk* buy_sound;
 	Mix_Chunk* wizard_hit_sound;
 	Mix_Chunk* knight_hit_sound;
-	Mix_Chunk* hit1_sound;
-	Mix_Chunk* hit2_sound;
-	Mix_Chunk* hit3_sound;
-	Mix_Chunk* hit4_sound;
+	Mix_Chunk* water_sound;
+	Mix_Chunk* slash_sound;
 };

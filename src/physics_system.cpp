@@ -132,6 +132,12 @@ void PhysicsSystem::resolvePlayerDamage(Entity playerEntity, int enemyDamage) {
 	Motion& playerMotion = registry.motions.get(playerEntity);
 	if (!player.isInvin && !player.isDead) {
 		player.hp -= enemyDamage;
+		if (playerEntity.getId() == registry.players.entities.front()) {
+			Mix_PlayChannel(-1, knight_hit_sound, 0);
+		}
+		else {
+			Mix_PlayChannel(-1, wizard_hit_sound, 0);
+		}
 		if (player.hp <= 0) {
 			player.hp = 0;
 			player.isDead = true;
@@ -150,10 +156,8 @@ void PhysicsSystem::resolvePlayerDamage(Entity playerEntity, int enemyDamage) {
 						GEOMETRY_BUFFER_ID::SPRITE });
 				registry.wizardAnimations.get(playerEntity).isAnimatingHurt = true;
 				registry.wizardAnimations.get(playerEntity).animationMode = registry.wizardAnimations.get(playerEntity).hurtMode;
-				Mix_PlayChannel(-1, wizard_hit_sound, 0);
 			}
 			else {
-				Mix_PlayChannel(-1, knight_hit_sound, 0);
 			}
 		}
 	}
@@ -517,8 +521,13 @@ void PhysicsSystem::enemyHitStatUpdate(Entity enemyEntity, Entity playerEntity, 
 	PlayerStat& playerStatCom = registry.playerStats.get(playerCom.playerStat);
 	Enemy& enemyCom = registry.enemies.get(enemyEntity);
 	if (!enemyCom.isInvin) {
-		enemyCom.hp -= playerStatCom.damage;
-		playRandomMonsterSound();
+		enemyCom.hp -= playerStatCom.damage;			
+		if (playerEntity.getId() == registry.players.entities.front()) {
+			Mix_PlayChannel(-1, slash_sound, 0);
+		}
+		else {
+			Mix_PlayChannel(-1, water_sound, 0);
+		}
 		if (enemyCom.hp <= 0) {
 			playerStatCom.money += enemyCom.loot;
 			if (playerStatCom.money > playerStatCom.playerMoneyLimit) {
@@ -578,29 +587,9 @@ void PhysicsSystem::calculateWaterBallKnockBack(Enemy& enemyCom, Entity playerEn
 	enemyCom.damageOfPlayerHit = playerStat.damage;
 }
 
-void PhysicsSystem::playRandomMonsterSound() {
-	int r = rand() % 4;
-	switch (r) {
-	case 0:
-		Mix_PlayChannel(-1, hit1_sound, 0);
-		break;
-	case 1:
-		Mix_PlayChannel(-1, hit2_sound, 0);
-		break;
-	case 2:
-		Mix_PlayChannel(-1, hit3_sound, 0);
-		break;
-	case 3:
-		Mix_PlayChannel(-1, hit4_sound, 0);
-		break;
-	}
-}
-
 void PhysicsSystem::initializeSounds() {
-	hit1_sound = Mix_LoadWAV(audio_path("hit1.wav").c_str());
-	hit2_sound = Mix_LoadWAV(audio_path("hit2.wav").c_str());
-	hit3_sound = Mix_LoadWAV(audio_path("hit3.wav").c_str());
-	hit4_sound = Mix_LoadWAV(audio_path("hit4.wav").c_str());
+	water_sound = Mix_LoadWAV(audio_path("water.wav").c_str());
+	slash_sound = Mix_LoadWAV(audio_path("slash.wav").c_str());
 	buy_sound = Mix_LoadWAV(audio_path("coin.wav").c_str());
 	wizard_hit_sound = Mix_LoadWAV(audio_path("wizard_hit.wav").c_str());
 	knight_hit_sound = Mix_LoadWAV(audio_path("knight_hit.wav").c_str());
