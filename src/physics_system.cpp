@@ -518,6 +518,7 @@ void PhysicsSystem::enemyHitStatUpdate(Entity enemyEntity, Entity playerEntity, 
 	Enemy& enemyCom = registry.enemies.get(enemyEntity);
 	if (!enemyCom.isInvin) {
 		enemyCom.hp -= playerStatCom.damage;
+		playRandomMonsterSound();
 		if (enemyCom.hp <= 0) {
 			playerStatCom.money += enemyCom.loot;
 			if (playerStatCom.money > playerStatCom.playerMoneyLimit) {
@@ -546,7 +547,6 @@ void PhysicsSystem::enemyHitStatUpdate(Entity enemyEntity, Entity playerEntity, 
 				calculateWaterBallKnockBack(enemyCom, playerEntity, waterBallVelocity);
 			}
 		}
-		playRandomMonsterSound();
 	}
 }
 
@@ -579,15 +579,28 @@ void PhysicsSystem::calculateWaterBallKnockBack(Enemy& enemyCom, Entity playerEn
 }
 
 void PhysicsSystem::playRandomMonsterSound() {
-	float rand = uniform_dist1(rng1);
-	int i = (int) floor(rand * number_of_mnstr_sounds);
-	Mix_PlayChannel(-1, mnstr_sounds[i], 0);
+	int r = rand() % 4;
+	switch (r) {
+	case 0:
+		Mix_PlayChannel(-1, hit1_sound, 0);
+		break;
+	case 1:
+		Mix_PlayChannel(-1, hit2_sound, 0);
+		break;
+	case 2:
+		Mix_PlayChannel(-1, hit3_sound, 0);
+		break;
+	case 3:
+		Mix_PlayChannel(-1, hit4_sound, 0);
+		break;
+	}
 }
 
 void PhysicsSystem::initializeSounds() {
-	for (int i = 0; i < number_of_mnstr_sounds; i++) {
-		mnstr_sounds[i] = Mix_LoadWAV(audio_path("mnstr" + std::to_string(i+1) + ".wav").c_str());
-	}
+	hit1_sound = Mix_LoadWAV(audio_path("hit1.wav").c_str());
+	hit2_sound = Mix_LoadWAV(audio_path("hit2.wav").c_str());
+	hit3_sound = Mix_LoadWAV(audio_path("hit3.wav").c_str());
+	hit4_sound = Mix_LoadWAV(audio_path("hit4.wav").c_str());
 	buy_sound = Mix_LoadWAV(audio_path("coin.wav").c_str());
 	wizard_hit_sound = Mix_LoadWAV(audio_path("wizard_hit.wav").c_str());
 	knight_hit_sound = Mix_LoadWAV(audio_path("knight_hit.wav").c_str());

@@ -68,10 +68,6 @@ private:
 	RenderSystem* renderer;
 	float next_projectile_fire_player1;
 	float next_projectile_fire_player2;
-	float next_step_player1;
-	float next_step_player2;
-	bool curr_step_player1 = 0;
-	bool curr_step_player2 = 0;
 	float step_interval = 600.0f;
 	Entity player_knight;
 	Entity player2_wizard;
@@ -87,15 +83,19 @@ private:
 	Mix_Chunk* menu_click_sound;
 	Mix_Chunk* swing_sound;
 	Mix_Chunk* zap_sound;
-	Mix_Chunk* chainmail1_sound;
-	Mix_Chunk* chainmail2_sound;
-	Mix_Chunk* cloth1_sound;
-	Mix_Chunk* cloth2_sound;
 	Mix_Chunk* level_start_sound;
 	Mix_Chunk* level_end_sound;
-	Mix_Music* battle_bgm;
+	Mix_Music* battle0_bgm;
+	Mix_Music* battle1_bgm;
+	Mix_Music* battle2_bgm;
+	Mix_Music* battle3_bgm;
+	Mix_Music* battle4_bgm;
+	Mix_Music* battle5_bgm;
+	Mix_Music* battle6_bgm;
+	Mix_Music* battle7_bgm;
 	Mix_Music* shop_bgm;
 	Mix_Music* final_boss_bgm;
+	void setLevelMusic(int level);
 	// C++ random number generator
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1

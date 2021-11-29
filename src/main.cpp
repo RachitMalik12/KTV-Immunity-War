@@ -42,9 +42,9 @@ int main()
 	// initialize the main systems
 	int w, h;
 	glfwGetWindowSize(window, &w, &h);
+	physics.initializeSounds();
 	renderer.init(w, h, window);
 	world.init(&renderer);
-	physics.initializeSounds();
 	AISystem ai(&renderer);
 	// variable timestep loop
 	auto t = Clock::now();

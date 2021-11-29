@@ -23,7 +23,14 @@ WorldSystem::WorldSystem()
 WorldSystem::~WorldSystem() {
 	// Destroy music components
 	Mix_AllocateChannels(0);
-	Mix_FreeMusic(battle_bgm);
+	Mix_FreeMusic(battle0_bgm);
+	Mix_FreeMusic(battle1_bgm);
+	Mix_FreeMusic(battle2_bgm);
+	Mix_FreeMusic(battle3_bgm);
+	Mix_FreeMusic(battle4_bgm);
+	Mix_FreeMusic(battle5_bgm);
+	Mix_FreeMusic(battle6_bgm);
+	Mix_FreeMusic(battle7_bgm);
 	Mix_FreeMusic(shop_bgm);
 	Mix_FreeMusic(final_boss_bgm);
 	Mix_CloseAudio();
@@ -88,16 +95,19 @@ GLFWwindow* WorldSystem::create_window(int width, int height) {
 	}
 
 	Mix_Volume(-1, volume);
-	battle_bgm = Mix_LoadMUS(audio_path("battle.wav").c_str());
+	battle0_bgm = Mix_LoadMUS(audio_path("battle0.wav").c_str());
+	battle1_bgm = Mix_LoadMUS(audio_path("battle1.wav").c_str());
+	battle2_bgm = Mix_LoadMUS(audio_path("battle2.wav").c_str());
+	battle3_bgm = Mix_LoadMUS(audio_path("battle3.wav").c_str());
+	battle4_bgm = Mix_LoadMUS(audio_path("battle4.wav").c_str());
+	battle5_bgm = Mix_LoadMUS(audio_path("battle5.wav").c_str());
+	battle6_bgm = Mix_LoadMUS(audio_path("battle6.wav").c_str());
+	battle7_bgm = Mix_LoadMUS(audio_path("battle7.wav").c_str());
 	shop_bgm = Mix_LoadMUS(audio_path("shop.wav").c_str());
 	final_boss_bgm = Mix_LoadMUS(audio_path("final_boss.wav").c_str());
 	menu_click_sound = Mix_LoadWAV(audio_path("menu_click.wav").c_str());
 	zap_sound = Mix_LoadWAV(audio_path("zap.wav").c_str());
 	swing_sound = Mix_LoadWAV(audio_path("swing.wav").c_str());
-	chainmail1_sound = Mix_LoadWAV(audio_path("chainmail1.wav").c_str());
-	chainmail2_sound = Mix_LoadWAV(audio_path("chainmail2.wav").c_str());
-	cloth1_sound = Mix_LoadWAV(audio_path("cloth1.wav").c_str());
-	cloth2_sound = Mix_LoadWAV(audio_path("cloth2.wav").c_str());
 	level_start_sound = Mix_LoadWAV(audio_path("level_start.wav").c_str());
 	level_end_sound = Mix_LoadWAV(audio_path("level_end.wav").c_str());
 
@@ -674,6 +684,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 }
 
 void WorldSystem::storyClicker() {
+	Mix_PlayChannel(-1, menu_click_sound, 0);
 	Entity ent;
 	if (storyMode.inStoryMode == 6) {
 		storyMode.inStoryMode = 0;
@@ -1120,6 +1131,7 @@ void WorldSystem::levelCompletionCheck(float elapsed_ms_since_last_update) {
 				}
 				else {
 					screen.darken_screen_factor = 1 - min_counter_ms / 3000;
+					Mix_FadeOutMusic(fade_duration);
 				}
 				
 			}
@@ -1205,8 +1217,7 @@ void WorldSystem::progressBrightenScreen(float elapsed_ms_since_last_update) {
 		auto entity1 = Entity();
 		registry.startLevelTimers.emplace(entity1);
 		Mix_PlayChannel(-1, level_start_sound, 0);
-		Mix_VolumeMusic(battle_music_volume);
-		Mix_FadeInMusic(battle_bgm, -1, fade_duration);
+		setLevelMusic(level_number);
 	}
 
 	ScreenState& screen = registry.screenStates.components[0];
@@ -1281,17 +1292,6 @@ void WorldSystem::animateKnight(float elapsed_ms_since_last_update) {
 			{ TEXTURE_ASSET_ID::KNIGHT,
 				EFFECT_ASSET_ID::KNIGHT,
 				GEOMETRY_BUFFER_ID::SPRITE }, false);
-		next_step_player1 -= elapsed_ms_since_last_update;
-		if (next_step_player1 < 0.f) {
-			next_step_player1 = step_interval;
-			if (curr_step_player1) {
-				Mix_PlayChannel(-1, chainmail1_sound, 0);
-			}
-			else {
-				Mix_PlayChannel(-1, chainmail2_sound, 0);
-			}
-			curr_step_player1 = !curr_step_player1;
-		}
 	}
 }
 
@@ -1316,18 +1316,7 @@ void WorldSystem::animateWizard(float elapsed_ms_since_last_update) {
 			wizardAttackFrameSetter(elapsed_ms_since_last_update, animation);
 		}
 		else if (animation.animationMode == animation.walkMode) {
-			wizardWalkFrameSetter(elapsed_ms_since_last_update, animation);			
-			next_step_player2 -= elapsed_ms_since_last_update;
-			if (next_step_player2 < 0.f) {
-				next_step_player2 = step_interval;
-				if (curr_step_player2) {
-					Mix_PlayChannel(-1, cloth1_sound, 0);
-				}
-				else {
-					Mix_PlayChannel(-1, cloth2_sound, 0);
-				}
-				curr_step_player2 = !curr_step_player2;
-			}
+			wizardWalkFrameSetter(elapsed_ms_since_last_update, animation);		
 		}
 		else {
 			// animation.animationMode = animation.idleMode
@@ -1712,5 +1701,37 @@ void WorldSystem::removeDeadPlayersAndEnemies(float elapsed_ms) {
 		else {
 			deadPlayer.deathTimer += elapsed_ms;
 		}
+	}
+}
+
+void WorldSystem::setLevelMusic(int level) {
+	switch (level) {
+	case 0:
+		Mix_FadeInMusic(battle0_bgm, -1, fade_duration);
+		break;
+	case 1:
+		Mix_FadeInMusic(battle1_bgm, -1, fade_duration);
+		break;
+	case 2:
+		Mix_FadeInMusic(battle2_bgm, -1, fade_duration);
+		break;
+	case 3:
+		Mix_FadeInMusic(battle3_bgm, -1, fade_duration);
+		break;
+	case 4:
+		Mix_FadeInMusic(battle4_bgm, -1, fade_duration);
+		break;
+	case 5:
+		Mix_FadeInMusic(battle5_bgm, -1, fade_duration);
+		break;
+	case 6:
+		Mix_FadeInMusic(battle6_bgm, -1, fade_duration);
+		break;
+	case 7:
+		Mix_FadeInMusic(battle7_bgm, -1, fade_duration);
+		break; 
+	case 8:
+		Mix_FadeInMusic(final_boss_bgm, -1, fade_duration);
+		break;
 	}
 }
