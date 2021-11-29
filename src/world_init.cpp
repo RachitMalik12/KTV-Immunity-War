@@ -723,7 +723,7 @@ Entity createMovementSpeedPowerup(vec2 position) {
 }
 
 /**
-	* Render a number between 0 and 99 inclusive on screen at the desierd position. Will render 0 if range is incorrect.
+	* Render a number between 0 and 99 inclusive on screen at the desired position. Will render 0 if range is incorrect.
 	*
 	* @param  singleDigitNumber   the number to be displayed on screen, non-negative single digit or double digits only, meaning 0 - 99
 	* @return					  the newly created entity
@@ -767,6 +767,75 @@ std::vector<Entity> createDoubleDigitNumber(vec2 position, int doubleDigitNumber
 	numberEntities.push_back(createSingleDigitNumber(vec2(position.x + (NUMBER_BB_WIDTH / 2) * defaultResolution.scaling, position.y), doubleDigitNumber % 10));
 	numberEntities.push_back(createSingleDigitNumber(vec2(position.x - (NUMBER_BB_WIDTH / 2) * defaultResolution.scaling, position.y), doubleDigitNumber / 10));
 	return numberEntities;
+}
+std::vector<Entity> createSentence(vec2 position, std::string sentence) {
+	std::vector<Entity> letters;
+	int index = 0; 
+	for (char s : sentence) {
+		int next = index + 1; 
+		if (s != ' ' && isalpha(s)) {
+			if (islower(s)) {
+				letters.push_back(createSmallLetter(position, s - 'a'));
+				// Apply appropriate position increment based on next type of letter. 
+				if (islower(sentence[next])) {
+					position.x += ((SMALLLETTER_BB_WIDTH) * defaultResolution.scaling);
+				}
+				else {
+					position.x += ((CAPSLETTER_BB_WIDTH) * defaultResolution.scaling);
+				}
+			}
+			else {
+				letters.push_back(createCapsLetter(position, s - 'A'));
+				if (islower(sentence[next])) {
+					position.x += ((SMALLLETTER_BB_WIDTH) * defaultResolution.scaling);
+				}
+				else {
+					position.x += ((CAPSLETTER_BB_WIDTH) * defaultResolution.scaling);
+				}
+			}
+		}
+		else {
+			// any invalid character, insert a space. 
+			position.x += (CAPSLETTER_BB_WIDTH) * defaultResolution.scaling; 
+		}
+		index++; 
+	}
+	return letters; 
+}
+Entity createSmallLetter(vec2 position, int offset) {
+	auto entity = Entity();
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = position;
+	motion.scale = vec2(SMALLLETTER_BB_WIDTH * defaultResolution.scaling, SMALLLETTER_BB_HEIGHT * defaultResolution.scaling);
+
+	Letter& smolBoi = registry.letters.emplace(entity);
+	smolBoi.frame = offset; 
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::SMALLETTER,
+		  EFFECT_ASSET_ID::LETTER,
+		  GEOMETRY_BUFFER_ID::SPRITE });
+	return entity;
+}
+
+Entity createCapsLetter(vec2 position, int offset) {
+	auto entity = Entity();
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = position;
+	motion.scale = vec2(CAPSLETTER_BB_WIDTH *defaultResolution.scaling, CAPSLETTER_BB_HEIGHT * defaultResolution.scaling);
+
+	Letter& bigBoi = registry.letters.emplace(entity);
+	bigBoi.frame = offset;
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::CAPSLETTER,
+		  EFFECT_ASSET_ID::LETTER,
+		  GEOMETRY_BUFFER_ID::SPRITE });
+	return entity;
 }
 
 Entity createHUD(vec2 position, Entity playerEntity) {

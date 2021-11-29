@@ -48,6 +48,10 @@ const float BACKGROUND_BB_WIDTH = 1200.f;
 const float BACKGROUND_BB_HEIGHT = 1600.f;
 const float NUMBER_BB_WIDTH = 0.6 * 69.7;
 const float NUMBER_BB_HEIGHT = 0.6 * 85.f;
+const float SMALLLETTER_BB_WIDTH = 0.329 * 127.f;
+const float SMALLLETTER_BB_HEIGHT = 0.266 * 192.f;
+const float CAPSLETTER_BB_WIDTH = 0.328 * 127.5;
+const float CAPSLETTER_BB_HEIGHT = 0.279 * 183.f;
 const float HUD_HP_BB_WIDTH = 0.0249 * 2048.f;
 const float HUD_HP_BB_HEIGHT = 0.0249 * 2048.f;
 const float HUD_COIN_BB_WIDTH = 0.0249 * 2048.f;
@@ -136,6 +140,9 @@ Entity createMovementSpeedPowerup(vec2 position);
 std::vector<Entity> createNumber(vec2 position, int number);
 Entity createSingleDigitNumber(vec2 position, int singleDigitNumber);
 std::vector<Entity> createDoubleDigitNumber(vec2 position, int doubleDigitNumber);
+Entity createSmallLetter(vec2 position, int offset); 
+Entity createCapsLetter(vec2 position, int offset); 
+std::vector<Entity> createSentence(vec2 position, std::string sentence);
 
 // HUD
 Entity createHUD(vec2 position, Entity playerEntity);

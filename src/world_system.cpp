@@ -1329,6 +1329,8 @@ void WorldSystem::setupLevel(int levelNum) {
 		registry.remove_all_components_of(registry.huds.entities.back());
 	while (registry.powerups.entities.size() > 0)
 		registry.remove_all_components_of(registry.powerups.entities.back());
+	while (registry.letters.entities.size() > 0)
+		registry.remove_all_components_of(registry.letters.entities.back());
 
 	// Close the door at the start of every level after player leaves the shop. 
 	createADoor(screen_width, screen_height);
@@ -1393,9 +1395,63 @@ void WorldSystem::setupLevel(int levelNum) {
 	if (twoPlayer.inTwoPlayerMode) {
 		gameHud.playerTwoHudEntity = createHUD(gameHud.playerTwoBattleRoomLocation, player2_wizard);
 	}
+	if (level_number == 1) {
+		setupTutorial(); 
+	}
 	std::stringstream ss;
 	ss << "ktv: immunity war Level: " << levelNum;
 	glfwSetWindowTitle(window, ss.str().c_str());
+}
+
+float scaleCoordinate(float coordinate) {
+	coordinate *= defaultResolution.scaling;
+	return coordinate;
+}
+
+void WorldSystem::setupTutorial() {
+	// Create the level title 
+	std::string tutorialTitle = "TUTORIAL";
+	int tutorialTitleLen = tutorialTitle.length();
+	float titleXOffset = scaleCoordinate(((tutorialTitleLen / 2) * CAPSLETTER_BB_WIDTH));
+	float titleYCoord = scaleCoordinate(75.f); 
+	createSentence(vec2(defaultResolution.width / 2 - titleXOffset, titleYCoord), tutorialTitle);
+
+	std::string header1 = "MOVEMENT";
+	std::string header2 = "ATTACK";
+
+	// Create the left movement and attack instruction blocks. 
+	float leftMovementInstructionPosX = scaleCoordinate(75.f); 
+	float leftMovementInstructionOffsetY = scaleCoordinate(-200.f);
+	vec2 leftMovementInstructionPos = vec2(leftMovementInstructionPosX, (defaultResolution.height / 2) + leftMovementInstructionOffsetY);
+	createMovementAndAttackInstructionTextBlocks(leftMovementInstructionPos, header1, header2); 
+
+	// Create the right movement and attack instruction blocks. (using shared logic). 
+	float rightMovementInstructionX = scaleCoordinate(-(header1.length() * CAPSLETTER_BB_WIDTH) - 25.f);
+	float rightMovementInstructionYOffset = scaleCoordinate(-200.f);
+	vec2 rightMovementInstructionPos = vec2(defaultResolution.width + rightMovementInstructionX, (defaultResolution.height / 2) + rightMovementInstructionYOffset);
+	createMovementAndAttackInstructionTextBlocks(rightMovementInstructionPos, header1, header2);
+}
+
+void WorldSystem::createMovementAndAttackInstructionTextBlocks(vec2 movementInstructionPos, std::string header1, std::string header2) {
+	vec2 topInstBottomPosition = createTwoTierdInstruction(movementInstructionPos, header1, "w", "a s d");
+	float attackPosYOffset = scaleCoordinate(2 * CAPSLETTER_BB_HEIGHT);
+	float attackPosXOffset = scaleCoordinate(CAPSLETTER_BB_WIDTH);
+	vec2 bottomInstPosition = vec2(movementInstructionPos.x + attackPosXOffset, topInstBottomPosition.y + attackPosYOffset);
+	createTwoTierdInstruction(bottomInstPosition, header2, "t", "f g h");
+}
+
+vec2 WorldSystem::createTwoTierdInstruction(vec2 headerPos, std::string header, std::string child1, std::string child2) {
+	createSentence(headerPos, header);
+	int headerLength = header.length();
+	float topKeyXOffset = scaleCoordinate((headerLength / 2) * CAPSLETTER_BB_WIDTH);
+	float topKeyYOffset = scaleCoordinate(CAPSLETTER_BB_HEIGHT);
+	vec2 topKeyPos = vec2(headerPos.x + topKeyXOffset, headerPos.y + topKeyYOffset);
+	createSentence(topKeyPos, child1);
+	float bottomKeyXOffset = scaleCoordinate(-2 * CAPSLETTER_BB_WIDTH);
+	float bottomKeyYOffset = topKeyYOffset;
+	vec2 bottomKeysPos = vec2(topKeyPos.x + bottomKeyXOffset, topKeyPos.y + topKeyYOffset);
+	createSentence(bottomKeysPos, child2);
+	return bottomKeysPos; 
 }
 
 void WorldSystem::playerTwoJoinOrLeave() {

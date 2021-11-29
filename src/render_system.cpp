@@ -93,6 +93,13 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glUniform1i(frame, registry.numbers.get(entity).frame);
 		gl_has_errors();
 	}
+	else if (render_request.used_effect == EFFECT_ASSET_ID::LETTER)
+	{
+		textureEffectSetup(program, entity);
+		GLint frame = glGetUniformLocation(program, "frame");
+		glUniform1i(frame, registry.letters.get(entity).frame);
+		gl_has_errors();
+	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::POWERUP)
 	{
 		textureEffectSetup(program, entity);

@@ -54,6 +54,9 @@ private:
 	void setPlayersStats();
 	void setPlayerOneStats();
 	void setPlayerTwoStats();
+	void setupTutorial(); 
+	vec2 createTwoTierdInstruction(vec2 headerPos, std::string header, std::string child1, std::string child2);
+	void createMovementAndAttackInstructionTextBlocks(vec2 movementInstructionPos, std::string header1, std::string header2); 
 	// OpenGL window handle
 	GLFWwindow* window;
 	int level_number;

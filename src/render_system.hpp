@@ -85,7 +85,9 @@ class RenderSystem {
 			textures_path("coin.png"),
 			textures_path("hp.png"),
 			textures_path("knightIcon.png"),
-			textures_path("wizard_earring.png")
+			textures_path("wizard_earring.png"), 
+			textures_path("caps_letters.png"), 
+			textures_path("small_letters.png") 
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -99,7 +101,8 @@ class RenderSystem {
 		shader_path("wizard"),
 		shader_path("enemy"),
 		shader_path("number"),
-		shader_path("powerup")
+		shader_path("powerup"),
+		shader_path("letter")
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;

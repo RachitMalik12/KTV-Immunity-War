@@ -409,6 +409,10 @@ struct Number {
 	int frame;
 };
 
+struct Letter {
+	int frame;
+};
+
 enum PlayerCharacter {
 	KNIGHT,
 	WIZARD,
@@ -522,7 +526,9 @@ enum class TEXTURE_ASSET_ID {
 	HP = COIN + 1,
 	KNIGHTICON = HP + 1,
 	WIZARDICON = KNIGHTICON + 1,
-	TEXTURE_COUNT = WIZARDICON + 1
+	CAPSLETTER = WIZARDICON + 1, 
+	SMALLETTER = CAPSLETTER + 1, 
+	TEXTURE_COUNT = SMALLETTER + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -536,7 +542,8 @@ enum class EFFECT_ASSET_ID {
 	ENEMY = WIZARD + 1,
 	NUMBER = ENEMY + 1,
 	POWERUP = NUMBER + 1,
-	EFFECT_COUNT = POWERUP + 1
+	LETTER = POWERUP + 1, 
+	EFFECT_COUNT = LETTER + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 

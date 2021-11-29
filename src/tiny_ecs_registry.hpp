@@ -49,6 +49,7 @@ public:
 	ComponentContainer<KnightAnimation> knightAnimations;
 	ComponentContainer<WizardAnimation> wizardAnimations;
 	ComponentContainer<Number> numbers;
+	ComponentContainer<Letter> letters; 
 	ComponentContainer<HUD> huds;
 	ComponentContainer<HUDElement> hudElements;
 	ComponentContainer<StoryMode> storyModes;
@@ -102,6 +103,7 @@ public:
 		registry_list.push_back(&knightAnimations);
 		registry_list.push_back(&wizardAnimations);
 		registry_list.push_back(&numbers);
+		registry_list.push_back(&letters); 
 		registry_list.push_back(&huds);
 		registry_list.push_back(&hudElements);
 		registry_list.push_back(&storyModes);
