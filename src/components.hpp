@@ -85,6 +85,9 @@ struct EnemyBlob
 
 };
 
+struct EnemyTutorial {
+
+};
 // Enemy that will chase the wizard but not using BFS
 struct EnemyChase
 {
@@ -294,6 +297,11 @@ struct ScreenState
 struct DebugComponent
 {
 	// Note, an empty struct has size 1
+};
+
+// Timer used in tutorial level to determine when the enemies will appear
+struct TutorialTimer {
+	float counter_ms = 7000.f;
 };
 
 // A timer that will be associated to level ending

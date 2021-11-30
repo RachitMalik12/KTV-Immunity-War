@@ -100,6 +100,9 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, int enemyType);
 // the enemy 
 Entity createEnemyBlob(RenderSystem* renderer, vec2 position);
 
+// Tutorial enemy 
+Entity createTutorialEnemy(RenderSystem* renderer, vec2 position); 
+
 // the enemy that tries to avoid wizards 
 Entity createEnemyRun(RenderSystem* renderer, vec2 position);
 

@@ -15,6 +15,7 @@ public:
 	ComponentContainer<StartLevelTimer> startLevelTimers;
 	ComponentContainer<DeathTimer> deathTimers;
 	ComponentContainer<StuckTimer> stuckTimers;
+	ComponentContainer<TutorialTimer> tutorialTimers; 
 	ComponentContainer<Motion> motions;
 	ComponentContainer<Collision> collisions;
 	ComponentContainer<Player> players;
@@ -34,6 +35,7 @@ public:
 	ComponentContainer<Enemy> enemies;
 	ComponentContainer<DeadEnemy> deadEnemies;
 	ComponentContainer<EnemyBlob> enemyBlobs;
+	ComponentContainer<EnemyTutorial> enemiesTutorial; 
 	ComponentContainer<EnemyRun> enemiesrun;
 	ComponentContainer<EnemyHunter> enemyHunters;
 	ComponentContainer<EnemyBacteria> enemyBacterias;
@@ -69,6 +71,7 @@ public:
 		registry_list.push_back(&endLevelTimers);
 		registry_list.push_back(&deathTimers);
 		registry_list.push_back(&stuckTimers);
+		registry_list.push_back(&tutorialTimers); 
 		registry_list.push_back(&motions);
 		registry_list.push_back(&collisions);
 		registry_list.push_back(&players);
@@ -88,6 +91,7 @@ public:
 		registry_list.push_back(&enemies);
 		registry_list.push_back(&deadEnemies);
 		registry_list.push_back(&enemyBlobs);
+		registry_list.push_back(&enemiesTutorial); 
 		registry_list.push_back(&enemiesrun);
 		registry_list.push_back(&enemyHunters);
 		registry_list.push_back(&enemyBacterias);

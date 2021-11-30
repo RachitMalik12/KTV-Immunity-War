@@ -13,7 +13,8 @@ WorldSystem::WorldSystem()
 	: isLevelOver(false),
 	  isTransitionOver(false),
 	  firstEntranceToShop(true),
-	  level_number(1)
+	  level_number(1), 
+	  elapsed_ms(0.f)
 {
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
@@ -126,7 +127,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Get the screen dimensions
 	int screen_width, screen_height;
 	glfwGetFramebufferSize(window, &screen_width, &screen_height);
-
+	this->elapsed_ms = elapsed_ms_since_last_update; 
+	if (level_number == 1 && !tutorialEnemyFinishTransition) {
+		waitAndMakeEnemiesVisible(); 
+	}
 	progressBrightenScreen(elapsed_ms_since_last_update);
 	levelCompletionCheck(elapsed_ms_since_last_update);
 	stopPlayerAtMouseDestination();
@@ -1034,8 +1038,8 @@ void WorldSystem::invincibilityTimer(float elapsed_ms_since_last_update) {
 	for (Entity playerEntity : registry.players.entities) {
 		Player& player = registry.players.get(playerEntity);
 		if (player.isInvin) {
-			player.invinTimerInMs -= elapsed_ms_since_last_update;
-			if (player.invinTimerInMs < 0) {
+			player.invinTimerInMs += elapsed_ms_since_last_update;
+			if (player.invinTimerInMs > player.invinFrame) {
 				player.isInvin = false;
 			}
 
@@ -1044,8 +1048,8 @@ void WorldSystem::invincibilityTimer(float elapsed_ms_since_last_update) {
 	for (Entity enemyEntity : registry.enemies.entities) {
 		Enemy& enemy = registry.enemies.get(enemyEntity);
 		if (enemy.isInvin) {
-			enemy.invinTimerInMs -= elapsed_ms_since_last_update;
-			if (enemy.invinTimerInMs < 0) {
+			enemy.invinTimerInMs += elapsed_ms_since_last_update;
+			if (enemy.invinTimerInMs > enemy.invinFrame) {
 				enemy.isInvin = false;
 			}
 		}
@@ -1194,7 +1198,7 @@ void WorldSystem::reviveWizard(Player& p2, PlayerStat& p2Stat) {
 
 void WorldSystem::progressBrightenScreen(float elapsed_ms_since_last_update) {
 	// Check level completion 
-	if (startingNewLevel == true) {
+	if (startingNewLevel) {
 		startingNewLevel = false;
 		auto entity1 = Entity();
 		registry.startLevelTimers.emplace(entity1);
@@ -1430,6 +1434,52 @@ void WorldSystem::setupTutorial() {
 	float rightMovementInstructionYOffset = scaleCoordinate(-200.f);
 	vec2 rightMovementInstructionPos = vec2(defaultResolution.width + rightMovementInstructionX, (defaultResolution.height / 2) + rightMovementInstructionYOffset);
 	createMovementAndAttackInstructionTextBlocks(rightMovementInstructionPos, header1, header2);
+	// waitAndMakeEnemiesVisible(); 
+}
+void WorldSystem::setPlayersInvincibility(float ms_delay, bool isInvin) {
+	Player& p1 = registry.players.get(player_knight);
+	p1.isInvin = true;
+	p1.invinFrame = ms_delay;
+	if (twoPlayer.inTwoPlayerMode) {
+		Player& p2 = registry.players.get(player2_wizard);
+		p2.isInvin = isInvin;
+		p2.invinFrame = ms_delay;
+	}
+}
+void WorldSystem::waitAndMakeEnemiesVisible() {
+	float DELAY_MS = 7000.f;
+	if (tutorialEnemyTransition) {
+		auto entity = Entity();
+		registry.tutorialTimers.emplace(entity); 
+		// setPlayersInvincibility(DELAY_MS, true); 
+		tutorialEnemyTransition = false; 
+	}
+	
+	float min_counter_ms = DELAY_MS; 
+	for (Entity timerEntity : registry.tutorialTimers.entities) {
+		TutorialTimer& counter = registry.tutorialTimers.get(timerEntity);
+		counter.counter_ms -= elapsed_ms;
+		if (counter.counter_ms < min_counter_ms) {
+			min_counter_ms = counter.counter_ms;
+		}
+		if (counter.counter_ms < 0) {
+			registry.tutorialTimers.remove(timerEntity);
+			// Display tutorial enemies after timer has completed
+			for (Entity e : registry.enemiesTutorial.entities) {
+				auto& enemyCom = registry.enemies.get(e);
+				enemyCom.isInvin = false;
+				enemyCom.invinFrame = 500.f; 
+				registry.renderRequests.insert(
+					e,
+					{ TEXTURE_ASSET_ID::ENEMY,
+					  EFFECT_ASSET_ID::ENEMY,
+					  GEOMETRY_BUFFER_ID::SPRITE });
+			}
+			// setPlayersInvincibility(2000.f, false);
+			tutorialEnemyFinishTransition = true; 
+		}
+
+	}
 }
 
 void WorldSystem::createMovementAndAttackInstructionTextBlocks(vec2 movementInstructionPos, std::string header1, std::string header2) {

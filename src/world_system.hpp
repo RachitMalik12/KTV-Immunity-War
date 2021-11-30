@@ -54,18 +54,22 @@ private:
 	void setPlayersStats();
 	void setPlayerOneStats();
 	void setPlayerTwoStats();
-	void setupTutorial(); 
+	void setPlayersInvincibility(float ms_delay, bool isInvin);
+	void setupTutorial();
 	vec2 createTwoTierdInstruction(vec2 headerPos, std::string header, std::string child1, std::string child2);
 	void createMovementAndAttackInstructionTextBlocks(vec2 movementInstructionPos, std::string header1, std::string header2); 
+	void waitAndMakeEnemiesVisible(); 
 	// OpenGL window handle
 	GLFWwindow* window;
 	int level_number;
 	std::vector<Level> levels; 
-	// to start with true. 
+	float elapsed_ms; 
 	bool isLevelOver;
 	bool isTransitionOver;
 	bool firstEntranceToShop; 
 	bool startingNewLevel = false;
+	bool tutorialEnemyTransition = true; 
+	bool tutorialEnemyFinishTransition = false; 
 	bool isGameOver = false;
 	// Game state
 	RenderSystem* renderer;

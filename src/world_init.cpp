@@ -213,6 +213,8 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, int enemyType) {
 		case 6:
 			curEnemy = createEnemyGerm(renderer, position);
 			break;
+		case 7: 
+			curEnemy = createTutorialEnemy(renderer, position); 
 	}
 	return curEnemy;
 }
@@ -251,6 +253,39 @@ Entity createEnemyBlob(RenderSystem* renderer, vec2 position)
 		{ TEXTURE_ASSET_ID::ENEMY,
 			EFFECT_ASSET_ID::ENEMY,
 			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
+Entity createTutorialEnemy(RenderSystem* renderer, vec2 position)
+{
+	// Reserve an entity
+	auto entity = Entity();
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+	Mesh& hitbox = renderer->getMesh(GEOMETRY_BUFFER_ID::BLOBBER);
+	registry.hitboxes.emplace(entity, &hitbox);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.position = position;
+	motion.velocity = vec2(0.f, 0.f); 
+
+	motion.scale = vec2({ ENEMYBLOB_BB_WIDTH * defaultResolution.scaling, ENEMYBLOB_BB_HEIGHT * defaultResolution.scaling });
+
+	registry.enemies.emplace(entity);
+	registry.enemiesTutorial.emplace(entity);
+	// Set enemy attributes
+	auto& enemyCom = registry.enemies.get(entity);
+	enemyCom.damage = 1;
+	enemyCom.hp = 5;
+	enemyCom.max_hp = enemyCom.hp;
+	enemyCom.loot = 10;
+	enemyCom.speed = 0.f;
+	enemyCom.invinTimerInMs = 7000.f; 
+	enemyCom.isInvin = true; 
 
 	return entity;
 }

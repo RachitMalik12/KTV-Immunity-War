@@ -70,9 +70,11 @@ void PhysicsSystem::handle_collision() {
 			}
 		}
 
-		if (registry.players.has(entity)) {
+		if (registry.players.has(entity) ) {
 			// Check Player - Enemy collisions 
-			if (registry.enemies.has(entity_other) && !registry.enemies.get(entity_other).isDead) {
+			bool enemyConditionCheck = registry.enemies.has(entity_other) && !registry.enemies.get(entity_other).isDead
+				&& !registry.enemiesTutorial.has(entity_other); 
+			if (enemyConditionCheck) {
 				int enemyDamage = registry.enemies.get(entity_other).damage;
 				resolvePlayerDamage(entity, enemyDamage);
 			}
@@ -139,7 +141,7 @@ void PhysicsSystem::resolvePlayerDamage(Entity playerEntity, int enemyDamage) {
 		}
 		else {
 			player.isInvin = true;
-			player.invinTimerInMs = player.invinFrame;
+			player.invinTimerInMs = 0;
 			if (twoPlayer.inTwoPlayerMode && playerEntity.getId() == registry.players.entities.back().getId()) {
 				registry.renderRequests.remove(playerEntity);
 				registry.renderRequests.insert(
@@ -532,7 +534,7 @@ void PhysicsSystem::enemyHitStatUpdate(Entity enemyEntity, Entity playerEntity, 
 		}
 		else {
 			enemyCom.isInvin = true;
-			enemyCom.invinTimerInMs = enemyCom.invinFrame;
+			enemyCom.invinTimerInMs = 0; 
 			enemyHitHandling(enemyEntity);
 			if (playerEntity.getId() == registry.players.entities.front()) {
 				calculateSwordKnockBack(enemyCom, playerEntity);
