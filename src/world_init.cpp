@@ -284,7 +284,7 @@ Entity createTutorialEnemy(RenderSystem* renderer, vec2 position)
 	enemyCom.max_hp = enemyCom.hp;
 	enemyCom.loot = 10;
 	enemyCom.speed = 0.f;
-	enemyCom.invinTimerInMs = 7000.f; 
+	enemyCom.invinFrame = 7000.f; 
 	enemyCom.isInvin = true; 
 
 	return entity;
