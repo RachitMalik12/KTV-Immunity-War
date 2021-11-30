@@ -17,14 +17,13 @@ Required Features:
 -Audio Feedback (BS):
 
 Custom Features:  
--Final Boss Level (10 points custom) (JK):
+-Final Boss Level (10 points custom) (JK): Added 2 enemy types on final level, the final boss as well as its minions.
 
 -HUD (5 points custom) (BZ): Added HP and money count on the top of the screen for P1 and P2. Added shop price numbers for power ups.
-
 Memory Management:  
 -Memory and Performance Profiling (BS):
 
-Graphic Assets (JK):  
+Graphic Assets (JK):  Created background and new sprites, custom for the boss/final level.
 
 Bug and Feature Fixes:  
 -Level Transition Fix (LT):
