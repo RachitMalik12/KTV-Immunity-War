@@ -444,6 +444,8 @@ struct Sword {
 	float distance_traveled = 0;
 	float angular_velocity = M_PI / 8;
 	mat3 rotation;
+	float swordAnimationFrameTime = 100.f;
+	float swordAnimationTimer = 0.f;
 };
 
 struct Background {

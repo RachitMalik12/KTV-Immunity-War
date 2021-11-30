@@ -414,33 +414,39 @@ void PhysicsSystem::moveEntities(float elapsed_ms) {
 }
 
 void PhysicsSystem::rotateSword(Entity entity, float elapsed_ms) {
+	
 	float pivot_distance_modifier = 3.f / 4.f;
-	float step_seconds = 1.0f * (elapsed_ms / 1000.f);
 	for (Entity entity : registry.swords.entities) {
 		Sword& sword = registry.swords.get(entity);
-		if (registry.players.has(sword.belongToPlayer)) {
-			Motion& parent_motion = registry.motions.get(sword.belongToPlayer);
-			Motion& motion = registry.motions.get(entity);
-			vec2 pivot = parent_motion.position;
-			pivot.x += SWORD_BB_WIDTH * pivot_distance_modifier;
-			motion.angle += sword.angular_velocity * step_seconds;
-			Transform T;
-			T.translate(parent_motion.position);
-			Transform R;
-			R.rotate(motion.angle);
-			Transform T_inv;
-			T_inv.translate(-parent_motion.position);
-			mat3 matrix = T.mat * R.mat * T_inv.mat;
-			vec3 world_coord = matrix * vec3(pivot.x, pivot.y, 1);
-			motion.position = vec2(world_coord.x, world_coord.y);
-			sword.distance_traveled += sword.angular_velocity * step_seconds;
-			if (sword.distance_traveled > sword.max_distance)
+		if (sword.swordAnimationTimer > sword.swordAnimationFrameTime) {
+			if (registry.players.has(sword.belongToPlayer)) {
+				float swordAnimationFrameTimeInSecond = sword.swordAnimationFrameTime / 1000.f;
+				Motion& parent_motion = registry.motions.get(sword.belongToPlayer);
+				Motion& motion = registry.motions.get(entity);
+				vec2 pivot = parent_motion.position;
+				pivot.x += SWORD_BB_WIDTH * pivot_distance_modifier;
+				motion.angle += sword.angular_velocity * swordAnimationFrameTimeInSecond;
+				Transform T;
+				T.translate(parent_motion.position);
+				Transform R;
+				R.rotate(motion.angle);
+				Transform T_inv;
+				T_inv.translate(-parent_motion.position);
+				mat3 matrix = T.mat * R.mat * T_inv.mat;
+				vec3 world_coord = matrix * vec3(pivot.x, pivot.y, 1);
+				motion.position = vec2(world_coord.x, world_coord.y);
+				sword.distance_traveled += sword.angular_velocity * swordAnimationFrameTimeInSecond;
+				if (sword.distance_traveled > sword.max_distance)
+					registry.remove_all_components_of(entity);
+			}
+			else {
 				registry.remove_all_components_of(entity);
+			}
+			sword.swordAnimationTimer = 0;
 		}
 		else {
-			registry.remove_all_components_of(entity);
+			sword.swordAnimationTimer += elapsed_ms;
 		}
-		
 	}
 }
 
