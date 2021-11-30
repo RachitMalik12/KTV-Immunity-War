@@ -39,6 +39,7 @@ private:
 	void stepEnemyGerm(float elapsed_ms);
 	void stepEnemyBacteria(float elapsed_ms, const float width, const float height);
 	void stepEnemySwarm(float elapsed_ms);
+	void stepEnemyBoss(float elapsed_ms);
 	bool handlePath(float width, float height, Entity& bacteriaEntity);
 	void bfsSearchPath(float initX, float initY, float finX, float finY, Entity& bacteriaEntity, float width, float height);
 	void moveToSpot(float initX, float initY, float finalX, float finalY, Entity& bacteriaEntity);
@@ -47,6 +48,7 @@ private:
 
 	Entity pickAPlayer();
 	void swarmFireProjectileAtPlayer(Entity swarmEntity);
+	void bossFireAtPlayer(Entity swarmEntity);
 	void swarmSpreadOut(Entity swarmEntity);
 	Entity findClosestSwarm(Entity swarmEntity);
 	void moveAwayfromOtherSwarm(Entity enemyEntity, Entity otherEnemyEntity);

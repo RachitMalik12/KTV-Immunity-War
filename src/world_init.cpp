@@ -213,6 +213,12 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, int enemyType) {
 		case 6:
 			curEnemy = createEnemyGerm(renderer, position);
 			break;
+		case 7:
+			curEnemy = createEnemyBoss(renderer, position);
+			break;
+		case 8: 
+			curEnemy = createEnemyMinions(renderer, position);
+			break;
 	}
 	return curEnemy;
 }
@@ -469,6 +475,68 @@ Entity createEnemySwarm(RenderSystem* renderer, vec2 position) {
 	motion.angle = 0.f;
 	motion.position = position;
 	motion.scale = vec2({ ENEMYSWARM_BB_WIDTH  * defaultResolution.scaling, ENEMYSWARM_BB_HEIGHT  * defaultResolution.scaling });
+	registry.enemies.emplace(entity);
+	// Set enemy attributes
+	EnemySwarm& swarm = registry.enemySwarms.emplace(entity);
+	swarm.projectileSpeed = swarm.projectileSpeed * defaultResolution.scaling;
+	auto& enemyCom = registry.enemies.get(entity);
+	enemyCom.damage = 1;
+	enemyCom.hp = 3;
+	enemyCom.max_hp = enemyCom.hp;
+	enemyCom.loot = 1;
+	enemyCom.speed = 100.f * defaultResolution.scaling;
+	motion.velocity = vec2(0, 0);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ENEMYSWARM,
+			EFFECT_ASSET_ID::ENEMY,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
+Entity createEnemyBoss(RenderSystem* renderer, vec2 position) {
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.position = position;
+	motion.scale = vec2({ ENEMYSWARM_BB_WIDTH * defaultResolution.scaling, ENEMYSWARM_BB_HEIGHT * defaultResolution.scaling });
+	registry.enemies.emplace(entity);
+	// Set enemy attributes
+	EnemySwarm& swarm = registry.enemySwarms.emplace(entity);
+	swarm.projectileSpeed = swarm.projectileSpeed * defaultResolution.scaling;
+	auto& enemyCom = registry.enemies.get(entity);
+	enemyCom.damage = 1;
+	enemyCom.hp = 3;
+	enemyCom.max_hp = enemyCom.hp;
+	enemyCom.loot = 1000;
+	enemyCom.speed = 100.f * defaultResolution.scaling;
+	motion.velocity = vec2(0, 0);
+
+	return entity;
+}
+
+Entity createEnemyMinions(RenderSystem* renderer, vec2 position) {
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.position = position;
+	motion.scale = vec2({ ENEMYSWARM_BB_WIDTH * defaultResolution.scaling, ENEMYSWARM_BB_HEIGHT * defaultResolution.scaling });
 	registry.enemies.emplace(entity);
 	// Set enemy attributes
 	EnemySwarm& swarm = registry.enemySwarms.emplace(entity);

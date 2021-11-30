@@ -40,6 +40,7 @@ public:
 	ComponentContainer<EnemyGerm> enemyGerms;
 	ComponentContainer<EnemyChase> enemyChase;
 	ComponentContainer<EnemySwarm> enemySwarms;
+	ComponentContainer<EnemyBoss> enemyBoss;
 	ComponentContainer<Powerup> powerups; 
 	ComponentContainer<Flip> flips;
 	ComponentContainer<InShop> inShops;
@@ -92,7 +93,8 @@ public:
 		registry_list.push_back(&enemyBacterias);
 		registry_list.push_back(&enemyGerms);
 		registry_list.push_back(&enemyChase);
-		registry_list.push_back(&enemySwarms);
+		registry_list.push_back(&enemySwarms); 
+		registry_list.push_back(&enemyBoss);
 		registry_list.push_back(&powerups);
 		registry_list.push_back(&flips);
 		registry_list.push_back(&inShops);

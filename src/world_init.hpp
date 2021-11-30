@@ -111,6 +111,12 @@ Entity createEnemyChase(RenderSystem* renderer, vec2 position);
 // Behaviour Tree enemy
 Entity createEnemyGerm(RenderSystem* renderer, vec2 position);
 
+// Final boss
+Entity createEnemyBoss(RenderSystem* renderer, vec2 position);
+
+// Final boss minions
+Entity createEnemyMinions(RenderSystem* renderer, vec2 position);
+
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);
 

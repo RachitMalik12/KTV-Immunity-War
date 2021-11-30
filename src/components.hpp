@@ -160,6 +160,15 @@ struct EnemySwarm {
 	bool isAnimatingHurt = false;
 };
 
+struct EnemyBoss {
+	float aiUpdateTime = 3000.f;
+	// Wait 1000ms after level loads
+	float aiUpdateTimer = 1000.f;
+	bool timeToUpdateAi = false;
+	float projectileSpeed = 200.f;
+	
+};
+
 struct Powerup 
 {
 	// Price rendering only supports 0 - 99 inclusive
@@ -522,7 +531,8 @@ enum class TEXTURE_ASSET_ID {
 	HP = COIN + 1,
 	KNIGHTICON = HP + 1,
 	WIZARDICON = KNIGHTICON + 1,
-	TEXTURE_COUNT = WIZARDICON + 1
+	FINALBACKGROUND = WIZARDICON + 1,
+	TEXTURE_COUNT = FINALBACKGROUND + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
