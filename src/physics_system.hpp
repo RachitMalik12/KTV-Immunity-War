@@ -18,6 +18,7 @@ public:
 	{
 		rng1 = std::default_random_engine(std::random_device()());
 	};
+	void initializeSounds();
 	void step(float elapsed_ms, float window_width_px, float window_height_px);
 	void handle_collision();
 private:
@@ -46,4 +47,9 @@ private:
 	void enemyHitStatUpdate(Entity enemyEntity, Entity playerEntity, vec2 waterBallVelocity);
 	void calculateSwordKnockBack(Enemy& enemyCom, Entity playerEntity);
 	void calculateWaterBallKnockBack(Enemy& enemyCom, Entity playerEntity, vec2 waterBallVelocity);
+	Mix_Chunk* buy_sound;
+	Mix_Chunk* wizard_hit_sound;
+	Mix_Chunk* knight_hit_sound;
+	Mix_Chunk* water_sound;
+	Mix_Chunk* slash_sound;
 };
