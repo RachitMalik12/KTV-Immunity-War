@@ -213,6 +213,9 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, int enemyType) {
 		case 6:
 			curEnemy = createEnemyGerm(renderer, position);
 			break;
+		case 7:
+			curEnemy = createEnemyAStar(renderer, position);
+			break;
 	}
 	return curEnemy;
 }
@@ -391,6 +394,40 @@ Entity createEnemyGerm(RenderSystem* renderer, vec2 position) {
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::GERM,
+			EFFECT_ASSET_ID::ENEMY,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
+Entity createEnemyAStar(RenderSystem* renderer, vec2 position) {
+	auto entity = Entity();
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+	Mesh& hitbox = renderer->getMesh(GEOMETRY_BUFFER_ID::ASTAR);
+	registry.hitboxes.emplace(entity, &hitbox);
+
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = vec2(0, 0);
+	motion.position = position;
+
+	motion.scale = vec2({ ENEMYGERM_BB_WIDTH * defaultResolution.scaling, ENEMYGERM_BB_HEIGHT * defaultResolution.scaling });
+
+	registry.enemies.emplace(entity);
+	registry.enemyGerms.emplace(entity);
+	// Set enemy attributes
+	auto& enemyCom = registry.enemies.get(entity);
+	enemyCom.damage = 1;
+	enemyCom.hp = 5;
+	enemyCom.loot = 4;
+	enemyCom.speed = 200.f * defaultResolution.scaling;
+	auto& germ = registry.enemyGerms.get(entity);
+	germ.mode = (rand() % 10) + 1;
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ENEMYASTAR,
 			EFFECT_ASSET_ID::ENEMY,
 			GEOMETRY_BUFFER_ID::SPRITE });
 

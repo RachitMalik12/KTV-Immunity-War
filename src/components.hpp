@@ -148,7 +148,16 @@ struct EnemyGerm
 	float playerChaseThreshold = 5;
 };
 
-
+// A* Enemy
+struct EnemyAStar
+{
+	float germBehaviourUpdateTime = 1500.f;
+	float next_germ_behaviour_calculation;
+	float mode;
+	float explosionCountDown = 0;
+	float explosionCountInit = 5;
+	float playerChaseThreshold = 5;
+};
 
 struct EnemySwarm {
 	float aiUpdateTime = 3000.f;
@@ -522,7 +531,8 @@ enum class TEXTURE_ASSET_ID {
 	HP = COIN + 1,
 	KNIGHTICON = HP + 1,
 	WIZARDICON = KNIGHTICON + 1,
-	TEXTURE_COUNT = WIZARDICON + 1
+	ENEMYASTAR = WIZARDICON + 1,
+	TEXTURE_COUNT = ENEMYASTAR + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -555,7 +565,8 @@ enum class GEOMETRY_BUFFER_ID {
 	BACTERIA = TREE + 1,
 	SWORD = BACTERIA + 1,
 	GERM = SWORD + 1,
-	GEOMETRY_COUNT = GERM + 1
+	ASTAR = GERM + 1,
+	GEOMETRY_COUNT = ASTAR + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 

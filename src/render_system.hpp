@@ -32,7 +32,8 @@ class RenderSystem {
 		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::TREE, mesh_path("TREE_hitbox.obj")),
 		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::BACTERIA, mesh_path("yellow-bacteria_hitbox.obj")),
 		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::SWORD, mesh_path("sword_hitbox.obj")),
-		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::GERM, mesh_path("BTEnemy_hitbox.obj"))
+		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::GERM, mesh_path("BTEnemy_hitbox.obj")),
+		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::GERM, mesh_path("AStarEnemy_hitbox.obj"))
 
 		 
 		  // specify meshes of other assets here
@@ -85,7 +86,9 @@ class RenderSystem {
 			textures_path("coin.png"),
 			textures_path("hp.png"),
 			textures_path("knightIcon.png"),
-			textures_path("wizard_earring.png")
+			textures_path("wizard_earring.png"),
+			textures_path("AStarEnemy.png")
+
 	};
 
 	std::array<GLuint, effect_count> effects;

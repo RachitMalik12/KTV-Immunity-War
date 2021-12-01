@@ -105,8 +105,11 @@ Entity createEnemyHunter(RenderSystem* renderer, vec2 position);
 // BFS enemy
 Entity createEnemyBacteria(RenderSystem* renderer, vec2 position);
 
-// BFS enemy
+// Chase enemy
 Entity createEnemyChase(RenderSystem* renderer, vec2 position);
+
+// AStar enemy
+Entity createEnemyAStar(RenderSystem* renderer, vec2 position);
 
 // Behaviour Tree enemy
 Entity createEnemyGerm(RenderSystem* renderer, vec2 position);
