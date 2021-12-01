@@ -126,6 +126,7 @@ void PhysicsSystem::handlePowerUpCollisions(Player& playerCom, PlayerStat& playe
 		registry.remove_all_components_of(numberEntity);
 	}
 	registry.remove_all_components_of(entity);
+	Mix_PlayChannel(-1, buy_sound, 0);
 }
 
 void PhysicsSystem::resolvePlayerDamage(Entity playerEntity, int enemyDamage) {
@@ -133,6 +134,12 @@ void PhysicsSystem::resolvePlayerDamage(Entity playerEntity, int enemyDamage) {
 	Motion& playerMotion = registry.motions.get(playerEntity);
 	if (!player.isInvin && !player.isDead) {
 		player.hp -= enemyDamage;
+		if (playerEntity.getId() == registry.players.entities.front()) {
+			Mix_PlayChannel(-1, knight_hit_sound, 0);
+		}
+		else {
+			Mix_PlayChannel(-1, wizard_hit_sound, 0);
+		}
 		if (player.hp <= 0) {
 			player.hp = 0;
 			player.isDead = true;
@@ -151,6 +158,8 @@ void PhysicsSystem::resolvePlayerDamage(Entity playerEntity, int enemyDamage) {
 						GEOMETRY_BUFFER_ID::SPRITE });
 				registry.wizardAnimations.get(playerEntity).isAnimatingHurt = true;
 				registry.wizardAnimations.get(playerEntity).animationMode = registry.wizardAnimations.get(playerEntity).hurtMode;
+			}
+			else {
 			}
 		}
 	}
@@ -514,7 +523,13 @@ void PhysicsSystem::enemyHitStatUpdate(Entity enemyEntity, Entity playerEntity, 
 	PlayerStat& playerStatCom = registry.playerStats.get(playerCom.playerStat);
 	Enemy& enemyCom = registry.enemies.get(enemyEntity);
 	if (!enemyCom.isInvin) {
-		enemyCom.hp -= playerStatCom.damage;
+		enemyCom.hp -= playerStatCom.damage;			
+		if (playerEntity.getId() == registry.players.entities.front()) {
+			Mix_PlayChannel(-1, slash_sound, 0);
+		}
+		else {
+			Mix_PlayChannel(-1, water_sound, 0);
+		}
 		if (enemyCom.hp <= 0) {
 			playerStatCom.money += enemyCom.loot;
 			if (playerStatCom.money > playerStatCom.playerMoneyLimit) {
@@ -572,4 +587,17 @@ void PhysicsSystem::calculateWaterBallKnockBack(Enemy& enemyCom, Entity playerEn
 		waterBallVelocity.y / sqrt(pow(waterBallVelocity.x, 2) + pow(waterBallVelocity.y, 2)));
 	enemyCom.velocityOfPlayerHit = vec2(normalizedDirection.x, normalizedDirection.y * -1);
 	enemyCom.damageOfPlayerHit = playerStat.damage;
+}
+
+void PhysicsSystem::initializeSounds() {
+	// SOURCE for buy_sound: https://opengameart.org/content/inventory-sound-effects
+	// SOURCE for knight_hit_sound: https://opengameart.org/content/punch
+	// SOURCE for wizard_hit_sound: https://opengameart.org/content/punch-slap-n-kick
+	// SOURCE for water_sound: https://mixkit.co/free-sound-effects/splash/ "Fish flapping"
+	// SOURCE for slash_sound: https://mixkit.co/free-sound-effects/sword/ "Metal hit woosh"
+	water_sound = Mix_LoadWAV(audio_path("water.wav").c_str());
+	slash_sound = Mix_LoadWAV(audio_path("slash.wav").c_str());
+	buy_sound = Mix_LoadWAV(audio_path("coin.wav").c_str());
+	wizard_hit_sound = Mix_LoadWAV(audio_path("wizard_hit.wav").c_str());
+	knight_hit_sound = Mix_LoadWAV(audio_path("knight_hit.wav").c_str());
 }

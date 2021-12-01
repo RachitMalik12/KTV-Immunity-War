@@ -42,6 +42,7 @@ int main()
 	// initialize the main systems
 	int w, h;
 	glfwGetWindowSize(window, &w, &h);
+	physics.initializeSounds();
 	renderer.init(w, h, window);
 	world.init(&renderer);
 	AISystem ai(&renderer);
