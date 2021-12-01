@@ -30,11 +30,11 @@ struct PlayerStat
 {
 	int playerMoneyLimit = 99;
 	float projectileSpeed = 300.f;
-	float attackDelay = 500.f;
+	float attackDelay = 800.f;
 	float movementSpeed = 150.f;
 	int maxHp = 3;
 	int money = 0;
-	int damage = 1;
+	float damage = 1.f;
 };
 
 struct DeadPlayer {
@@ -61,8 +61,8 @@ struct Block
 // Enemy that will be attacked by wizard using projectile
 struct Enemy
 {
-	int hp;
-	int max_hp;
+	float hp;
+	float max_hp;
 	int damage;
 	int loot;
 	float speed;
@@ -442,10 +442,8 @@ struct Sword {
 	float max_distance_modifier = 2.f / 3.f;
 	float max_distance = M_PI * max_distance_modifier;
 	float distance_traveled = 0;
-	float angular_velocity = M_PI / 8;
+	float angular_velocity = M_PI * 3;
 	mat3 rotation;
-	float swordAnimationFrameDuration = 50.f;
-	float swordAnimationTimer = 0.f;
 };
 
 struct Background {
@@ -453,7 +451,7 @@ struct Background {
 };
 
 struct MovementSpeedPowerUp {
-	int movementSpeedUpFactor = 50; 
+	float movementSpeedUpFactor = 50.f; 
 };
 
 struct HpPowerUp {
@@ -461,12 +459,12 @@ struct HpPowerUp {
 };
 
 struct AtackSpeedPowerUp {
-	int delayReductionFactor = 0.1; 
-	int projectileSpeedUpFactor = 50; 
+	float delayReductionFactor = 0.1; 
+	float projectileSpeedUpFactor = 50.f; 
 };
 
 struct DamagePowerUp {
-	int damageUpFactor = 1; 
+	float damageUpFactor = 0.5; 
 };
 
 struct MovementAndAttackTutInst {

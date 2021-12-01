@@ -282,7 +282,7 @@ Entity createTutorialEnemy(RenderSystem* renderer, vec2 position)
 	enemyCom.damage = 1;
 	enemyCom.hp = 5;
 	enemyCom.max_hp = enemyCom.hp;
-	enemyCom.loot = 10;
+	enemyCom.loot = 5;
 	enemyCom.speed = 0.f;
 	enemyCom.invinFrame = 7000.f; 
 	enemyCom.isInvin = true; 
@@ -709,7 +709,7 @@ Entity createDamagePowerup(vec2 position) {
 
 	registry.damagePowerUp.emplace(entity);
 	Powerup& powerup = registry.powerups.emplace(entity);
-	powerup.cost = 10;
+	powerup.cost = 5;
 
 	return entity;
 }

@@ -978,8 +978,6 @@ void WorldSystem::setPlayerOneStats() {
 	auto entity = Entity();
 	player_stat = entity;
 	PlayerStat& playerOneStat = registry.playerStats.emplace(entity);
-	int swordDefaultDamage = 2;
-	playerOneStat.damage = swordDefaultDamage;
 	playerOneStat.movementSpeed = playerOneStat.movementSpeed * defaultResolution.scaling;
 	playerOneStat.projectileSpeed = playerOneStat.projectileSpeed * defaultResolution.scaling;
 }
