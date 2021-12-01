@@ -418,9 +418,9 @@ void PhysicsSystem::rotateSword(Entity entity, float elapsed_ms) {
 	float pivot_distance_modifier = 3.f / 4.f;
 	for (Entity entity : registry.swords.entities) {
 		Sword& sword = registry.swords.get(entity);
-		if (sword.swordAnimationTimer > sword.swordAnimationFrameTime) {
+		if (sword.swordAnimationTimer > sword.swordAnimationFrameDuration) {
 			if (registry.players.has(sword.belongToPlayer)) {
-				float swordAnimationFrameTimeInSecond = sword.swordAnimationFrameTime / 1000.f;
+				float swordAnimationFrameTimeInSecond = sword.swordAnimationTimer / 1000.f;
 				Motion& parent_motion = registry.motions.get(sword.belongToPlayer);
 				Motion& motion = registry.motions.get(entity);
 				vec2 pivot = parent_motion.position;

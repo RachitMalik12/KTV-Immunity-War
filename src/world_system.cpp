@@ -13,7 +13,7 @@ WorldSystem::WorldSystem()
 	: isLevelOver(false),
 	  isTransitionOver(false),
 	  firstEntranceToShop(true),
-	  level_number(1), 
+	  level_number(0), 
 	  elapsed_ms(0.f)
 {
 	// Seeding rng with random device
@@ -128,7 +128,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	int screen_width, screen_height;
 	glfwGetFramebufferSize(window, &screen_width, &screen_height);
 	this->elapsed_ms = elapsed_ms_since_last_update; 
-	if (level_number == 1 && !tutorialEnemyFinishTransition) {
+	if (level_number == 0 && !tutorialEnemyFinishTransition) {
 		waitAndMakeEnemiesVisible(); 
 	}
 	progressBrightenScreen(elapsed_ms_since_last_update);
@@ -197,8 +197,12 @@ void WorldSystem::restart_game() {
 	// Debugging for memory/component leaks
 
 	registry.list_all_components();
-	// Restart game starts from level 1 always 
-	level_number = 1; 
+	// Restart game starts from level 0 always 
+	level_number = 0; 
+
+	// reset tutorial level transition state
+	tutorialEnemyFinishTransition = false; 
+	tutorialEnemyTransition = true; 
 
 	// set help mode to false again
 	helpMode.inHelpMode = false;
@@ -386,7 +390,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (!loadFile) {
 			// If load failed due to file missing,load level 1 with 1 player. 
 			twoPlayer.inTwoPlayerMode = false;
-			setupLevel(1);
+			setupLevel(0);
 		}
 		else {
 			level_number = dataManager.getLevelNumber();
@@ -399,6 +403,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 			setupLevel(level_number);
 		}
+	}
+
+	if (action == GLFW_PRESS && key == GLFW_KEY_0) {
+		level_number = 0;
+		setupLevel(level_number);
 	}
 	// load level 1
 	if (action == GLFW_PRESS && key == GLFW_KEY_1) {
@@ -866,7 +875,7 @@ void WorldSystem::loadGame() {
 	if (!loadFile) {
 		// If load failed due to file missing,load level 1 with 1 player. 
 		twoPlayer.inTwoPlayerMode = false;
-		setupLevel(1);
+		setupLevel(0);
 	}
 	else {
 		level_number = dataManager.getLevelNumber();
@@ -1100,7 +1109,7 @@ void WorldSystem::levelCompletionCheck(float elapsed_ms_since_last_update) {
 	}
 	if (isLevelOver && isTransitionOver) {
 		int nextLevel = level_number + 1;
-		if (nextLevel <= levels.size()) {
+		if (nextLevel < levels.size()) {
 			ScreenState& screen = registry.screenStates.components[0];
 			float min_counter_ms = 3000.f;
 			for (Entity entity : registry.endLevelTimers.entities) {
@@ -1335,12 +1344,14 @@ void WorldSystem::setupLevel(int levelNum) {
 		registry.remove_all_components_of(registry.powerups.entities.back());
 	while (registry.letters.entities.size() > 0)
 		registry.remove_all_components_of(registry.letters.entities.back());
+	while (registry.instructions.entities.size() > 0)
+		registry.remove_all_components_of(registry.instructions.entities.back());
 
 	// Close the door at the start of every level after player leaves the shop. 
 	createADoor(screen_width, screen_height);
 	createWalls(screen_width, screen_height);
 	
-	int index = levelNum - 1;
+	int index = levelNum;
 	Level level = levels[index];
 	auto enemies = level.enemies;
 	auto enemy_types = level.enemy_types;
@@ -1399,7 +1410,7 @@ void WorldSystem::setupLevel(int levelNum) {
 	if (twoPlayer.inTwoPlayerMode) {
 		gameHud.playerTwoHudEntity = createHUD(gameHud.playerTwoBattleRoomLocation, player2_wizard);
 	}
-	if (level_number == 1) {
+	if (level_number == 0) {
 		setupTutorial(); 
 	}
 	std::stringstream ss;
@@ -1419,22 +1430,8 @@ void WorldSystem::setupTutorial() {
 	float titleXOffset = scaleCoordinate(((tutorialTitleLen / 2) * CAPSLETTER_BB_WIDTH));
 	float titleYCoord = scaleCoordinate(75.f); 
 	createSentence(vec2(defaultResolution.width / 2 - titleXOffset, titleYCoord), tutorialTitle);
-
-	std::string header1 = "MOVEMENT";
-	std::string header2 = "ATTACK";
-
-	// Create the left movement and attack instruction blocks. 
-	float leftMovementInstructionPosX = scaleCoordinate(75.f); 
-	float leftMovementInstructionOffsetY = scaleCoordinate(-200.f);
-	vec2 leftMovementInstructionPos = vec2(leftMovementInstructionPosX, (defaultResolution.height / 2) + leftMovementInstructionOffsetY);
-	createMovementAndAttackInstructionTextBlocks(leftMovementInstructionPos, header1, header2); 
-
-	// Create the right movement and attack instruction blocks. (using shared logic). 
-	float rightMovementInstructionX = scaleCoordinate(-(header1.length() * CAPSLETTER_BB_WIDTH) - 25.f);
-	float rightMovementInstructionYOffset = scaleCoordinate(-200.f);
-	vec2 rightMovementInstructionPos = vec2(defaultResolution.width + rightMovementInstructionX, (defaultResolution.height / 2) + rightMovementInstructionYOffset);
-	createMovementAndAttackInstructionTextBlocks(rightMovementInstructionPos, header1, header2);
-	// waitAndMakeEnemiesVisible(); 
+	vec2 leftMovementInstructionPos = vec2((defaultResolution.width / 2), (defaultResolution.height / 2));
+	createMovementAndAttackInstructions(leftMovementInstructionPos);
 }
 void WorldSystem::setPlayersInvincibility(float ms_delay, bool isInvin) {
 	Player& p1 = registry.players.get(player_knight);

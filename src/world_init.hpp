@@ -60,6 +60,8 @@ const float HUD_KNIGHT_HEAD_BB_WIDTH = 1.7 * 30.f;
 const float HUD_KNIGHT_HEAD_BB_HEIGHT = 1.7 * 28.f;
 const float HUD_WIZARD_HEAD_BB_WIDTH = 0.02886 * 1231.f;
 const float HUD_WIZARD_HEAD_BB_HEIGHT = 0.02886 * 1767.f;
+const float TUTORIAL_INSTRUCTIONS_WIDTH = (5.f / 8.f) * 1600.f; 
+const float TUTORIAL_INSTRUCTIONS_HEIGHT = (0.5f) * 800.f; 
 
 // background
 Entity createBackground(RenderSystem* renderer, vec2 pos);
@@ -153,6 +155,9 @@ Entity createHeadshot(vec2 position, Entity playerEntity);
 Entity createCoin(vec2 position);
 Entity createHp(vec2 position);
 std::vector<Entity> createHps(vec2 position, int hpCount);
+
+//TUTORIAL 
+Entity createMovementAndAttackInstructions(vec2 position); 
 
 // hud update
 void updateHudHp(PlayerCharacter player);

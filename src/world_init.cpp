@@ -952,6 +952,21 @@ std::vector<Entity> createHps(vec2 position, int hpCount) {
 	return hps;
 }
 
+Entity createMovementAndAttackInstructions(vec2 position) {
+	auto entity = Entity(); 
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = position;
+	motion.scale = vec2(TUTORIAL_INSTRUCTIONS_WIDTH * defaultResolution.scaling, TUTORIAL_INSTRUCTIONS_HEIGHT * defaultResolution.scaling);
+	registry.instructions.emplace(entity); 
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TUTINSTRUCTIONS,
+		  EFFECT_ASSET_ID::TEXTURED,
+		  GEOMETRY_BUFFER_ID::SPRITE });
+	return entity; 
+}
+
 void updateHudHp(vec2 position, Entity hudEntity, Entity playerEntity) {
 	HUD& hud = registry.huds.get(hudEntity);
 	Player& player = registry.players.get(playerEntity);
