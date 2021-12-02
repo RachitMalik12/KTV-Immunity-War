@@ -54,16 +54,21 @@ private:
 	void setPlayersStats();
 	void setPlayerOneStats();
 	void setPlayerTwoStats();
+	void setupTutorial();
+	void createShopHint();
+	void waitAndMakeEnemiesVisible(float elapsed_ms); 
 	// OpenGL window handle
 	GLFWwindow* window;
 	int level_number;
-	std::vector<Level> levels; 
-	// to start with true. 
+	std::vector<Level> levels;  
 	bool isLevelOver;
 	bool isTransitionOver;
 	bool firstEntranceToShop; 
 	bool startingNewLevel = false;
+	bool tutorialEnemyTransition = true; 
+	bool tutorialEnemyFinishTransition = false; 
 	bool isGameOver = false;
+	bool shopHintCreated = false; 
 	// Game state
 	RenderSystem* renderer;
 	float next_projectile_fire_player1;
@@ -76,10 +81,6 @@ private:
 	// music references
 	int volume = 20;
 	int fade_duration = 500;
-	Mix_Music* start_menu_music;
-	Mix_Music* background_music;
-	Mix_Chunk* salmon_dead_sound;
-	Mix_Chunk* salmon_eat_sound;
 	Mix_Chunk* menu_click_sound;
 	Mix_Chunk* swing_sound;
 	Mix_Chunk* zap_sound;
@@ -121,6 +122,8 @@ private:
 	void removeDeadPlayersAndEnemies(float elapsed_ms);
 	// misc
 	void playerTwoJoinOrLeave();
+	// utils 
+	float scaleCoordinate(float coordinate);
 	// animation
 	void knightFrameSetter(float elapsed_ms, KnightAnimation& knightAnimation);
 	void wizardAttackFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation);
@@ -145,7 +148,10 @@ private:
 	void setTransitionFlag(Entity player); 
 	void reviveDeadPlayerInShop(); 
 	void spawnPowerups(int n);
-	Entity chooseRandomPowerUp(vec2 pos); 
+	Entity chooseRandomPowerUp(vec2 pos);
+	Entity chooseFixedPowerUp(vec2 pos, int index); 
+	void attachAndRenderPowerupDescription(vec2 pos, std::string type);
+	void drawTutorialTextInShop(); 
 	void reviveWizard(Player& p1, PlayerStat& p1Stat); 
 	void reviveKnight(Player& p2, PlayerStat& p2Stat); 
 	void progressGameEndEffect(float elapsed_ms_since_last_update);

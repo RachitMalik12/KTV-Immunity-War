@@ -213,6 +213,8 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, int enemyType) {
 		case 6:
 			curEnemy = createEnemyGerm(renderer, position);
 			break;
+		case 7: 
+			curEnemy = createTutorialEnemy(renderer, position); 
 	}
 	return curEnemy;
 }
@@ -251,6 +253,39 @@ Entity createEnemyBlob(RenderSystem* renderer, vec2 position)
 		{ TEXTURE_ASSET_ID::ENEMY,
 			EFFECT_ASSET_ID::ENEMY,
 			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
+Entity createTutorialEnemy(RenderSystem* renderer, vec2 position)
+{
+	// Reserve an entity
+	auto entity = Entity();
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+	Mesh& hitbox = renderer->getMesh(GEOMETRY_BUFFER_ID::BLOBBER);
+	registry.hitboxes.emplace(entity, &hitbox);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.position = position;
+	motion.velocity = vec2(0.f, 0.f); 
+
+	motion.scale = vec2({ ENEMYBLOB_BB_WIDTH * defaultResolution.scaling, ENEMYBLOB_BB_HEIGHT * defaultResolution.scaling });
+
+	registry.enemies.emplace(entity);
+	registry.enemiesTutorial.emplace(entity);
+	// Set enemy attributes
+	auto& enemyCom = registry.enemies.get(entity);
+	enemyCom.damage = 1;
+	enemyCom.hp = 5;
+	enemyCom.max_hp = enemyCom.hp;
+	enemyCom.loot = 5;
+	enemyCom.speed = 0.f;
+	enemyCom.invinFrame = 7000.f; 
+	enemyCom.isInvin = true; 
 
 	return entity;
 }
@@ -674,7 +709,7 @@ Entity createDamagePowerup(vec2 position) {
 
 	registry.damagePowerUp.emplace(entity);
 	Powerup& powerup = registry.powerups.emplace(entity);
-	powerup.cost = 10;
+	powerup.cost = 5;
 
 	return entity;
 }
@@ -723,7 +758,7 @@ Entity createMovementSpeedPowerup(vec2 position) {
 }
 
 /**
-	* Render a number between 0 and 99 inclusive on screen at the desierd position. Will render 0 if range is incorrect.
+	* Render a number between 0 and 99 inclusive on screen at the desired position. Will render 0 if range is incorrect.
 	*
 	* @param  singleDigitNumber   the number to be displayed on screen, non-negative single digit or double digits only, meaning 0 - 99
 	* @return					  the newly created entity
@@ -767,6 +802,75 @@ std::vector<Entity> createDoubleDigitNumber(vec2 position, int doubleDigitNumber
 	numberEntities.push_back(createSingleDigitNumber(vec2(position.x + (NUMBER_BB_WIDTH / 2) * defaultResolution.scaling, position.y), doubleDigitNumber % 10));
 	numberEntities.push_back(createSingleDigitNumber(vec2(position.x - (NUMBER_BB_WIDTH / 2) * defaultResolution.scaling, position.y), doubleDigitNumber / 10));
 	return numberEntities;
+}
+std::vector<Entity> createSentence(vec2 position, std::string sentence) {
+	std::vector<Entity> letters;
+	int index = 0; 
+	for (char s : sentence) {
+		int next = index + 1; 
+		if (s != ' ' && isalpha(s)) {
+			if (islower(s)) {
+				letters.push_back(createSmallLetter(position, s - 'a'));
+				// Apply appropriate position increment based on next type of letter. 
+				if (islower(sentence[next])) {
+					position.x += ((SMALLLETTER_BB_WIDTH) * defaultResolution.scaling);
+				}
+				else {
+					position.x += ((CAPSLETTER_BB_WIDTH) * defaultResolution.scaling);
+				}
+			}
+			else {
+				letters.push_back(createCapsLetter(position, s - 'A'));
+				if (islower(sentence[next])) {
+					position.x += ((SMALLLETTER_BB_WIDTH) * defaultResolution.scaling);
+				}
+				else {
+					position.x += ((CAPSLETTER_BB_WIDTH) * defaultResolution.scaling);
+				}
+			}
+		}
+		else {
+			// any invalid character, insert a space. 
+			position.x += (CAPSLETTER_BB_WIDTH) * defaultResolution.scaling; 
+		}
+		index++; 
+	}
+	return letters; 
+}
+Entity createSmallLetter(vec2 position, int offset) {
+	auto entity = Entity();
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = position;
+	motion.scale = vec2(SMALLLETTER_BB_WIDTH * defaultResolution.scaling, SMALLLETTER_BB_HEIGHT * defaultResolution.scaling);
+
+	Letter& smolBoi = registry.letters.emplace(entity);
+	smolBoi.frame = offset; 
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::SMALLETTER,
+		  EFFECT_ASSET_ID::LETTER,
+		  GEOMETRY_BUFFER_ID::SPRITE });
+	return entity;
+}
+
+Entity createCapsLetter(vec2 position, int offset) {
+	auto entity = Entity();
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = position;
+	motion.scale = vec2(CAPSLETTER_BB_WIDTH *defaultResolution.scaling, CAPSLETTER_BB_HEIGHT * defaultResolution.scaling);
+
+	Letter& bigBoi = registry.letters.emplace(entity);
+	bigBoi.frame = offset;
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::CAPSLETTER,
+		  EFFECT_ASSET_ID::LETTER,
+		  GEOMETRY_BUFFER_ID::SPRITE });
+	return entity;
 }
 
 Entity createHUD(vec2 position, Entity playerEntity) {
@@ -846,6 +950,35 @@ std::vector<Entity> createHps(vec2 position, int hpCount) {
 		hps.push_back(createHp(curHpPosition));
 	}
 	return hps;
+}
+
+Entity createMovementAndAttackInstructions(vec2 position) {
+	auto entity = Entity(); 
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = position;
+	motion.scale = vec2(TUTORIAL_INSTRUCTIONS_WIDTH * defaultResolution.scaling, TUTORIAL_INSTRUCTIONS_HEIGHT * defaultResolution.scaling);
+	registry.instructions.emplace(entity); 
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TUTINSTRUCTIONS,
+		  EFFECT_ASSET_ID::TEXTURED,
+		  GEOMETRY_BUFFER_ID::SPRITE });
+	return entity; 
+}
+
+Entity createArrow(vec2 position) {
+	auto entity = Entity();
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = position;
+	motion.scale = vec2(ARROW_WIDTH * defaultResolution.scaling, ARROW_HEIGHT * defaultResolution.scaling);
+	registry.arrows.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ARROW,
+		  EFFECT_ASSET_ID::TEXTURED,
+		  GEOMETRY_BUFFER_ID::SPRITE });
+	return entity;
 }
 
 void updateHudHp(vec2 position, Entity hudEntity, Entity playerEntity) {

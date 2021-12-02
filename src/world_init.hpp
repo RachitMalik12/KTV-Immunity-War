@@ -48,6 +48,10 @@ const float BACKGROUND_BB_WIDTH = 1200.f;
 const float BACKGROUND_BB_HEIGHT = 1600.f;
 const float NUMBER_BB_WIDTH = 0.6 * 69.7;
 const float NUMBER_BB_HEIGHT = 0.6 * 85.f;
+const float SMALLLETTER_BB_WIDTH = 0.329 * 127.f;
+const float SMALLLETTER_BB_HEIGHT = 0.266 * 192.f;
+const float CAPSLETTER_BB_WIDTH = 0.3216 * 128.f;
+const float CAPSLETTER_BB_HEIGHT = 0.23103 * 221.f; 
 const float HUD_HP_BB_WIDTH = 0.0249 * 2048.f;
 const float HUD_HP_BB_HEIGHT = 0.0249 * 2048.f;
 const float HUD_COIN_BB_WIDTH = 0.0249 * 2048.f;
@@ -56,6 +60,10 @@ const float HUD_KNIGHT_HEAD_BB_WIDTH = 1.7 * 30.f;
 const float HUD_KNIGHT_HEAD_BB_HEIGHT = 1.7 * 28.f;
 const float HUD_WIZARD_HEAD_BB_WIDTH = 0.02886 * 1231.f;
 const float HUD_WIZARD_HEAD_BB_HEIGHT = 0.02886 * 1767.f;
+const float TUTORIAL_INSTRUCTIONS_WIDTH = (5.f / 8.f) * 1600.f; 
+const float TUTORIAL_INSTRUCTIONS_HEIGHT = (0.5f) * 800.f; 
+const float ARROW_WIDTH = (0.05088195386) * 1474.f;
+const float ARROW_HEIGHT = (0.05572065378f) * 1346.f;
 
 // background
 Entity createBackground(RenderSystem* renderer, vec2 pos);
@@ -95,6 +103,9 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, int enemyType);
 
 // the enemy 
 Entity createEnemyBlob(RenderSystem* renderer, vec2 position);
+
+// Tutorial enemy 
+Entity createTutorialEnemy(RenderSystem* renderer, vec2 position); 
 
 // the enemy that tries to avoid wizards 
 Entity createEnemyRun(RenderSystem* renderer, vec2 position);
@@ -136,6 +147,9 @@ Entity createMovementSpeedPowerup(vec2 position);
 std::vector<Entity> createNumber(vec2 position, int number);
 Entity createSingleDigitNumber(vec2 position, int singleDigitNumber);
 std::vector<Entity> createDoubleDigitNumber(vec2 position, int doubleDigitNumber);
+Entity createSmallLetter(vec2 position, int offset); 
+Entity createCapsLetter(vec2 position, int offset); 
+std::vector<Entity> createSentence(vec2 position, std::string sentence);
 
 // HUD
 Entity createHUD(vec2 position, Entity playerEntity);
@@ -143,6 +157,10 @@ Entity createHeadshot(vec2 position, Entity playerEntity);
 Entity createCoin(vec2 position);
 Entity createHp(vec2 position);
 std::vector<Entity> createHps(vec2 position, int hpCount);
+
+//TUTORIAL 
+Entity createMovementAndAttackInstructions(vec2 position); 
+Entity createArrow(vec2 position); 
 
 // hud update
 void updateHudHp(PlayerCharacter player);

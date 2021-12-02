@@ -15,6 +15,7 @@ public:
 	ComponentContainer<StartLevelTimer> startLevelTimers;
 	ComponentContainer<DeathTimer> deathTimers;
 	ComponentContainer<StuckTimer> stuckTimers;
+	ComponentContainer<TutorialTimer> tutorialTimers; 
 	ComponentContainer<Motion> motions;
 	ComponentContainer<Collision> collisions;
 	ComponentContainer<Player> players;
@@ -34,6 +35,7 @@ public:
 	ComponentContainer<Enemy> enemies;
 	ComponentContainer<DeadEnemy> deadEnemies;
 	ComponentContainer<EnemyBlob> enemyBlobs;
+	ComponentContainer<EnemyTutorial> enemiesTutorial; 
 	ComponentContainer<EnemyRun> enemiesrun;
 	ComponentContainer<EnemyHunter> enemyHunters;
 	ComponentContainer<EnemyBacteria> enemyBacterias;
@@ -49,6 +51,7 @@ public:
 	ComponentContainer<KnightAnimation> knightAnimations;
 	ComponentContainer<WizardAnimation> wizardAnimations;
 	ComponentContainer<Number> numbers;
+	ComponentContainer<Letter> letters; 
 	ComponentContainer<HUD> huds;
 	ComponentContainer<HUDElement> hudElements;
 	ComponentContainer<StoryMode> storyModes;
@@ -59,7 +62,8 @@ public:
 	ComponentContainer<DamagePowerUp> damagePowerUp; 
 	ComponentContainer<AtackSpeedPowerUp> attackSpeedPowerUp;
 	ComponentContainer<Background> backgrounds;
-
+	ComponentContainer<MovementAndAttackTutInst> instructions; 
+	ComponentContainer<Arrow> arrows; 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
 	ECSRegistry()
@@ -68,6 +72,7 @@ public:
 		registry_list.push_back(&endLevelTimers);
 		registry_list.push_back(&deathTimers);
 		registry_list.push_back(&stuckTimers);
+		registry_list.push_back(&tutorialTimers); 
 		registry_list.push_back(&motions);
 		registry_list.push_back(&collisions);
 		registry_list.push_back(&players);
@@ -87,6 +92,7 @@ public:
 		registry_list.push_back(&enemies);
 		registry_list.push_back(&deadEnemies);
 		registry_list.push_back(&enemyBlobs);
+		registry_list.push_back(&enemiesTutorial); 
 		registry_list.push_back(&enemiesrun);
 		registry_list.push_back(&enemyHunters);
 		registry_list.push_back(&enemyBacterias);
@@ -102,6 +108,7 @@ public:
 		registry_list.push_back(&knightAnimations);
 		registry_list.push_back(&wizardAnimations);
 		registry_list.push_back(&numbers);
+		registry_list.push_back(&letters); 
 		registry_list.push_back(&huds);
 		registry_list.push_back(&hudElements);
 		registry_list.push_back(&storyModes);
@@ -112,6 +119,8 @@ public:
 		registry_list.push_back(&damagePowerUp);
 		registry_list.push_back(&attackSpeedPowerUp);
 		registry_list.push_back(&backgrounds);
+		registry_list.push_back(&instructions); 
+		registry_list.push_back(&arrows); 
 	}
 
 	void clear_all_components() {

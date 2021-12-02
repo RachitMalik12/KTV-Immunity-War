@@ -13,7 +13,7 @@ WorldSystem::WorldSystem()
 	: isLevelOver(false),
 	  isTransitionOver(false),
 	  firstEntranceToShop(true),
-	  level_number(1)
+	  level_number(0)
 {
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
@@ -82,7 +82,6 @@ GLFWwindow* WorldSystem::create_window(int width, int height) {
 	auto mouse_button_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_click(_0, _1, _2); };
 	glfwSetMouseButtonCallback(window, mouse_button_redirect);
 
-
 	//////////////////////////////////////
 	// Loading music and sounds with SDL
 	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
@@ -100,7 +99,6 @@ GLFWwindow* WorldSystem::create_window(int width, int height) {
 	// SOURCE for final_boss_bgm: https://opengameart.org/content/heroic-minority
 	// SOURCE for zap_sound, menu_click_sound, level_start_sound, level_end_sound: https://opengameart.org/content/spell-sounds-starter-pack
 	// SOURCE for swing_sound: https://opengameart.org/content/battle-sound-effects
-	start_menu_music = Mix_LoadMUS(audio_path("start.wav").c_str());
 	battle0_bgm = Mix_LoadMUS(audio_path("battle0.wav").c_str());
 	battle1_bgm = Mix_LoadMUS(audio_path("battle1.wav").c_str());
 	battle2_bgm = Mix_LoadMUS(audio_path("battle2.wav").c_str());
@@ -117,8 +115,6 @@ GLFWwindow* WorldSystem::create_window(int width, int height) {
 	level_start_sound = Mix_LoadWAV(audio_path("level_start.wav").c_str());
 	level_end_sound = Mix_LoadWAV(audio_path("level_end.wav").c_str());
 
-
-
 	// Load level information 
 	levelFileLoader.readFile(); 
 	levels = levelFileLoader.getLevels(); 
@@ -128,7 +124,6 @@ GLFWwindow* WorldSystem::create_window(int width, int height) {
 
 void WorldSystem::init(RenderSystem* renderer_arg) {
 	this->renderer = renderer_arg;
-	auto entity = Entity();
 	scaleGameHUD();
     restart_game();
 }
@@ -142,7 +137,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Get the screen dimensions
 	int screen_width, screen_height;
 	glfwGetFramebufferSize(window, &screen_width, &screen_height);
-
+	if (level_number == 0 && !tutorialEnemyFinishTransition) {
+		waitAndMakeEnemiesVisible(elapsed_ms_since_last_update); 
+	}
 	progressBrightenScreen(elapsed_ms_since_last_update);
 	levelCompletionCheck(elapsed_ms_since_last_update);
 	stopPlayerAtMouseDestination();
@@ -209,8 +206,13 @@ void WorldSystem::restart_game() {
 	// Debugging for memory/component leaks
 
 	registry.list_all_components();
-	// Restart game starts from level 1 always 
-	level_number = 1; 
+	// Restart game starts from level 0 always 
+	level_number = 0; 
+
+	// reset tutorial level transition state
+	tutorialEnemyFinishTransition = false; 
+	tutorialEnemyTransition = true; 
+	shopHintCreated = false; 
 
 	// set help mode to false again
 	helpMode.inHelpMode = false;
@@ -398,7 +400,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (!loadFile) {
 			// If load failed due to file missing,load level 1 with 1 player. 
 			twoPlayer.inTwoPlayerMode = false;
-			setupLevel(1);
+			setupLevel(0);
 		}
 		else {
 			level_number = dataManager.getLevelNumber();
@@ -411,6 +413,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 			setupLevel(level_number);
 		}
+	}
+
+	if (action == GLFW_PRESS && key == GLFW_KEY_0) {
+		level_number = 0;
+		setupLevel(level_number);
 	}
 	// load level 1
 	if (action == GLFW_PRESS && key == GLFW_KEY_1) {
@@ -765,7 +772,6 @@ void WorldSystem::menuLogic(int menuType) {
 			if (storyMode.inStoryMode == 0) {
 				storyMode.inStoryMode = 1;
 				createStory();
-				Mix_FadeInMusic(start_menu_music, -1, fade_duration);
 			}
 		}
 		// 2P
@@ -779,7 +785,6 @@ void WorldSystem::menuLogic(int menuType) {
 			if (storyMode.inStoryMode == 0) {
 				storyMode.inStoryMode = 1;
 				createStory();
-				Mix_FadeInMusic(start_menu_music, -1, fade_duration);
 			}
 		}
 		// Load
@@ -884,7 +889,7 @@ void WorldSystem::loadGame() {
 	if (!loadFile) {
 		// If load failed due to file missing,load level 1 with 1 player. 
 		twoPlayer.inTwoPlayerMode = false;
-		setupLevel(1);
+		setupLevel(0);
 	}
 	else {
 		level_number = dataManager.getLevelNumber();
@@ -987,8 +992,6 @@ void WorldSystem::setPlayerOneStats() {
 	auto entity = Entity();
 	player_stat = entity;
 	PlayerStat& playerOneStat = registry.playerStats.emplace(entity);
-	int swordDefaultDamage = 2;
-	playerOneStat.damage = swordDefaultDamage;
 	playerOneStat.movementSpeed = playerOneStat.movementSpeed * defaultResolution.scaling;
 	playerOneStat.projectileSpeed = playerOneStat.projectileSpeed * defaultResolution.scaling;
 }
@@ -1058,8 +1061,8 @@ void WorldSystem::invincibilityTimer(float elapsed_ms_since_last_update) {
 	for (Entity playerEntity : registry.players.entities) {
 		Player& player = registry.players.get(playerEntity);
 		if (player.isInvin) {
-			player.invinTimerInMs -= elapsed_ms_since_last_update;
-			if (player.invinTimerInMs < 0) {
+			player.invinTimerInMs += elapsed_ms_since_last_update;
+			if (player.invinTimerInMs > player.invinFrame) {
 				player.isInvin = false;
 			}
 
@@ -1068,8 +1071,8 @@ void WorldSystem::invincibilityTimer(float elapsed_ms_since_last_update) {
 	for (Entity enemyEntity : registry.enemies.entities) {
 		Enemy& enemy = registry.enemies.get(enemyEntity);
 		if (enemy.isInvin) {
-			enemy.invinTimerInMs -= elapsed_ms_since_last_update;
-			if (enemy.invinTimerInMs < 0) {
+			enemy.invinTimerInMs += elapsed_ms_since_last_update;
+			if (enemy.invinTimerInMs > enemy.invinFrame) {
 				enemy.isInvin = false;
 			}
 		}
@@ -1115,12 +1118,16 @@ void WorldSystem::stopPlayerAtMouseDestination() {
 void WorldSystem::levelCompletionCheck(float elapsed_ms_since_last_update) {
 	// Check level completion 
 	if (registry.enemies.size() == 0) {
+		if (level_number == 0 && !shopHintCreated) {
+			createShopHint(); 
+			shopHintCreated = true;
+		}
 		transitionToShop();
 		isLevelOver = true;
 	}
 	if (isLevelOver && isTransitionOver) {
 		int nextLevel = level_number + 1;
-		if (nextLevel <= levels.size()) {
+		if (nextLevel < levels.size()) {
 			ScreenState& screen = registry.screenStates.components[0];
 			float min_counter_ms = 3000.f;
 			for (Entity entity : registry.endLevelTimers.entities) {
@@ -1174,26 +1181,52 @@ void WorldSystem::spawnPowerups(int n) {
 
 	for (int i = 0; i < n; i++) {
 		float xPos = colWidth * (i + 1);
-		Entity powerUpEntity = chooseRandomPowerUp({ xPos, yPos}); 	
-		float priceYPositionAdjustment = 70.f * defaultResolution.scaling;
+		Entity powerUpEntity = (level_number == 0) ? chooseFixedPowerUp({ xPos, yPos }, i) : chooseRandomPowerUp({ xPos, yPos });
+		float priceYPositionAdjustment = scaleCoordinate(70.f); 
 		attachAndRenderPriceNumbers(powerUpEntity, vec2(xPos, yPos + priceYPositionAdjustment));
 	}
 }
 
+Entity WorldSystem::chooseFixedPowerUp(vec2 pos, int index) {
+	std::string label = ""; 
+	switch (index) {
+	case 0: label = "HP"; 
+			attachAndRenderPowerupDescription(vec2(pos.x + 0.5 * scaleCoordinate(CAPSLETTER_BB_WIDTH), pos.y), label);
+			return createHpPowerup(pos);
+	case 1:	label = "DAMAGE";
+			attachAndRenderPowerupDescription(vec2(pos.x + 0.5 * scaleCoordinate(CAPSLETTER_BB_WIDTH), pos.y), label);
+			return createDamagePowerup(pos); 
+	case 2:	label = "ATK";
+			attachAndRenderPowerupDescription(pos, label);
+			label = "SPEED";
+			attachAndRenderPowerupDescription(vec2(pos.x, pos.y + scaleCoordinate(CAPSLETTER_BB_HEIGHT)), label);
+			return createAttackSpeedPowerup(pos);
+	case 3:	label = "MOVE";
+			attachAndRenderPowerupDescription(vec2(pos.x + 0.5 * scaleCoordinate(CAPSLETTER_BB_WIDTH), pos.y), label);
+			label = "SPEED";
+			attachAndRenderPowerupDescription(vec2(pos.x, pos.y + scaleCoordinate(CAPSLETTER_BB_HEIGHT)), label);
+			return createMovementSpeedPowerup(pos);
+	default: label = "HP";
+			attachAndRenderPowerupDescription(vec2(pos.x + 0.5 * scaleCoordinate(CAPSLETTER_BB_WIDTH)), label);
+			return createHpPowerup(pos);
+	}
+}
+
 Entity WorldSystem::chooseRandomPowerUp(vec2 pos) {
-	float random_choice = uniform_dist(rng);
-	if (random_choice < 0.25f) {
-		return createHpPowerup(pos);
-	}
-	else if (random_choice >= 0.25f && random_choice <= 0.5f) {
-		return createDamagePowerup(pos);
-	}
-	else if (random_choice > 0.5f && random_choice <= 0.75f) {
-		return createAttackSpeedPowerup(pos);
-	}
-	else {
-		return createMovementSpeedPowerup(pos);
-	}
+		float random_choice = uniform_dist(rng);
+		if (random_choice < 0.25f) {
+			return createHpPowerup(pos);
+		}
+		else if (random_choice >= 0.25f && random_choice < 0.5f) {
+			return createDamagePowerup(pos);
+		}
+		else if (random_choice >= 0.5f && random_choice < 0.75f) {
+			return createAttackSpeedPowerup(pos);
+		}
+		else {
+			return createMovementSpeedPowerup(pos);
+		}
+
 }
 void WorldSystem::reviveKnight(Player& p1, PlayerStat& p1Stat) {
 	p1.isDead = false;
@@ -1221,7 +1254,7 @@ void WorldSystem::reviveWizard(Player& p2, PlayerStat& p2Stat) {
 
 void WorldSystem::progressBrightenScreen(float elapsed_ms_since_last_update) {
 	// Check level completion 
-	if (startingNewLevel == true) {
+	if (startingNewLevel) {
 		startingNewLevel = false;
 		auto entity1 = Entity();
 		registry.startLevelTimers.emplace(entity1);
@@ -1274,6 +1307,9 @@ void WorldSystem::setTransitionFlag(Entity player) {
 		reviveDeadPlayerInShop();
 		int num_powerUps = 4; 
 		spawnPowerups(num_powerUps); 
+		if (level_number == 0) {
+			drawTutorialTextInShop(); 
+		}
 	}
 	if (!registry.inShops.has(player) && !firstEntranceToShop) {
 		isTransitionOver = true;
@@ -1287,7 +1323,22 @@ void WorldSystem::setTransitionFlag(Entity player) {
 	}
 }
 
+void WorldSystem::drawTutorialTextInShop() {
+	std::string header = "CHOOSE WISELY"; 
+	int headerLen = header.length(); 
+	float xPosOffset = scaleCoordinate(-(headerLen / 2) * CAPSLETTER_BB_WIDTH); 
+	float yPosOffset = scaleCoordinate(CAPSLETTER_BB_HEIGHT); 
+	vec2 position = vec2(defaultResolution.width / 2  + xPosOffset , defaultResolution.height + yPosOffset); 
+	createSentence(position, header);
 
+	header = "EXIT DOOR TO START LEVEL"; 
+	headerLen = header.length();
+	xPosOffset = scaleCoordinate(0.5*CAPSLETTER_BB_WIDTH - ((headerLen / 2) * CAPSLETTER_BB_WIDTH));
+	yPosOffset = defaultResolution.defaultHeight - scaleCoordinate(CAPSLETTER_BB_HEIGHT);
+	vec2 bottomPosition = vec2(defaultResolution.width / 2 + xPosOffset, defaultResolution.height + yPosOffset); 
+	createSentence(bottomPosition, header); 
+
+}
 
 void WorldSystem::animateKnight(float elapsed_ms_since_last_update) {
 	KnightAnimation& animation = registry.knightAnimations.get(player_knight);
@@ -1359,12 +1410,18 @@ void WorldSystem::setupLevel(int levelNum) {
 		registry.remove_all_components_of(registry.huds.entities.back());
 	while (registry.powerups.entities.size() > 0)
 		registry.remove_all_components_of(registry.powerups.entities.back());
+	while (registry.letters.entities.size() > 0)
+		registry.remove_all_components_of(registry.letters.entities.back());
+	while (registry.instructions.entities.size() > 0)
+		registry.remove_all_components_of(registry.instructions.entities.back());
+	while (registry.arrows.entities.size() > 0)
+		registry.remove_all_components_of(registry.arrows.entities.back());
 
 	// Close the door at the start of every level after player leaves the shop. 
 	createADoor(screen_width, screen_height);
 	createWalls(screen_width, screen_height);
 	
-	int index = levelNum - 1;
+	int index = levelNum;
 	Level level = levels[index];
 	auto enemies = level.enemies;
 	auto enemy_types = level.enemy_types;
@@ -1423,9 +1480,68 @@ void WorldSystem::setupLevel(int levelNum) {
 	if (twoPlayer.inTwoPlayerMode) {
 		gameHud.playerTwoHudEntity = createHUD(gameHud.playerTwoBattleRoomLocation, player2_wizard);
 	}
+	gameHud.currentLocation = BATTLE_ROOM;
+	if (level_number == 0) {
+		setupTutorial(); 
+	}
 	std::stringstream ss;
 	ss << "ktv: immunity war Level: " << levelNum;
 	glfwSetWindowTitle(window, ss.str().c_str());
+}
+
+float WorldSystem::scaleCoordinate(float coordinate) {
+	coordinate *= defaultResolution.scaling;
+	return coordinate;
+}
+
+void WorldSystem::setupTutorial() {
+	std::string tutorialTitle = "TUTORIAL";
+	int tutorialTitleLen = tutorialTitle.length();
+	float titleXOffset = scaleCoordinate(((tutorialTitleLen / 2 - 0.5) * CAPSLETTER_BB_WIDTH));
+	float titleYCoord = scaleCoordinate(75.f); 
+	createSentence(vec2(defaultResolution.width / 2 - titleXOffset, titleYCoord), tutorialTitle);
+	vec2 leftMovementInstructionPos = vec2((defaultResolution.width / 2), (defaultResolution.height / 2));
+	createMovementAndAttackInstructions(leftMovementInstructionPos);
+}
+
+void WorldSystem::createShopHint() {
+	while (registry.instructions.entities.size() > 0)
+		registry.remove_all_components_of(registry.instructions.entities.back());
+	vec2 arrowPosition = vec2(defaultResolution.width / 2, scaleCoordinate(700.f));
+	createArrow(arrowPosition);
+}
+
+void WorldSystem::waitAndMakeEnemiesVisible(float elapsed_ms) {
+	float DELAY_MS = 7000.f;
+	if (tutorialEnemyTransition) {
+		auto entity = Entity();
+		registry.tutorialTimers.emplace(entity); 
+		tutorialEnemyTransition = false; 
+	}
+	float min_counter_ms = DELAY_MS; 
+	for (Entity timerEntity : registry.tutorialTimers.entities) {
+		TutorialTimer& counter = registry.tutorialTimers.get(timerEntity);
+		counter.counter_ms -= elapsed_ms;
+		if (counter.counter_ms < min_counter_ms) {
+			min_counter_ms = counter.counter_ms;
+		}
+		if (counter.counter_ms < 0) {
+			registry.tutorialTimers.remove(timerEntity);
+			// Display tutorial enemies after timer has completed
+			for (Entity e : registry.enemiesTutorial.entities) {
+				auto& enemyCom = registry.enemies.get(e);
+				enemyCom.isInvin = false;
+				enemyCom.invinFrame = 500.f; 
+				registry.renderRequests.insert(
+					e,
+					{ TEXTURE_ASSET_ID::ENEMY,
+					  EFFECT_ASSET_ID::ENEMY,
+					  GEOMETRY_BUFFER_ID::SPRITE });
+			}
+			tutorialEnemyFinishTransition = true; 
+		}
+
+	}
 }
 
 void WorldSystem::playerTwoJoinOrLeave() {
@@ -1665,6 +1781,14 @@ bool WorldSystem::withinButtonBounds(float mouse_position, vec2 bounds) {
 void WorldSystem::attachAndRenderPriceNumbers(Entity powerUp, vec2 pos) {
 	Powerup& powerup = registry.powerups.get(powerUp);
 	powerup.priceNumbers = createNumber(pos, powerup.cost);
+}
+
+void WorldSystem::attachAndRenderPowerupDescription(vec2 pos, std::string type) {
+	float descriptorYPosOffset = scaleCoordinate(70.f + NUMBER_BB_HEIGHT + CAPSLETTER_BB_HEIGHT);
+	int lenLabel = type.length();
+	float descriptorPosX = pos.x - scaleCoordinate((lenLabel / 2) * CAPSLETTER_BB_WIDTH);
+	vec2 descriptorPos = { descriptorPosX, pos.y + descriptorYPosOffset };
+	createSentence(descriptorPos, type);
 }
 
 void WorldSystem::scaleGameHUD() {
