@@ -255,6 +255,19 @@ struct MenuMode {
 };
 extern MenuMode menuMode;
 
+enum bossLevels {
+	stage1,
+	stage2,
+	stage3
+};
+
+struct BossMode {
+	int inFinalLevel = 6;
+	// which stage in the final boss we are in.
+	bossLevels currentBossLevel;
+};
+extern BossMode bossMode;
+
 
 struct DefaultResolution {
 	int width = 1200;

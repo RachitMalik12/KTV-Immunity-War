@@ -59,6 +59,7 @@ const float HUD_WIZARD_HEAD_BB_HEIGHT = 0.02886 * 1767.f;
 
 // background
 Entity createBackground(RenderSystem* renderer, vec2 pos);
+Entity createFinalBackground(RenderSystem* renderer, vec2 position);
 
 // menu dimensions
 const float BUTTON_BB_WIDTH = 0.5 * 459.f;

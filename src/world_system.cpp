@@ -440,6 +440,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// final level
 	if (action == GLFW_PRESS && key == GLFW_KEY_6) {
 		level_number = 6;
+		bossMode.inFinalLevel = true;
 		setupLevel(level_number);
 	}
 
@@ -1339,6 +1340,7 @@ void WorldSystem::animateWizard(float elapsed_ms_since_last_update) {
 	}
 }
 
+// TODO: Jasmine
 void WorldSystem::setupLevel(int levelNum) {
 	int screen_width, screen_height;
 	glfwGetFramebufferSize(window, &screen_width, &screen_height);
@@ -1365,6 +1367,9 @@ void WorldSystem::setupLevel(int levelNum) {
 		registry.remove_all_components_of(registry.huds.entities.back());
 	while (registry.powerups.entities.size() > 0)
 		registry.remove_all_components_of(registry.powerups.entities.back());
+	
+	// Check if final level, change background
+	replaceBossBackground(levelNum);
 
 	// Close the door at the start of every level after player leaves the shop. 
 	createADoor(screen_width, screen_height);
@@ -1432,6 +1437,13 @@ void WorldSystem::setupLevel(int levelNum) {
 	std::stringstream ss;
 	ss << "ktv: immunity war Level: " << levelNum;
 	glfwSetWindowTitle(window, ss.str().c_str());
+}
+
+void WorldSystem::replaceBossBackground(int levelNum) {
+	if (levelNum == bossMode.inFinalLevel) {
+		registry.remove_all_components_of(registry.backgrounds.entities.back());
+		createFinalBackground(renderer, vec2(defaultResolution.width / 2, defaultResolution.height));
+	}
 }
 
 void WorldSystem::playerTwoJoinOrLeave() {

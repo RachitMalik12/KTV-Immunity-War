@@ -54,6 +54,8 @@ private:
 	void setPlayersStats();
 	void setPlayerOneStats();
 	void setPlayerTwoStats();
+	// set background if boss level
+	void replaceBossBackground(int levelNum);
 	// OpenGL window handle
 	GLFWwindow* window;
 	int level_number;

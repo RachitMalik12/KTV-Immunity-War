@@ -31,6 +31,30 @@ Entity createBackground(RenderSystem* renderer, vec2 position) {
 	return entity;
 }
 
+Entity createFinalBackground(RenderSystem* renderer, vec2 position) {
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+	motion.scale = vec2({ BACKGROUND_BB_WIDTH * defaultResolution.scaling, BACKGROUND_BB_HEIGHT * defaultResolution.scaling });
+
+	registry.backgrounds.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::FINALBACKGROUND,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	return entity;
+}
+
 Entity createWizard(RenderSystem* renderer, vec2 position) {
 	// Reserve en entity
 	auto entity = Entity();
