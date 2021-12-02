@@ -228,9 +228,6 @@ void WorldSystem::restart_game() {
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
-	// Create background texture
-	createBackground(renderer, vec2(defaultResolution.width / 2, defaultResolution.height));
-
 	// Setup level
 	setupLevel(level_number);
 }
@@ -1344,6 +1341,8 @@ void WorldSystem::setupLevel(int levelNum) {
 	int screen_width, screen_height;
 	glfwGetFramebufferSize(window, &screen_width, &screen_height);
 
+	createLevelBackground(levelNum);
+
 	while (registry.players.entities.size() > 0)
 		registry.remove_all_components_of(registry.players.entities.back());
 	while (registry.projectiles.entities.size() > 0)
@@ -1367,9 +1366,6 @@ void WorldSystem::setupLevel(int levelNum) {
 	while (registry.powerups.entities.size() > 0)
 		registry.remove_all_components_of(registry.powerups.entities.back());
 	
-	// Check if final level, change background
-	replaceBossBackground(levelNum);
-
 	// Close the door at the start of every level after player leaves the shop. 
 	createADoor(screen_width, screen_height);
 	createWalls(screen_width, screen_height);
@@ -1438,10 +1434,18 @@ void WorldSystem::setupLevel(int levelNum) {
 	glfwSetWindowTitle(window, ss.str().c_str());
 }
 
-void WorldSystem::replaceBossBackground(int levelNum) {
+void WorldSystem::createLevelBackground(int levelNum) {
 	if (levelNum == bossMode.finalLevelNum) {
-		registry.remove_all_components_of(registry.backgrounds.entities.back());
+		if (registry.players.entities.size() > 0) {
+			registry.remove_all_components_of(registry.backgrounds.entities.back());
+		}
 		createFinalBackground(renderer, vec2(defaultResolution.width / 2, defaultResolution.height));
+	}
+	else {
+		if (registry.players.entities.size() > 0) {
+			registry.remove_all_components_of(registry.backgrounds.entities.back());
+		}
+		createBackground(renderer, vec2(defaultResolution.width / 2, defaultResolution.height));
 	}
 }
 
