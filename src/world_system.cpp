@@ -1208,7 +1208,7 @@ Entity WorldSystem::chooseFixedPowerUp(vec2 pos, int index) {
 			return createAttackSpeedPowerup(pos);
 	case 3:	label = "SPD";
 			attachAndRenderPowerupDescription(pos, label);
-			return createAttackSpeedPowerup(pos);
+			return createMovementSpeedPowerup(pos);
 	default: label = "HP";
 			attachAndRenderPowerupDescription(pos, label);
 			return createHpPowerup(pos);
