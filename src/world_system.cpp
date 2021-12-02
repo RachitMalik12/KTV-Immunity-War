@@ -146,7 +146,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	progressBrightenScreen(elapsed_ms_since_last_update);
 	levelCompletionCheck(elapsed_ms_since_last_update);
 	stopPlayerAtMouseDestination();
-	stuckTimer(elapsed_ms_since_last_update, screen_width, screen_height);
+	/*stuckTimer(elapsed_ms_since_last_update, screen_width, screen_height);*/
 	invincibilityTimer(elapsed_ms_since_last_update);
 	checkIfPlayersAreMoving();
 	animateKnight(elapsed_ms_since_last_update);

@@ -240,8 +240,8 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, int enemyType) {
 		case 7:
 			curEnemy = createEnemyBoss(renderer, position);
 			break;
-		case 8: 
-			curEnemy = createEnemyMinions(renderer, position);
+		case 8:  
+			curEnemy = createEnemyMinions(renderer, position); 
 			break;
 	}
 	return curEnemy;
@@ -532,18 +532,25 @@ Entity createEnemyBoss(RenderSystem* renderer, vec2 position) {
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
 	motion.position = position;
-	motion.scale = vec2({ ENEMYSWARM_BB_WIDTH * defaultResolution.scaling, ENEMYSWARM_BB_HEIGHT * defaultResolution.scaling });
+	//======
+	motion.scale = vec2({ BACKGROUND_BB_WIDTH * defaultResolution.scaling, BOSS_BB_HEIGHT * defaultResolution.scaling });
 	registry.enemies.emplace(entity);
 	// Set enemy attributes
-	EnemySwarm& swarm = registry.enemySwarms.emplace(entity);
-	swarm.projectileSpeed = swarm.projectileSpeed * defaultResolution.scaling;
+	registry.enemyBoss.emplace(entity);
+	// Set enemy attributes
 	auto& enemyCom = registry.enemies.get(entity);
 	enemyCom.damage = 1;
 	enemyCom.hp = 3;
 	enemyCom.max_hp = enemyCom.hp;
-	enemyCom.loot = 1000;
-	enemyCom.speed = 100.f * defaultResolution.scaling;
-	motion.velocity = vec2(0, 0);
+	enemyCom.loot = 1;
+	enemyCom.speed = 200.f * defaultResolution.scaling;
+	motion.velocity = vec2(enemyCom.speed, 0.f );
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::BOSS,
+			EFFECT_ASSET_ID::ENEMY,
+			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
 }

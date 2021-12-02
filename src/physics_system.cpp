@@ -347,6 +347,10 @@ void PhysicsSystem::bounceEnemies(Entity curEntity, bool hitABlock) {
 		if (registry.projectiles.has(curEntity) || registry.enemyProjectiles.has(curEntity)) {
 			registry.remove_all_components_of(curEntity);
 		}
+		else if (registry.enemyBoss.has(curEntity)) {
+			Motion& enemyBossMotion = registry.motions.get(curEntity);
+			enemyBossMotion.velocity = vec2(0, 0);
+		}
 		else if (registry.enemyBlobs.has(curEntity)) {
 			Motion& enemyMotion = registry.motions.get(curEntity);
 			enemyMotion.velocity.y *= -1;
@@ -407,16 +411,20 @@ void PhysicsSystem::moveEntities(float elapsed_ms) {
 	{
 		Motion& motion = registry.motions.components[i];
 		Entity entity = registry.motions.entities[i];
-		float step_seconds = 1.0f * (elapsed_ms / 1000.f);
-		vec2 nextPosition = vec2(motion.position.x + motion.velocity.x * step_seconds,
-			motion.position.y + motion.velocity.y * step_seconds);
-		bool hitABlock = hitBlockOrWall(nextPosition, motion);
-		if (!hitABlock) {
-			motion.position = nextPosition;
+		if(!registry.enemyBoss.has(entity)){
+			float step_seconds = 1.0f * (elapsed_ms / 1000.f);
+			vec2 nextPosition = vec2(motion.position.x + motion.velocity.x * step_seconds,
+				motion.position.y + motion.velocity.y * step_seconds);
+			bool hitABlock = hitBlockOrWall(nextPosition, motion);
+			if (!hitABlock) {
+				motion.position = nextPosition;
+			}
+			bounceEnemies(entity, hitABlock);
+			bounceEnemyRun(entity);
+			rotateSword(entity, elapsed_ms);
 		}
-		bounceEnemies(entity, hitABlock);
-		bounceEnemyRun(entity);
-		rotateSword(entity, elapsed_ms);
+		
+		
 	}
 }
 
