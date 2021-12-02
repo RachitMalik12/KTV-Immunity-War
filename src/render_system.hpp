@@ -87,7 +87,6 @@ class RenderSystem {
 			textures_path("knightIcon.png"),
 			textures_path("wizard_earring.png"),
 			textures_path("background_final.png"),
-			textures_path("boss_rect.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

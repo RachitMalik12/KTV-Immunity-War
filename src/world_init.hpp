@@ -56,7 +56,7 @@ const float HUD_KNIGHT_HEAD_BB_WIDTH = 1.7 * 30.f;
 const float HUD_KNIGHT_HEAD_BB_HEIGHT = 1.7 * 28.f;
 const float HUD_WIZARD_HEAD_BB_WIDTH = 0.02886 * 1231.f;
 const float HUD_WIZARD_HEAD_BB_HEIGHT = 0.02886 * 1767.f;
-const float BOSS_BB_WIDTH = 375.f;
+const float BOSS_BB_WIDTH = 300.f;
 const float BOSS_BB_HEIGHT = 300.f;
 
 // background

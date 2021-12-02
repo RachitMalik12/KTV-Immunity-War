@@ -524,13 +524,8 @@ Entity createEnemyBoss(RenderSystem* renderer, vec2 position) {
 	// Reserve en entity
 	auto entity = Entity();
 
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
 	motion.position = vec2(position.x + 25 * defaultResolution.scaling, position.y);
 	//======
 	motion.scale = vec2({ BOSS_BB_WIDTH * defaultResolution.scaling, BOSS_BB_HEIGHT * defaultResolution.scaling });
@@ -544,13 +539,14 @@ Entity createEnemyBoss(RenderSystem* renderer, vec2 position) {
 	enemyCom.max_hp = enemyCom.hp;
 	enemyCom.loot = 1;
 	enemyCom.speed = 200.f * defaultResolution.scaling;
-	motion.velocity = vec2(enemyCom.speed, 0.f );
+	motion.velocity = vec2(0.f, 0.f);
 
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::BOSS,
-			EFFECT_ASSET_ID::ENEMY,
-			GEOMETRY_BUFFER_ID::SPRITE });
+	// create void wall
+	auto entityWall = Entity();
+	registry.walls.emplace(entityWall);
+	auto& motionVoid = registry.motions.emplace(entityWall);
+	motionVoid.position = position;
+	motionVoid.scale = vec2({ BACKGROUND_BB_WIDTH * defaultResolution.scaling, BOSS_BB_HEIGHT * defaultResolution.scaling });
 
 	return entity;
 }
