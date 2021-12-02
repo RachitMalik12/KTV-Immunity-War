@@ -56,6 +56,7 @@ private:
 	void setPlayerTwoStats();
 	void setPlayersInvincibility(float ms_delay, bool isInvin);
 	void setupTutorial();
+	void createShopHint();
 	vec2 createTwoTierdInstruction(vec2 headerPos, std::string header, std::string child1, std::string child2);
 	void createMovementAndAttackInstructionTextBlocks(vec2 movementInstructionPos, std::string header1, std::string header2); 
 	void waitAndMakeEnemiesVisible(); 
@@ -128,6 +129,8 @@ private:
 	void removeDeadPlayersAndEnemies(float elapsed_ms);
 	// misc
 	void playerTwoJoinOrLeave();
+	// utils 
+	float scaleCoordinate(float coordinate);
 	// animation
 	void knightFrameSetter(float elapsed_ms, KnightAnimation& knightAnimation);
 	void wizardAttackFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation);
@@ -152,7 +155,9 @@ private:
 	void setTransitionFlag(Entity player); 
 	void reviveDeadPlayerInShop(); 
 	void spawnPowerups(int n);
-	Entity chooseRandomPowerUp(vec2 pos); 
+	Entity chooseRandomPowerUp(vec2 pos);
+	Entity chooseFixedPowerUp(vec2 pos, int index); 
+	void attachAndRenderPowerupDescriptions(vec2 pos, std::string type);
 	void reviveWizard(Player& p1, PlayerStat& p1Stat); 
 	void reviveKnight(Player& p2, PlayerStat& p2Stat); 
 	void progressGameEndEffect(float elapsed_ms_since_last_update);

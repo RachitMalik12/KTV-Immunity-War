@@ -967,6 +967,20 @@ Entity createMovementAndAttackInstructions(vec2 position) {
 	return entity; 
 }
 
+Entity createArrow(vec2 position) {
+	auto entity = Entity();
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = position;
+	motion.scale = vec2(ARROW_WIDTH * defaultResolution.scaling, ARROW_HEIGHT * defaultResolution.scaling);
+	registry.arrows.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ARROW,
+		  EFFECT_ASSET_ID::TEXTURED,
+		  GEOMETRY_BUFFER_ID::SPRITE });
+	return entity;
+}
+
 void updateHudHp(vec2 position, Entity hudEntity, Entity playerEntity) {
 	HUD& hud = registry.huds.get(hudEntity);
 	Player& player = registry.players.get(playerEntity);

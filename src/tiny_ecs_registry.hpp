@@ -63,6 +63,7 @@ public:
 	ComponentContainer<AtackSpeedPowerUp> attackSpeedPowerUp;
 	ComponentContainer<Background> backgrounds;
 	ComponentContainer<MovementAndAttackTutInst> instructions; 
+	ComponentContainer<Arrow> arrows; 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
 	ECSRegistry()
@@ -119,6 +120,7 @@ public:
 		registry_list.push_back(&attackSpeedPowerUp);
 		registry_list.push_back(&backgrounds);
 		registry_list.push_back(&instructions); 
+		registry_list.push_back(&arrows); 
 	}
 
 	void clear_all_components() {

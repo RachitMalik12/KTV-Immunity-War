@@ -1126,6 +1126,9 @@ void WorldSystem::stopPlayerAtMouseDestination() {
 void WorldSystem::levelCompletionCheck(float elapsed_ms_since_last_update) {
 	// Check level completion 
 	if (registry.enemies.size() == 0) {
+		if (level_number == 0) {
+			createShopHint(); 
+		}
 		transitionToShop();
 		isLevelOver = true;
 	}
@@ -1185,26 +1188,43 @@ void WorldSystem::spawnPowerups(int n) {
 
 	for (int i = 0; i < n; i++) {
 		float xPos = colWidth * (i + 1);
-		Entity powerUpEntity = chooseRandomPowerUp({ xPos, yPos}); 	
-		float priceYPositionAdjustment = 70.f * defaultResolution.scaling;
+		Entity powerUpEntity = (level_number == 0) ? chooseFixedPowerUp({ xPos, yPos }, i) : chooseRandomPowerUp({ xPos, yPos });
+		float priceYPositionAdjustment = 70.f * defaultResolution.scaling; 
 		attachAndRenderPriceNumbers(powerUpEntity, vec2(xPos, yPos + priceYPositionAdjustment));
 	}
 }
 
+Entity WorldSystem::chooseFixedPowerUp(vec2 pos, int index) {
+	float descriptiorYPosOffset = scaleCoordinate(70.f + NUMBER_BB_HEIGHT + CAPSLETTER_BB_HEIGHT); 
+	vec2 descriptorPos = { pos.x, pos.y + descriptiorYPosOffset }; 
+	switch (index) {
+	case 0: attachAndRenderPowerupDescriptions(descriptorPos, "HP");
+			return createHpPowerup(pos);
+	case 1: attachAndRenderPowerupDescriptions(descriptorPos, "DMG");
+			return createDamagePowerup(pos);
+	case 2: attachAndRenderPowerupDescriptions(descriptorPos, "ATK");
+			return createAttackSpeedPowerup(pos);
+	case 3:attachAndRenderPowerupDescriptions(descriptorPos, "SPD");
+		   return createMovementSpeedPowerup(pos);
+	default: return createHpPowerup(pos);
+	}
+}
+
 Entity WorldSystem::chooseRandomPowerUp(vec2 pos) {
-	float random_choice = uniform_dist(rng);
-	if (random_choice < 0.25f) {
-		return createHpPowerup(pos);
-	}
-	else if (random_choice >= 0.25f && random_choice <= 0.5f) {
-		return createDamagePowerup(pos);
-	}
-	else if (random_choice > 0.5f && random_choice <= 0.75f) {
-		return createAttackSpeedPowerup(pos);
-	}
-	else {
-		return createMovementSpeedPowerup(pos);
-	}
+		float random_choice = uniform_dist(rng);
+		if (random_choice < 0.25f) {
+			return createHpPowerup(pos);
+		}
+		else if (random_choice >= 0.25f && random_choice <= 0.5f) {
+			return createDamagePowerup(pos);
+		}
+		else if (random_choice > 0.5f && random_choice <= 0.75f) {
+			return createAttackSpeedPowerup(pos);
+		}
+		else {
+			return createMovementSpeedPowerup(pos);
+		}
+
 }
 void WorldSystem::reviveKnight(Player& p1, PlayerStat& p1Stat) {
 	p1.isDead = false;
@@ -1374,6 +1394,8 @@ void WorldSystem::setupLevel(int levelNum) {
 		registry.remove_all_components_of(registry.letters.entities.back());
 	while (registry.instructions.entities.size() > 0)
 		registry.remove_all_components_of(registry.instructions.entities.back());
+	while (registry.arrows.entities.size() > 0)
+		registry.remove_all_components_of(registry.arrows.entities.back());
 
 	// Close the door at the start of every level after player leaves the shop. 
 	createADoor(screen_width, screen_height);
@@ -1446,7 +1468,7 @@ void WorldSystem::setupLevel(int levelNum) {
 	glfwSetWindowTitle(window, ss.str().c_str());
 }
 
-float scaleCoordinate(float coordinate) {
+float WorldSystem::scaleCoordinate(float coordinate) {
 	coordinate *= defaultResolution.scaling;
 	return coordinate;
 }
@@ -1471,15 +1493,20 @@ void WorldSystem::setPlayersInvincibility(float ms_delay, bool isInvin) {
 		p2.invinFrame = ms_delay;
 	}
 }
+void WorldSystem::createShopHint() {
+	while (registry.instructions.entities.size() > 0)
+		registry.remove_all_components_of(registry.instructions.entities.back());
+	vec2 arrowPosition = vec2(defaultResolution.width / 2, scaleCoordinate(700.f));
+	createArrow(arrowPosition);
+}
+
 void WorldSystem::waitAndMakeEnemiesVisible() {
 	float DELAY_MS = 7000.f;
 	if (tutorialEnemyTransition) {
 		auto entity = Entity();
 		registry.tutorialTimers.emplace(entity); 
-		// setPlayersInvincibility(DELAY_MS, true); 
 		tutorialEnemyTransition = false; 
 	}
-	
 	float min_counter_ms = DELAY_MS; 
 	for (Entity timerEntity : registry.tutorialTimers.entities) {
 		TutorialTimer& counter = registry.tutorialTimers.get(timerEntity);
@@ -1500,7 +1527,6 @@ void WorldSystem::waitAndMakeEnemiesVisible() {
 					  EFFECT_ASSET_ID::ENEMY,
 					  GEOMETRY_BUFFER_ID::SPRITE });
 			}
-			// setPlayersInvincibility(2000.f, false);
 			tutorialEnemyFinishTransition = true; 
 		}
 
@@ -1766,6 +1792,10 @@ bool WorldSystem::withinButtonBounds(float mouse_position, vec2 bounds) {
 void WorldSystem::attachAndRenderPriceNumbers(Entity powerUp, vec2 pos) {
 	Powerup& powerup = registry.powerups.get(powerUp);
 	powerup.priceNumbers = createNumber(pos, powerup.cost);
+}
+
+void WorldSystem::attachAndRenderPowerupDescriptions(vec2 pos, std::string type) {
+	createSentence(pos, type); 
 }
 
 void WorldSystem::scaleGameHUD() {

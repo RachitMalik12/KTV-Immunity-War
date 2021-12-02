@@ -471,6 +471,10 @@ struct MovementAndAttackTutInst {
 
 };
 
+struct Arrow {
+
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -541,7 +545,8 @@ enum class TEXTURE_ASSET_ID {
 	CAPSLETTER = WIZARDICON + 1,
 	SMALLETTER = CAPSLETTER + 1,
 	TUTINSTRUCTIONS = SMALLETTER + 1,
-	TEXTURE_COUNT = TUTINSTRUCTIONS + 1
+	ARROW = TUTINSTRUCTIONS + 1,
+	TEXTURE_COUNT = ARROW + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
