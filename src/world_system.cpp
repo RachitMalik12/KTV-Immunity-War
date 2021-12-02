@@ -1190,7 +1190,7 @@ void WorldSystem::spawnPowerups(int n) {
 Entity WorldSystem::chooseFixedPowerUp(vec2 pos, int index) {
 	std::string label = ""; 
 	switch (index) {
-	case 0: label = "LIFE"; 
+	case 0: label = "HP"; 
 			attachAndRenderPowerupDescription(vec2(pos.x + 0.5 * scaleCoordinate(CAPSLETTER_BB_WIDTH), pos.y), label);
 			return createHpPowerup(pos);
 	case 1:	label = "DAMAGE";
@@ -1206,8 +1206,8 @@ Entity WorldSystem::chooseFixedPowerUp(vec2 pos, int index) {
 			label = "SPEED";
 			attachAndRenderPowerupDescription(vec2(pos.x, pos.y + scaleCoordinate(CAPSLETTER_BB_HEIGHT)), label);
 			return createMovementSpeedPowerup(pos);
-	default: label = "LIFE";
-			attachAndRenderPowerupDescription(pos, label);
+	default: label = "HP";
+			attachAndRenderPowerupDescription(vec2(pos.x + 0.5 * scaleCoordinate(CAPSLETTER_BB_WIDTH)), label);
 			return createHpPowerup(pos);
 	}
 }
