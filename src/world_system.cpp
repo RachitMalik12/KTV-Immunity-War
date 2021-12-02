@@ -82,7 +82,6 @@ GLFWwindow* WorldSystem::create_window(int width, int height) {
 	auto mouse_button_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_click(_0, _1, _2); };
 	glfwSetMouseButtonCallback(window, mouse_button_redirect);
 
-
 	//////////////////////////////////////
 	// Loading music and sounds with SDL
 	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
@@ -117,8 +116,6 @@ GLFWwindow* WorldSystem::create_window(int width, int height) {
 	level_start_sound = Mix_LoadWAV(audio_path("level_start.wav").c_str());
 	level_end_sound = Mix_LoadWAV(audio_path("level_end.wav").c_str());
 
-
-
 	// Load level information 
 	levelFileLoader.readFile(); 
 	levels = levelFileLoader.getLevels(); 
@@ -128,7 +125,6 @@ GLFWwindow* WorldSystem::create_window(int width, int height) {
 
 void WorldSystem::init(RenderSystem* renderer_arg) {
 	this->renderer = renderer_arg;
-	auto entity = Entity();
 	scaleGameHUD();
     restart_game();
 }
