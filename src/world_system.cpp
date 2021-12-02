@@ -13,8 +13,7 @@ WorldSystem::WorldSystem()
 	: isLevelOver(false),
 	  isTransitionOver(false),
 	  firstEntranceToShop(true),
-	  level_number(0), 
-	  elapsed_ms(0.f)
+	  level_number(0)
 {
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
@@ -143,9 +142,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Get the screen dimensions
 	int screen_width, screen_height;
 	glfwGetFramebufferSize(window, &screen_width, &screen_height);
-	this->elapsed_ms = elapsed_ms_since_last_update; 
 	if (level_number == 0 && !tutorialEnemyFinishTransition) {
-		waitAndMakeEnemiesVisible(); 
+		waitAndMakeEnemiesVisible(elapsed_ms_since_last_update); 
 	}
 	progressBrightenScreen(elapsed_ms_since_last_update);
 	levelCompletionCheck(elapsed_ms_since_last_update);
@@ -219,6 +217,7 @@ void WorldSystem::restart_game() {
 	// reset tutorial level transition state
 	tutorialEnemyFinishTransition = false; 
 	tutorialEnemyTransition = true; 
+	shopHintCreated = false; 
 
 	// set help mode to false again
 	helpMode.inHelpMode = false;
@@ -1126,8 +1125,9 @@ void WorldSystem::stopPlayerAtMouseDestination() {
 void WorldSystem::levelCompletionCheck(float elapsed_ms_since_last_update) {
 	// Check level completion 
 	if (registry.enemies.size() == 0) {
-		if (level_number == 0) {
+		if (level_number == 0 && !shopHintCreated) {
 			createShopHint(); 
+			shopHintCreated = true;
 		}
 		transitionToShop();
 		isLevelOver = true;
@@ -1189,24 +1189,29 @@ void WorldSystem::spawnPowerups(int n) {
 	for (int i = 0; i < n; i++) {
 		float xPos = colWidth * (i + 1);
 		Entity powerUpEntity = (level_number == 0) ? chooseFixedPowerUp({ xPos, yPos }, i) : chooseRandomPowerUp({ xPos, yPos });
-		float priceYPositionAdjustment = 70.f * defaultResolution.scaling; 
+		float priceYPositionAdjustment = scaleCoordinate(70.f); 
 		attachAndRenderPriceNumbers(powerUpEntity, vec2(xPos, yPos + priceYPositionAdjustment));
 	}
 }
 
 Entity WorldSystem::chooseFixedPowerUp(vec2 pos, int index) {
-	float descriptiorYPosOffset = scaleCoordinate(70.f + NUMBER_BB_HEIGHT + CAPSLETTER_BB_HEIGHT); 
-	vec2 descriptorPos = { pos.x, pos.y + descriptiorYPosOffset }; 
+	std::string label = ""; 
 	switch (index) {
-	case 0: attachAndRenderPowerupDescriptions(descriptorPos, "HP");
+	case 0: label = "HP"; 
+			attachAndRenderPowerupDescription(pos, label); 
 			return createHpPowerup(pos);
-	case 1: attachAndRenderPowerupDescriptions(descriptorPos, "DMG");
-			return createDamagePowerup(pos);
-	case 2: attachAndRenderPowerupDescriptions(descriptorPos, "ATK");
+	case 1:	label = "DMG";
+			attachAndRenderPowerupDescription(pos, label);
+			return createDamagePowerup(pos); 
+	case 2:	label = "ATK";
+			attachAndRenderPowerupDescription(pos, label);
 			return createAttackSpeedPowerup(pos);
-	case 3:attachAndRenderPowerupDescriptions(descriptorPos, "SPD");
-		   return createMovementSpeedPowerup(pos);
-	default: return createHpPowerup(pos);
+	case 3:	label = "SPD";
+			attachAndRenderPowerupDescription(pos, label);
+			return createAttackSpeedPowerup(pos);
+	default: label = "HP";
+			attachAndRenderPowerupDescription(pos, label);
+			return createHpPowerup(pos);
 	}
 }
 
@@ -1305,6 +1310,9 @@ void WorldSystem::setTransitionFlag(Entity player) {
 		reviveDeadPlayerInShop();
 		int num_powerUps = 4; 
 		spawnPowerups(num_powerUps); 
+		if (level_number == 0) {
+			drawTutorialTextInShop(); 
+		}
 	}
 	if (!registry.inShops.has(player) && !firstEntranceToShop) {
 		isTransitionOver = true;
@@ -1318,7 +1326,22 @@ void WorldSystem::setTransitionFlag(Entity player) {
 	}
 }
 
+void WorldSystem::drawTutorialTextInShop() {
+	std::string header = "CHOOSE WISELY"; 
+	int headerLen = header.length(); 
+	float xPosOffset = scaleCoordinate(-(headerLen / 2) * CAPSLETTER_BB_WIDTH); 
+	float yPosOffset = scaleCoordinate(CAPSLETTER_BB_HEIGHT); 
+	vec2 position = vec2(defaultResolution.width / 2  + xPosOffset , defaultResolution.height + yPosOffset); 
+	createSentence(position, header);
 
+	header = "EXIT DOOR TO START LEVEL"; 
+	headerLen = header.length();
+	xPosOffset = scaleCoordinate(2*CAPSLETTER_BB_WIDTH - ((headerLen / 2) * CAPSLETTER_BB_WIDTH));
+	yPosOffset = defaultResolution.defaultHeight - scaleCoordinate(CAPSLETTER_BB_HEIGHT);
+	vec2 bottomPosition = vec2(defaultResolution.width / 2 + xPosOffset, defaultResolution.height + yPosOffset); 
+	createSentence(bottomPosition, header); 
+
+}
 
 void WorldSystem::animateKnight(float elapsed_ms_since_last_update) {
 	KnightAnimation& animation = registry.knightAnimations.get(player_knight);
@@ -1474,7 +1497,6 @@ float WorldSystem::scaleCoordinate(float coordinate) {
 }
 
 void WorldSystem::setupTutorial() {
-	// Create the level title 
 	std::string tutorialTitle = "TUTORIAL";
 	int tutorialTitleLen = tutorialTitle.length();
 	float titleXOffset = scaleCoordinate(((tutorialTitleLen / 2) * CAPSLETTER_BB_WIDTH));
@@ -1483,16 +1505,7 @@ void WorldSystem::setupTutorial() {
 	vec2 leftMovementInstructionPos = vec2((defaultResolution.width / 2), (defaultResolution.height / 2));
 	createMovementAndAttackInstructions(leftMovementInstructionPos);
 }
-void WorldSystem::setPlayersInvincibility(float ms_delay, bool isInvin) {
-	Player& p1 = registry.players.get(player_knight);
-	p1.isInvin = true;
-	p1.invinFrame = ms_delay;
-	if (twoPlayer.inTwoPlayerMode) {
-		Player& p2 = registry.players.get(player2_wizard);
-		p2.isInvin = isInvin;
-		p2.invinFrame = ms_delay;
-	}
-}
+
 void WorldSystem::createShopHint() {
 	while (registry.instructions.entities.size() > 0)
 		registry.remove_all_components_of(registry.instructions.entities.back());
@@ -1500,7 +1513,7 @@ void WorldSystem::createShopHint() {
 	createArrow(arrowPosition);
 }
 
-void WorldSystem::waitAndMakeEnemiesVisible() {
+void WorldSystem::waitAndMakeEnemiesVisible(float elapsed_ms) {
 	float DELAY_MS = 7000.f;
 	if (tutorialEnemyTransition) {
 		auto entity = Entity();
@@ -1531,28 +1544,6 @@ void WorldSystem::waitAndMakeEnemiesVisible() {
 		}
 
 	}
-}
-
-void WorldSystem::createMovementAndAttackInstructionTextBlocks(vec2 movementInstructionPos, std::string header1, std::string header2) {
-	vec2 topInstBottomPosition = createTwoTierdInstruction(movementInstructionPos, header1, "w", "a s d");
-	float attackPosYOffset = scaleCoordinate(2 * CAPSLETTER_BB_HEIGHT);
-	float attackPosXOffset = scaleCoordinate(CAPSLETTER_BB_WIDTH);
-	vec2 bottomInstPosition = vec2(movementInstructionPos.x + attackPosXOffset, topInstBottomPosition.y + attackPosYOffset);
-	createTwoTierdInstruction(bottomInstPosition, header2, "t", "f g h");
-}
-
-vec2 WorldSystem::createTwoTierdInstruction(vec2 headerPos, std::string header, std::string child1, std::string child2) {
-	createSentence(headerPos, header);
-	int headerLength = header.length();
-	float topKeyXOffset = scaleCoordinate((headerLength / 2) * CAPSLETTER_BB_WIDTH);
-	float topKeyYOffset = scaleCoordinate(CAPSLETTER_BB_HEIGHT);
-	vec2 topKeyPos = vec2(headerPos.x + topKeyXOffset, headerPos.y + topKeyYOffset);
-	createSentence(topKeyPos, child1);
-	float bottomKeyXOffset = scaleCoordinate(-2 * CAPSLETTER_BB_WIDTH);
-	float bottomKeyYOffset = topKeyYOffset;
-	vec2 bottomKeysPos = vec2(topKeyPos.x + bottomKeyXOffset, topKeyPos.y + topKeyYOffset);
-	createSentence(bottomKeysPos, child2);
-	return bottomKeysPos; 
 }
 
 void WorldSystem::playerTwoJoinOrLeave() {
@@ -1794,8 +1785,12 @@ void WorldSystem::attachAndRenderPriceNumbers(Entity powerUp, vec2 pos) {
 	powerup.priceNumbers = createNumber(pos, powerup.cost);
 }
 
-void WorldSystem::attachAndRenderPowerupDescriptions(vec2 pos, std::string type) {
-	createSentence(pos, type); 
+void WorldSystem::attachAndRenderPowerupDescription(vec2 pos, std::string type) {
+	float descriptorYPosOffset = scaleCoordinate(70.f + NUMBER_BB_HEIGHT + CAPSLETTER_BB_HEIGHT);
+	int lenLabel = type.length();
+	float descriptorPosX = pos.x - scaleCoordinate((lenLabel / 2) * CAPSLETTER_BB_WIDTH);
+	vec2 descriptorPos = { descriptorPosX, pos.y + descriptorYPosOffset };
+	createSentence(descriptorPos, type);
 }
 
 void WorldSystem::scaleGameHUD() {

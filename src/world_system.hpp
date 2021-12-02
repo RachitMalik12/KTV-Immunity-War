@@ -54,17 +54,13 @@ private:
 	void setPlayersStats();
 	void setPlayerOneStats();
 	void setPlayerTwoStats();
-	void setPlayersInvincibility(float ms_delay, bool isInvin);
 	void setupTutorial();
 	void createShopHint();
-	vec2 createTwoTierdInstruction(vec2 headerPos, std::string header, std::string child1, std::string child2);
-	void createMovementAndAttackInstructionTextBlocks(vec2 movementInstructionPos, std::string header1, std::string header2); 
-	void waitAndMakeEnemiesVisible(); 
+	void waitAndMakeEnemiesVisible(float elapsed_ms); 
 	// OpenGL window handle
 	GLFWwindow* window;
 	int level_number;
-	std::vector<Level> levels; 
-	float elapsed_ms; 
+	std::vector<Level> levels;  
 	bool isLevelOver;
 	bool isTransitionOver;
 	bool firstEntranceToShop; 
@@ -72,6 +68,7 @@ private:
 	bool tutorialEnemyTransition = true; 
 	bool tutorialEnemyFinishTransition = false; 
 	bool isGameOver = false;
+	bool shopHintCreated = false; 
 	// Game state
 	RenderSystem* renderer;
 	float next_projectile_fire_player1;
@@ -157,7 +154,8 @@ private:
 	void spawnPowerups(int n);
 	Entity chooseRandomPowerUp(vec2 pos);
 	Entity chooseFixedPowerUp(vec2 pos, int index); 
-	void attachAndRenderPowerupDescriptions(vec2 pos, std::string type);
+	void attachAndRenderPowerupDescription(vec2 pos, std::string type);
+	void drawTutorialTextInShop(); 
 	void reviveWizard(Player& p1, PlayerStat& p1Stat); 
 	void reviveKnight(Player& p2, PlayerStat& p2Stat); 
 	void progressGameEndEffect(float elapsed_ms_since_last_update);
