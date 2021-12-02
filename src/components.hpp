@@ -262,7 +262,7 @@ enum bossLevels {
 };
 
 struct BossMode {
-	int inFinalLevel = 6;
+	int finalLevelNum = 6;
 	// which stage in the final boss we are in.
 	bossLevels currentBossLevel;
 };

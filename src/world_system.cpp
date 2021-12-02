@@ -440,7 +440,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// final level
 	if (action == GLFW_PRESS && key == GLFW_KEY_6) {
 		level_number = 6;
-		bossMode.inFinalLevel = true;
 		setupLevel(level_number);
 	}
 
@@ -1440,7 +1439,7 @@ void WorldSystem::setupLevel(int levelNum) {
 }
 
 void WorldSystem::replaceBossBackground(int levelNum) {
-	if (levelNum == bossMode.inFinalLevel) {
+	if (levelNum == bossMode.finalLevelNum) {
 		registry.remove_all_components_of(registry.backgrounds.entities.back());
 		createFinalBackground(renderer, vec2(defaultResolution.width / 2, defaultResolution.height));
 	}
