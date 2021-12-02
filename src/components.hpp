@@ -282,7 +282,7 @@ struct Lighting {
 	vec3 ambient_light = vec3(0.5, 0.5, 0.5);
 	vec2 light_source_pos = vec2(0, 0);
 	vec3 light_col = vec3(0.999, 0.999, 0.999);
-	float light_intensity = 0.8;
+	float light_intensity = 0.9;
 };
 
 // Sets the brightness of the screen

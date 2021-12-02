@@ -1197,19 +1197,23 @@ void WorldSystem::spawnPowerups(int n) {
 Entity WorldSystem::chooseFixedPowerUp(vec2 pos, int index) {
 	std::string label = ""; 
 	switch (index) {
-	case 0: label = "HP"; 
-			attachAndRenderPowerupDescription(pos, label); 
+	case 0: label = "LIFE"; 
+			attachAndRenderPowerupDescription(vec2(pos.x + 0.5 * scaleCoordinate(CAPSLETTER_BB_WIDTH), pos.y), label);
 			return createHpPowerup(pos);
-	case 1:	label = "DMG";
-			attachAndRenderPowerupDescription(pos, label);
+	case 1:	label = "DAMAGE";
+			attachAndRenderPowerupDescription(vec2(pos.x + 0.5 * scaleCoordinate(CAPSLETTER_BB_WIDTH), pos.y), label);
 			return createDamagePowerup(pos); 
 	case 2:	label = "ATK";
 			attachAndRenderPowerupDescription(pos, label);
+			label = "SPEED";
+			attachAndRenderPowerupDescription(vec2(pos.x, pos.y + scaleCoordinate(CAPSLETTER_BB_HEIGHT)), label);
 			return createAttackSpeedPowerup(pos);
-	case 3:	label = "SPD";
-			attachAndRenderPowerupDescription(pos, label);
+	case 3:	label = "MOVE";
+			attachAndRenderPowerupDescription(vec2(pos.x + 0.5 * scaleCoordinate(CAPSLETTER_BB_WIDTH), pos.y), label);
+			label = "SPEED";
+			attachAndRenderPowerupDescription(vec2(pos.x, pos.y + scaleCoordinate(CAPSLETTER_BB_HEIGHT)), label);
 			return createMovementSpeedPowerup(pos);
-	default: label = "HP";
+	default: label = "LIFE";
 			attachAndRenderPowerupDescription(pos, label);
 			return createHpPowerup(pos);
 	}
@@ -1336,7 +1340,7 @@ void WorldSystem::drawTutorialTextInShop() {
 
 	header = "EXIT DOOR TO START LEVEL"; 
 	headerLen = header.length();
-	xPosOffset = scaleCoordinate(2*CAPSLETTER_BB_WIDTH - ((headerLen / 2) * CAPSLETTER_BB_WIDTH));
+	xPosOffset = scaleCoordinate(0.5*CAPSLETTER_BB_WIDTH - ((headerLen / 2) * CAPSLETTER_BB_WIDTH));
 	yPosOffset = defaultResolution.defaultHeight - scaleCoordinate(CAPSLETTER_BB_HEIGHT);
 	vec2 bottomPosition = vec2(defaultResolution.width / 2 + xPosOffset, defaultResolution.height + yPosOffset); 
 	createSentence(bottomPosition, header); 
@@ -1500,7 +1504,7 @@ float WorldSystem::scaleCoordinate(float coordinate) {
 void WorldSystem::setupTutorial() {
 	std::string tutorialTitle = "TUTORIAL";
 	int tutorialTitleLen = tutorialTitle.length();
-	float titleXOffset = scaleCoordinate(((tutorialTitleLen / 2) * CAPSLETTER_BB_WIDTH));
+	float titleXOffset = scaleCoordinate(((tutorialTitleLen / 2 - 0.5) * CAPSLETTER_BB_WIDTH));
 	float titleYCoord = scaleCoordinate(75.f); 
 	createSentence(vec2(defaultResolution.width / 2 - titleXOffset, titleYCoord), tutorialTitle);
 	vec2 leftMovementInstructionPos = vec2((defaultResolution.width / 2), (defaultResolution.height / 2));
