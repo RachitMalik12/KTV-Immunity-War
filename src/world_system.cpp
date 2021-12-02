@@ -99,7 +99,6 @@ GLFWwindow* WorldSystem::create_window(int width, int height) {
 	// SOURCE for final_boss_bgm: https://opengameart.org/content/heroic-minority
 	// SOURCE for zap_sound, menu_click_sound, level_start_sound, level_end_sound: https://opengameart.org/content/spell-sounds-starter-pack
 	// SOURCE for swing_sound: https://opengameart.org/content/battle-sound-effects
-	start_menu_music = Mix_LoadMUS(audio_path("start.wav").c_str());
 	battle0_bgm = Mix_LoadMUS(audio_path("battle0.wav").c_str());
 	battle1_bgm = Mix_LoadMUS(audio_path("battle1.wav").c_str());
 	battle2_bgm = Mix_LoadMUS(audio_path("battle2.wav").c_str());
@@ -773,7 +772,6 @@ void WorldSystem::menuLogic(int menuType) {
 			if (storyMode.inStoryMode == 0) {
 				storyMode.inStoryMode = 1;
 				createStory();
-				Mix_FadeInMusic(start_menu_music, -1, fade_duration);
 			}
 		}
 		// 2P
@@ -787,7 +785,6 @@ void WorldSystem::menuLogic(int menuType) {
 			if (storyMode.inStoryMode == 0) {
 				storyMode.inStoryMode = 1;
 				createStory();
-				Mix_FadeInMusic(start_menu_music, -1, fade_duration);
 			}
 		}
 		// Load

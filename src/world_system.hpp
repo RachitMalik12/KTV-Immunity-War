@@ -81,7 +81,6 @@ private:
 	// music references
 	int volume = 20;
 	int fade_duration = 500;
-	Mix_Music* start_menu_music;
 	Mix_Music* background_music;
 	Mix_Chunk* salmon_dead_sound;
 	Mix_Chunk* salmon_eat_sound;
