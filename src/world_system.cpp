@@ -1220,10 +1220,10 @@ Entity WorldSystem::chooseRandomPowerUp(vec2 pos) {
 		if (random_choice < 0.25f) {
 			return createHpPowerup(pos);
 		}
-		else if (random_choice >= 0.25f && random_choice <= 0.5f) {
+		else if (random_choice >= 0.25f && random_choice < 0.5f) {
 			return createDamagePowerup(pos);
 		}
-		else if (random_choice > 0.5f && random_choice <= 0.75f) {
+		else if (random_choice >= 0.5f && random_choice < 0.75f) {
 			return createAttackSpeedPowerup(pos);
 		}
 		else {
