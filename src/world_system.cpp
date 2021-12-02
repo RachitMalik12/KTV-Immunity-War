@@ -1483,6 +1483,7 @@ void WorldSystem::setupLevel(int levelNum) {
 	if (twoPlayer.inTwoPlayerMode) {
 		gameHud.playerTwoHudEntity = createHUD(gameHud.playerTwoBattleRoomLocation, player2_wizard);
 	}
+	gameHud.currentLocation = BATTLE_ROOM;
 	if (level_number == 0) {
 		setupTutorial(); 
 	}
