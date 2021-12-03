@@ -89,7 +89,7 @@ class RenderSystem {
 			textures_path("caps_letters.png"), 
 			textures_path("small_letters.png"), 
 			textures_path("tutorial.png"), 
-			textures_path("shop-arrow.png")
+			textures_path("shop-arrow.png"),
 			textures_path("background_final.png"),
 	};
 

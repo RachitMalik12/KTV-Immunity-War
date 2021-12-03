@@ -412,7 +412,7 @@
           }
         ]
       ],
-      "enemy_types": [ 7,9,8 ],
+      "enemy_types": [ 10,9,8 ],
       "level_type": 0
     }
   ] 

@@ -1531,7 +1531,7 @@ void WorldSystem::setFinalLevelStages(Level level, bossLevels stage) {
 		bossMode.currentBossLevel = stage2;
 	}
 	else if (stage == stage3) {
-		createEnemyFilteredByType(level, 7);
+		createEnemyFilteredByType(level, 10);
 		bossMode.currentBossLevel = stage3;
 	}
 }
