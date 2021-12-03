@@ -5,6 +5,7 @@
 void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_height_px)
 {
 	moveEntities(elapsed_ms);
+	rotateSwords(elapsed_ms);
 	checkForCollision();
 	drawDebugMode();
 }
@@ -70,9 +71,11 @@ void PhysicsSystem::handle_collision() {
 			}
 		}
 
-		if (registry.players.has(entity)) {
+		if (registry.players.has(entity) ) {
 			// Check Player - Enemy collisions 
-			if (registry.enemies.has(entity_other) && !registry.enemies.get(entity_other).isDead) {
+			bool enemyConditionCheck = registry.enemies.has(entity_other) && !registry.enemies.get(entity_other).isDead
+				&& !registry.enemiesTutorial.has(entity_other); 
+			if (enemyConditionCheck) {
 				int enemyDamage = registry.enemies.get(entity_other).damage;
 				resolvePlayerDamage(entity, enemyDamage);
 			}
@@ -146,7 +149,7 @@ void PhysicsSystem::resolvePlayerDamage(Entity playerEntity, int enemyDamage) {
 		}
 		else {
 			player.isInvin = true;
-			player.invinTimerInMs = player.invinFrame;
+			player.invinTimerInMs = 0;
 			if (twoPlayer.inTwoPlayerMode && playerEntity.getId() == registry.players.entities.back().getId()) {
 				registry.renderRequests.remove(playerEntity);
 				registry.renderRequests.insert(
@@ -428,17 +431,17 @@ void PhysicsSystem::moveEntities(float elapsed_ms) {
 	}
 }
 
-void PhysicsSystem::rotateSword(Entity entity, float elapsed_ms) {
-	float pivot_distance_modifier = 3.f / 4.f;
-	float step_seconds = 1.0f * (elapsed_ms / 1000.f);
+void PhysicsSystem::rotateSwords(float elapsed_ms) {
 	for (Entity entity : registry.swords.entities) {
+		float pivot_distance_modifier = 3.f / 4.f;
 		Sword& sword = registry.swords.get(entity);
 		if (registry.players.has(sword.belongToPlayer)) {
+			float swordAnimationFrameTimeInSecond = elapsed_ms / 1000.f;
 			Motion& parent_motion = registry.motions.get(sword.belongToPlayer);
 			Motion& motion = registry.motions.get(entity);
 			vec2 pivot = parent_motion.position;
 			pivot.x += SWORD_BB_WIDTH * pivot_distance_modifier;
-			motion.angle += sword.angular_velocity * step_seconds;
+			motion.angle += sword.angular_velocity * swordAnimationFrameTimeInSecond;
 			Transform T;
 			T.translate(parent_motion.position);
 			Transform R;
@@ -448,7 +451,7 @@ void PhysicsSystem::rotateSword(Entity entity, float elapsed_ms) {
 			mat3 matrix = T.mat * R.mat * T_inv.mat;
 			vec3 world_coord = matrix * vec3(pivot.x, pivot.y, 1);
 			motion.position = vec2(world_coord.x, world_coord.y);
-			sword.distance_traveled += sword.angular_velocity * step_seconds;
+			sword.distance_traveled += sword.angular_velocity * swordAnimationFrameTimeInSecond;
 			if (sword.distance_traveled > sword.max_distance)
 				registry.remove_all_components_of(entity);
 		}
@@ -555,7 +558,7 @@ void PhysicsSystem::enemyHitStatUpdate(Entity enemyEntity, Entity playerEntity, 
 		}
 		else {
 			enemyCom.isInvin = true;
-			enemyCom.invinTimerInMs = enemyCom.invinFrame;
+			enemyCom.invinTimerInMs = 0; 
 			enemyHitHandling(enemyEntity);
 			if (playerEntity.getId() == registry.players.entities.front()) {
 				calculateSwordKnockBack(enemyCom, playerEntity);

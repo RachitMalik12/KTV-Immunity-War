@@ -1,6 +1,6 @@
-Milestone 4 Team 6 KTV
+**Milestone 4 Team 6 KTV**
 
-Milestone Feature Descriptions:  
+**Milestone Feature Descriptions:**  
 Required Features:  
 -Gameplay III (ALL):
 
@@ -11,6 +11,11 @@ Required Features:
 -Advanced Vertex/Geometry Shader (BZ): All effects are added using vertex shaders. Added shop items bouncing effect for flavour. Added player and enemy hit shaking effect. Added enemy knock back effect that work for both sword and waterball. Added death animation for enemies getting cut in half by sword. This was done by adding two more vertices which separated the two triangles in the quad so we can animate them getting separated. Added enemy death animation shrink. This was done by separating the scale matrix from the transform matrix and creating a new scale matrix in the vertex shader. Added player animation flopping to the side. This was done by separating the rotation matrix from the transform matrix and forming a new rotation matrix in the vertex shader.
 
 -Tutorial (RM):
+Tutorial level to help players learn about movement and attack controls. We spawn 2 enemies that the player can practice with. Then we guide them into the shop 
+where they can proceed to purchase powerups with guides on the screen for what each powerup means. The powerups will persist for proceeding levels, so they need 
+to make a good choice. From a technical perspective, this required rendering text on screen for which we used a sprite sheet of capital letters and small letters. 
+I also had to add some logic to render a sentence on screen correctly to ensure the position and scaling was correct for all resolutions. In addition, a timer to ensure the 
+tutorial enemies appear after exactly 7 secs was implemented. 
 
 -Game Balance (BS):
 
