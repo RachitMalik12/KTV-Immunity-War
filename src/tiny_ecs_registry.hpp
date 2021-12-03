@@ -41,6 +41,7 @@ public:
 	ComponentContainer<EnemyChase> enemyChase;
 	ComponentContainer<EnemySwarm> enemySwarms;
 	ComponentContainer<EnemyBoss> enemyBoss;
+	ComponentContainer<EnemyBossHand> enemyBossHand;
 	ComponentContainer<Powerup> powerups; 
 	ComponentContainer<Flip> flips;
 	ComponentContainer<InShop> inShops;
@@ -95,6 +96,7 @@ public:
 		registry_list.push_back(&enemyChase);
 		registry_list.push_back(&enemySwarms); 
 		registry_list.push_back(&enemyBoss);
+		registry_list.push_back(&enemyBossHand);
 		registry_list.push_back(&powerups);
 		registry_list.push_back(&flips);
 		registry_list.push_back(&inShops);

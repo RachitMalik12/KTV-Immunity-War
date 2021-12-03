@@ -212,6 +212,10 @@ void WorldSystem::restart_game() {
 	// Restart game starts from level 1 always 
 	level_number = 1; 
 
+	// Reset bossmode
+	bossMode.currentBossLevel = none;
+	
+
 	// set help mode to false again
 	helpMode.inHelpMode = false;
 
@@ -1118,8 +1122,16 @@ void WorldSystem::stopPlayerAtMouseDestination() {
 void WorldSystem::levelCompletionCheck(float elapsed_ms_since_last_update) {
 	// Check level completion 
 	if (registry.enemies.size() == 0) {
-		transitionToShop();
-		isLevelOver = true;
+		if (bossMode.currentBossLevel == stage1) {
+			setFinalLevelStages(bossMode.level, stage2);
+		}
+		else if (bossMode.currentBossLevel == stage2) {
+			setFinalLevelStages(bossMode.level, stage3);
+		}
+		else {
+			transitionToShop();
+			isLevelOver = true;
+		}
 	}
 	if (isLevelOver && isTransitionOver) {
 		int nextLevel = level_number + 1;
@@ -1375,11 +1387,20 @@ void WorldSystem::setupLevel(int levelNum) {
 	auto enemies = level.enemies;
 	auto enemy_types = level.enemy_types;
 	auto enemyPositions = level.enemyPositions;
-	for (int i = 0; i < enemyPositions.size(); i++) {
-		for (int j = 0; j < enemyPositions[i].size(); j++) {
-			createEnemy(renderer, enemyPositions[i][j] * defaultResolution.scaling, enemy_types[i]);
+	if (levelNum == bossMode.finalLevelNum) {
+		// final boss level
+		bossMode.level = level;
+		bossMode.currentBossLevel = stage1;
+		setFinalLevelStages(level, bossMode.currentBossLevel);
+	}
+	else {
+		for (int i = 0; i < enemyPositions.size(); i++) {
+			for (int j = 0; j < enemyPositions[i].size(); j++) {
+				createEnemy(renderer, enemyPositions[i][j] * defaultResolution.scaling, enemy_types[i]);
+			}
 		}
 	}
+	
 
 	// Blocks 
 	for (int b = 0; b < level.block_positions.size(); b++) {
@@ -1420,6 +1441,7 @@ void WorldSystem::setupLevel(int levelNum) {
 		Motion& player2Motion = registry.motions.get(player2_wizard);
 		player2Motion.position = level.player2_position * defaultResolution.scaling;
 	}
+
 	// Update state 
 	startingNewLevel = true;
 	isLevelOver = false;
@@ -1432,6 +1454,41 @@ void WorldSystem::setupLevel(int levelNum) {
 	std::stringstream ss;
 	ss << "ktv: immunity war Level: " << levelNum;
 	glfwSetWindowTitle(window, ss.str().c_str());
+}
+
+void WorldSystem::setFinalLevelStages(Level level, bossLevels stage) {
+	auto entityWall = Entity();
+	registry.walls.emplace(entityWall);
+	auto& motionVoid = registry.motions.emplace(entityWall);
+	motionVoid.position = vec2(600*defaultResolution.scaling, 25*defaultResolution.scaling); // find out better way to pass in position? bossmode
+	motionVoid.scale = vec2({ BACKGROUND_BB_WIDTH * defaultResolution.scaling, BOSS_BB_HEIGHT * defaultResolution.scaling });
+
+	if (stage == stage1) {
+		createEnemyFilteredByType(level, 8);
+	}
+	else if (stage == stage2) {
+		createEnemyFilteredByType(level, 9);
+		bossMode.currentBossLevel = stage2;
+	}
+	else if (stage == stage3) {
+		createEnemyFilteredByType(level, 7);
+		bossMode.currentBossLevel = stage3;
+	}
+}
+
+void WorldSystem::createEnemyFilteredByType(Level level, int enemyFilter) {
+	auto enemies = level.enemies;
+	auto enemy_types = level.enemy_types;
+	auto enemyPositions = level.enemyPositions;
+
+	for (int i = 0; i < enemyPositions.size(); i++) {
+		if (enemy_types[i] == enemyFilter) {
+			for (int j = 0; j < enemyPositions[i].size(); j++) {
+				createEnemy(renderer, enemyPositions[i][j] * defaultResolution.scaling, enemy_types[i]);
+			}
+		}
+	}
+
 }
 
 void WorldSystem::createLevelBackground(int levelNum) {

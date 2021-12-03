@@ -123,6 +123,8 @@ private:
 	void removeDeadPlayersAndEnemies(float elapsed_ms);
 	// misc
 	void playerTwoJoinOrLeave();
+	void setFinalLevelStages(Level level, bossLevels stage);
+	void createEnemyFilteredByType(Level level, int enemyFilter);
 	// animation
 	void knightFrameSetter(float elapsed_ms, KnightAnimation& knightAnimation);
 	void wizardAttackFrameSetter(float elapsed_ms, WizardAnimation& wizardAnimation);

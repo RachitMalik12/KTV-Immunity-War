@@ -648,6 +648,27 @@ void AISystem::stepEnemySwarm(float elapsed_ms) {
 	}
 }
 
+void AISystem::stepEnemyBossHand(float elapsed_ms) {
+	if (registry.enemyBossHand.entities.size() >0) {
+		Entity bossEntity = registry.enemyBossHand.entities[0];
+		EnemyBossHand& boss = registry.enemyBossHand.get(bossEntity);
+		Enemy& bossStatus = registry.enemies.get(bossEntity);
+		if (!bossStatus.isDead) {
+			if (boss.timeToUpdateAi) {
+				bossHandFireAtPlayer(bossEntity);
+				boss.timeToUpdateAi = false;
+				boss.aiUpdateTimer = boss.aiUpdateTime;
+			}
+			else {
+				boss.aiUpdateTimer -= elapsed_ms;
+				if (boss.aiUpdateTimer < 0) {
+					boss.timeToUpdateAi = true;
+				}
+			}
+		}
+	}
+}
+
 void AISystem::swarmSpreadOut(Entity swarmEntity) {
 	if (registry.enemySwarms.entities.size() == 1) {
 		setEnemyWonderingRandomly(swarmEntity);
@@ -710,36 +731,16 @@ void AISystem::swarmFireProjectileAtPlayer(Entity swarmEntity) {
 	createEnemyProjectile(renderer, swarmMotion.position, velocity, angle, swarmEntity);
 }
 
-//void AISystem::stepEnemyBoss(float elapsed_ms) {
-//	for (Entity bossEntity : registry.enemyBoss.entities) {
-//		EnemyBoss& boss = registry.enemyBoss.get(bossEntity);
-//		Enemy& bossStatus = registry.enemies.get(bossEntity);
-//		if (!bossStatus.isDead) {
-//			if (boss.timeToUpdateAi) {
-//				swarmSpreadOut(bossEntity);
-//				swarmFireProjectileAtPlayer(bossEntity);
-//				boss.timeToUpdateAi = false;
-//				boss.aiUpdateTimer = boss.aiUpdateTime;
-//			}
-//			else {
-//				boss.aiUpdateTimer -= elapsed_ms;
-//				if (boss.aiUpdateTimer < 0) {
-//					boss.timeToUpdateAi = true;
-//				}
-//			}
-//		}
-//	}
-//}
-//
-//void AISystem::bossFireAtPlayer(Entity bossEntity) {
-//	EnemyBoss& boss = registry.enemyBoss.get(bossEntity);
-//	Motion& bossMotion = registry.motions.get(bossEntity);
-//	Motion& playerMotion = registry.motions.get(pickAPlayer());
-//	vec2 diff = playerMotion.position - bossMotion.position;
-//	float angle = atan2(diff.y, diff.x);
-//	vec2 velocity = vec2(cos(angle) * boss.projectileSpeed, sin(angle) * boss.projectileSpeed);
-//	createEnemyProjectile(renderer, bossMotion.position, velocity, angle, bossEntity);
-//}
+
+void AISystem::bossHandFireAtPlayer(Entity handEntity) {
+	EnemyBossHand& hand = registry.enemyBossHand.get(handEntity);
+	Motion& handMotion = registry.motions.get(handEntity);
+	Motion& playerMotion = registry.motions.get(pickAPlayer());
+	vec2 diff = playerMotion.position - handMotion.position;
+	float angle = atan2(diff.y, diff.x);
+	vec2 velocity = vec2(cos(angle) * hand.projectileSpeed, sin(angle) * hand.projectileSpeed);
+	createEnemyProjectile(renderer, handMotion.position, velocity, angle, handEntity);
+}
 
 Entity AISystem::pickAPlayer() {
 	Entity playerOneEntity = registry.players.entities.front();

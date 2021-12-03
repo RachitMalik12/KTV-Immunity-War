@@ -120,6 +120,9 @@ Entity createEnemyBoss(RenderSystem* renderer, vec2 position);
 // Final boss minions
 Entity createEnemyMinions(RenderSystem* renderer, vec2 position);
 
+// Final boss minions
+Entity createEnemyBossHand(RenderSystem* renderer, vec2 position);
+
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);
 

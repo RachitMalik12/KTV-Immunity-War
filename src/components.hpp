@@ -165,8 +165,16 @@ struct EnemyBoss {
 	// Wait 1000ms after level loads
 	float aiUpdateTimer = 1000.f;
 	bool timeToUpdateAi = false;
-	float projectileSpeed = 200.f;
+	float projectileSpeed = 500.f;
 	
+};
+
+struct EnemyBossHand {
+	float aiUpdateTime = 3000.f;
+	// Wait 1000ms after level loads
+	float aiUpdateTimer = 1000.f;
+	bool timeToUpdateAi = false;
+	float projectileSpeed = 200.f;
 };
 
 struct Powerup 
@@ -254,20 +262,6 @@ struct MenuMode {
 	menuButtons currentButton;
 };
 extern MenuMode menuMode;
-
-enum bossLevels {
-	stage1,
-	stage2,
-	stage3
-};
-
-struct BossMode {
-	int finalLevelNum = 6;
-	// which stage in the final boss we are in.
-	bossLevels currentBossLevel;
-};
-extern BossMode bossMode;
-
 
 struct DefaultResolution {
 	int width = 1200;
@@ -476,6 +470,21 @@ struct AtackSpeedPowerUp {
 struct DamagePowerUp {
 	int damageUpFactor = 1; 
 };
+
+enum bossLevels {
+	none,
+	stage1,
+	stage2,
+	stage3
+};
+
+struct BossMode {
+	int finalLevelNum = 6;
+	// which stage in the final boss we are in.
+	bossLevels currentBossLevel;
+	Level level;
+};
+extern BossMode bossMode;
 
 /**
  * The following enumerators represent global identifiers refering to graphic
