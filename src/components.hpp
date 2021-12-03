@@ -176,7 +176,7 @@ struct EnemyBossHand {
 	float aiUpdateTime = 3000.f;
 	// Wait 1000ms after level loads
 	float aiUpdateTimer = 1000.f;
-	bool timeToUpdateAi = false;
+	bool timeToUpdateAi = true;
 	float projectileSpeed = 200.f;
 };
 
@@ -579,7 +579,12 @@ enum class TEXTURE_ASSET_ID {
 	TUTINSTRUCTIONS = SMALLETTER + 1,
 	ARROW = TUTINSTRUCTIONS + 1,
 	FINALBACKGROUND = ARROW + 1,
-	TEXTURE_COUNT = FINALBACKGROUND + 1
+	HAND = FINALBACKGROUND+1,
+	MINION = HAND+1,
+	MINIONCRAZY = MINION+1,
+	BOSSFIREBALL = MINIONCRAZY +1,
+	BOSS = BOSSFIREBALL+1,
+	TEXTURE_COUNT = BOSS + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

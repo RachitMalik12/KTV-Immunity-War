@@ -200,6 +200,8 @@ bool PhysicsSystem::doesRadiusCollide(const Motion& motion, const Motion& other_
 	return false;
 }
 
+//TODO: doesBoxCollide
+
 bool PhysicsSystem::isMeshInBoundingBox(const Entity entity, const Entity other_entity) {
 	Mesh* hitbox = registry.hitboxes.get(entity);
 	Motion& motion = registry.motions.get(entity);
@@ -353,6 +355,10 @@ void PhysicsSystem::bounceEnemies(Entity curEntity, bool hitABlock) {
 		else if (registry.enemyBoss.has(curEntity)) {
 			Motion& enemyBossMotion = registry.motions.get(curEntity);
 			enemyBossMotion.velocity = vec2(0, 0);
+		}
+		else if (registry.enemyBossHand.has(curEntity)) {
+			Motion& enemyBossMotion = registry.motions.get(curEntity);
+			enemyBossMotion.velocity.x *= -1;
 		}
 		else if (registry.enemyBlobs.has(curEntity)) {
 			Motion& enemyMotion = registry.motions.get(curEntity);
@@ -516,14 +522,29 @@ void PhysicsSystem::enemyHitHandling(Entity enemyEntity) {
 				GEOMETRY_BUFFER_ID::SPRITE });
 		registry.enemyHunters.get(enemyEntity).isAnimatingHurt = true;
 	}
-	else if (registry.enemySwarms.has(enemyEntity)) {
-		registry.renderRequests.remove(enemyEntity);
-		registry.renderRequests.insert(
-			enemyEntity,
-			{ TEXTURE_ASSET_ID::ENEMYSWARMHURT,
-				EFFECT_ASSET_ID::ENEMY,
-				GEOMETRY_BUFFER_ID::SPRITE });
-		registry.enemySwarms.get(enemyEntity).isAnimatingHurt = true;
+	else if (registry.enemyBossHand.has(enemyEntity)) {
+		
+	}
+	else {
+		if (registry.enemySwarms.has(enemyEntity)) {
+			registry.renderRequests.remove(enemyEntity);
+			if (bossMode.currentBossLevel == stage1) {
+				registry.renderRequests.insert(
+					enemyEntity,
+					{ TEXTURE_ASSET_ID::MINIONCRAZY,
+						EFFECT_ASSET_ID::ENEMY,
+						GEOMETRY_BUFFER_ID::SPRITE });
+			}
+			else {
+				registry.renderRequests.insert(
+					enemyEntity,
+					{ TEXTURE_ASSET_ID::ENEMYSWARMHURT,
+						EFFECT_ASSET_ID::ENEMY,
+						GEOMETRY_BUFFER_ID::SPRITE });
+			}
+			registry.enemySwarms.get(enemyEntity).isAnimatingHurt = true;
+		}
+		
 	}
 }
 

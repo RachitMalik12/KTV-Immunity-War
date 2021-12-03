@@ -421,31 +421,37 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 	// load level 1
 	if (action == GLFW_PRESS && key == GLFW_KEY_1) {
+		bossMode.currentBossLevel = none;
 		level_number = 1; 
 		setupLevel(level_number);
 	}
 	// load level 2
 	if (action == GLFW_PRESS && key == GLFW_KEY_2) {
+		bossMode.currentBossLevel = none;
 		level_number = 2; 
 		setupLevel(level_number);
 	}
 	// load level 3
 	if (action == GLFW_PRESS && key == GLFW_KEY_3) {
+		bossMode.currentBossLevel = none;
 		level_number = 3;
 		setupLevel(level_number);
 	}
 	// load level 4
 	if (action == GLFW_PRESS && key == GLFW_KEY_4) {
+		bossMode.currentBossLevel = none;
 		level_number = 4;
 		setupLevel(level_number);
 	}
 	// load level 5
 	if (action == GLFW_PRESS && key == GLFW_KEY_5) {
+		bossMode.currentBossLevel = none;
 		level_number = 5;
 		setupLevel(level_number);
 	}
 	// final level
 	if (action == GLFW_PRESS && key == GLFW_KEY_6) {
+		bossMode.currentBossLevel = none;
 		level_number = 6;
 		setupLevel(level_number);
 	}
@@ -1520,7 +1526,7 @@ void WorldSystem::setFinalLevelStages(Level level, bossLevels stage) {
 	auto entityWall = Entity();
 	registry.walls.emplace(entityWall);
 	auto& motionVoid = registry.motions.emplace(entityWall);
-	motionVoid.position = vec2(600*defaultResolution.scaling, 25*defaultResolution.scaling); // find out better way to pass in position? bossmode
+	motionVoid.position = vec2(600*defaultResolution.scaling, 40*defaultResolution.scaling); // find out better way to pass in position? bossmode
 	motionVoid.scale = vec2({ BACKGROUND_BB_WIDTH * defaultResolution.scaling, BOSS_BB_HEIGHT * defaultResolution.scaling });
 
 	if (stage == stage1) {

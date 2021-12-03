@@ -623,9 +623,16 @@ void AISystem::stepEnemySwarm(float elapsed_ms) {
 		Enemy& swarmStatus = registry.enemies.get(swarmEntity);
 		if (!swarmStatus.isDead) {
 			if (swarm.timeToUpdateAi) {
-				swarmSpreadOut(swarmEntity);
+				if (bossMode.currentBossLevel == 2) {
+					swarm.aiUpdateTimer -= 1000;
+					swarm.timeToUpdateAi = false;
+				}
+				else {
+					swarmSpreadOut(swarmEntity);
+					swarm.timeToUpdateAi = false;
+				}
 				swarmFireProjectileAtPlayer(swarmEntity);
-				swarm.timeToUpdateAi = false;
+				
 				swarm.aiUpdateTimer = swarm.aiUpdateTime;
 			}
 			else {
@@ -637,11 +644,20 @@ void AISystem::stepEnemySwarm(float elapsed_ms) {
 
 			if (swarm.isAnimatingHurt && !swarmStatus.isInvin) {
 				registry.renderRequests.remove(swarmEntity);
-				registry.renderRequests.insert(
-					swarmEntity,
-					{ TEXTURE_ASSET_ID::ENEMYSWARM,
-						EFFECT_ASSET_ID::ENEMY,
-						GEOMETRY_BUFFER_ID::SPRITE });
+				if (bossMode.currentBossLevel == stage1) {
+					registry.renderRequests.insert(
+						swarmEntity,
+						{ TEXTURE_ASSET_ID::MINION,
+							EFFECT_ASSET_ID::ENEMY,
+							GEOMETRY_BUFFER_ID::SPRITE });
+				}
+				else {
+					registry.renderRequests.insert(
+						swarmEntity,
+						{ TEXTURE_ASSET_ID::ENEMYSWARM,
+							EFFECT_ASSET_ID::ENEMY,
+							GEOMETRY_BUFFER_ID::SPRITE });
+				}
 				swarm.isAnimatingHurt = false;
 			}
 		}
@@ -649,22 +665,13 @@ void AISystem::stepEnemySwarm(float elapsed_ms) {
 }
 
 void AISystem::stepEnemyBossHand(float elapsed_ms) {
-	if (registry.enemyBossHand.entities.size() >0) {
-		Entity bossEntity = registry.enemyBossHand.entities[0];
+	for (Entity bossEntity : registry.enemyBossHand.entities) {
+		/*Entity bossEntity = registry.enemyBossHand.entities[0];*/
 		EnemyBossHand& boss = registry.enemyBossHand.get(bossEntity);
 		Enemy& bossStatus = registry.enemies.get(bossEntity);
 		if (!bossStatus.isDead) {
-			if (boss.timeToUpdateAi) {
 				bossHandFireAtPlayer(bossEntity);
-				boss.timeToUpdateAi = false;
-				boss.aiUpdateTimer = boss.aiUpdateTime;
-			}
-			else {
-				boss.aiUpdateTimer -= elapsed_ms;
-				if (boss.aiUpdateTimer < 0) {
-					boss.timeToUpdateAi = true;
-				}
-			}
+			
 		}
 	}
 }
@@ -728,7 +735,12 @@ void AISystem::swarmFireProjectileAtPlayer(Entity swarmEntity) {
 	vec2 diff = playerMotion.position - swarmMotion.position;
 	float angle = atan2(diff.y, diff.x);
 	vec2 velocity = vec2(cos(angle) * swarm.projectileSpeed, sin(angle) * swarm.projectileSpeed);
-	createEnemyProjectile(renderer, swarmMotion.position, velocity, angle, swarmEntity);
+	if (bossMode.currentBossLevel == 2) {
+		createHandProjectile(renderer, swarmMotion.position, velocity, angle, swarmEntity);
+	}
+	else {
+		createEnemyProjectile(renderer, swarmMotion.position, velocity, angle, swarmEntity);
+	}
 }
 
 

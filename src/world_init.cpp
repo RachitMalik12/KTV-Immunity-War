@@ -579,6 +579,12 @@ Entity createEnemyBoss(RenderSystem* renderer, vec2 position) {
 	enemyCom.speed = 200.f * defaultResolution.scaling;
 	motion.velocity = vec2(0.f, 0.f);
 
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::BOSS,
+			EFFECT_ASSET_ID::ENEMY,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
 	return entity;
 }
 
@@ -594,7 +600,7 @@ Entity createEnemyMinions(RenderSystem* renderer, vec2 position) {
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
 	motion.position = position;
-	motion.scale = vec2({ ENEMYSWARM_BB_WIDTH * defaultResolution.scaling, ENEMYSWARM_BB_HEIGHT * defaultResolution.scaling });
+	motion.scale = vec2({ ENEMYMINION_BB_WH * defaultResolution.scaling, ENEMYMINION_BB_WH * defaultResolution.scaling });
 	registry.enemies.emplace(entity);
 	// Set enemy attributes
 	EnemySwarm& swarm = registry.enemySwarms.emplace(entity);
@@ -622,13 +628,14 @@ Entity createEnemyBossHand(RenderSystem* renderer, vec2 position) {
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
 	motion.position = position;
-	motion.scale = vec2({ ENEMYSWARM_BB_WIDTH * defaultResolution.scaling, ENEMYSWARM_BB_HEIGHT * defaultResolution.scaling });
+	motion.scale = vec2({ HAND_BB_WIDTH * defaultResolution.scaling, HAND_BB_HEIGHT * defaultResolution.scaling });
 	registry.enemies.emplace(entity);
 	// Set enemy attributes
-	EnemyBossHand& hand = registry.enemyBossHand.emplace(entity);
-	hand.projectileSpeed = hand.projectileSpeed * defaultResolution.scaling;
+	EnemySwarm& hand = registry.enemySwarms.emplace(entity);
+	EnemyBossHand& boss = registry.enemyBossHand.emplace(entity);
+	hand.projectileSpeed = 400.f* defaultResolution.scaling;
 	auto& enemyCom = registry.enemies.get(entity);
-	enemyCom.damage = 5;
+	enemyCom.damage = 2;
 	enemyCom.hp = 10;
 	enemyCom.max_hp = enemyCom.hp;
 	enemyCom.loot = 10;
@@ -637,7 +644,7 @@ Entity createEnemyBossHand(RenderSystem* renderer, vec2 position) {
 
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::ENEMY,
+		{ TEXTURE_ASSET_ID::HAND,
 			EFFECT_ASSET_ID::ENEMY,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
@@ -723,7 +730,7 @@ Entity createHandProjectile(RenderSystem* renderer, vec2 pos, vec2 velocity, flo
 	projectile.belongToEnemy = enemyEntity;
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::FIREBALL,
+		{ TEXTURE_ASSET_ID::BOSSFIREBALL,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
