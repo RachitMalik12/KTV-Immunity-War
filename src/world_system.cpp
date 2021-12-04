@@ -212,9 +212,6 @@ void WorldSystem::restart_game() {
 	tutorialEnemyFinishTransition = false; 
 	tutorialEnemyTransition = true; 
 	shopHintCreated = false; 
-
-	// Reset bossmode
-	bossMode.currentBossLevel = NONE;
 	
 	// set help mode to false again
 	helpMode.inHelpMode = false;

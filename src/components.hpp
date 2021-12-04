@@ -502,7 +502,7 @@ enum BossPhase {
 struct BossMode {
 	int finalLevelNum = 8;
 	// which stage in the final boss we are in.
-	BossPhase currentBossLevel;
+	BossPhase currentBossLevel = NONE;
 	Level level;
 };
 extern BossMode bossMode;
