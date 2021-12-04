@@ -177,10 +177,10 @@ struct EnemySwarm {
 };
 
 struct EnemyBoss {
-	float aiUpdateInterval = 1000.f;
+	float aiUpdateInterval = 1500.f;
 	float aiUpdateTimer = 0;
 	bool timeToUpdateAi = true;
-	float projectileSpeed = 150.f;
+	float projectileSpeed = 100.f;
 };
 
 struct EnemyBossHand {
