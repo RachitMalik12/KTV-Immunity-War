@@ -316,7 +316,7 @@
     },
     // final level
     {
-      "enemies": [ 5 ],
+      "enemies": [ 6 ],
       "blocks": 11,
       "block_positions": [
         {
@@ -407,7 +407,7 @@
             "y": 300
           },
           {
-            "x": 300,
+            "x": 250,
             "y": 300
           }
         ]

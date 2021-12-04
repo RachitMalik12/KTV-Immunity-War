@@ -201,6 +201,21 @@ bool PhysicsSystem::doesRadiusCollide(const Motion& motion, const Motion& other_
 }
 
 //TODO: doesBoxCollide
+bool PhysicsSystem::doesBoxCollide(const Motion& motion, const Motion& other_motion) {
+	vec2 pos1 = motion.position;
+	vec2 pos2 = other_motion.position;
+	bool right_intersect = (pos1.x - motion.scale.x / 2 < pos2.x + other_motion.scale.x) && (pos2.x + other_motion.scale.x < pos1.x + motion.scale.x / 2);
+	bool left_intersect = (pos1.x - motion.scale.x / 2 < pos2.x - other_motion.scale.x) && (pos2.x - other_motion.scale.x < pos1.x + motion.scale.x / 2);
+	bool bot_intersect = (pos1.y - motion.scale.y / 2 < pos2.y + other_motion.scale.y) && (pos2.y + other_motion.scale.y < pos1.y + motion.scale.y / 2);
+	bool top_intersect = (pos1.y - motion.scale.y / 2 < pos2.y - other_motion.scale.y) && (pos2.y - other_motion.scale.y < pos1.y + motion.scale.y / 2);
+
+	if (right_intersect || left_intersect) {
+		if (bot_intersect || top_intersect) {
+			return true;
+		} 
+	} 
+	return false;
+}
 
 bool PhysicsSystem::isMeshInBoundingBox(const Entity entity, const Entity other_entity) {
 	Mesh* hitbox = registry.hitboxes.get(entity);
@@ -252,7 +267,11 @@ bool PhysicsSystem::collides(const Entity entity, const Entity other_entity)
 	}
 	const Motion& motion = registry.motions.get(entity);
 	const Motion& other_motion = registry.motions.get(other_entity);
-	return doesRadiusCollide(motion, other_motion);
+
+	if (bossMode.currentBossLevel == 3) {
+		return doesBoxCollide(motion, other_motion);
+	}
+	else { return doesRadiusCollide(motion, other_motion); }
 }
 
 bool PhysicsSystem::blockCollides(vec2 nextPosition, const Motion& block, const Motion& motion) {

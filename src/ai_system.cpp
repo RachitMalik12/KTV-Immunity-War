@@ -624,7 +624,7 @@ void AISystem::stepEnemySwarm(float elapsed_ms) {
 		if (!swarmStatus.isDead) {
 			if (swarm.timeToUpdateAi) {
 				if (bossMode.currentBossLevel == 2) {
-					swarm.aiUpdateTimer -= 1000;
+					swarm.aiUpdateTimer -= 5000;
 					swarm.timeToUpdateAi = false;
 				}
 				else {

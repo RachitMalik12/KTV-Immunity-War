@@ -530,7 +530,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 void WorldSystem::toggleInGameMenu() {
 	// if menu has no been created or menu is back from help
-		// 
 	if (menuMode.menuType == 0 && !menuMode.inHelpDrawn) {
 		menuMode.menuType = 2;
 		menuMode.inGameMode = true;
@@ -1127,24 +1126,37 @@ void WorldSystem::stopPlayerAtMouseDestination() {
 	}
 }
 
+void WorldSystem::advanceToShopOrStage() {
+	vec2 textpos = vec2(50 * defaultResolution.scaling, defaultResolution.height - 50 * defaultResolution.scaling);
+	vec2 textposCenter = vec2(defaultResolution.width / 4, defaultResolution.height / 4);
+	if (level_number == 0 && !shopHintCreated) {
+		createShopHint();
+		shopHintCreated = true;
+	}
+
+	if (bossMode.currentBossLevel == stage1) {
+		while (registry.letters.entities.size() > 0)
+			registry.remove_all_components_of(registry.letters.entities.back());
+		createSentence(textpos, "the hand");
+		setFinalLevelStages(bossMode.level, stage2);
+	}
+	else if (bossMode.currentBossLevel == stage2) {
+		while (registry.letters.entities.size() > 0)
+			registry.remove_all_components_of(registry.letters.entities.back());
+		createSentence(textpos, "the virus");
+		setFinalLevelStages(bossMode.level, stage3);
+	}
+	else {
+		
+		transitionToShop();
+		isLevelOver = true;
+	}
+}
+
 void WorldSystem::levelCompletionCheck(float elapsed_ms_since_last_update) {
 	// Check level completion 
 	if (registry.enemies.size() == 0) {
-		if (level_number == 0 && !shopHintCreated) {
-			createShopHint(); 
-			shopHintCreated = true;
-		}
-	
-		if (bossMode.currentBossLevel == stage1) {
-			setFinalLevelStages(bossMode.level, stage2);
-		}
-		else if (bossMode.currentBossLevel == stage2) {
-			setFinalLevelStages(bossMode.level, stage3);
-		}
-		else {
-			transitionToShop();
-			isLevelOver = true;
-		}
+		advanceToShopOrStage();
 	}
 	if (isLevelOver && isTransitionOver) {
 		int nextLevel = level_number + 1;
@@ -1345,14 +1357,14 @@ void WorldSystem::setTransitionFlag(Entity player) {
 }
 
 void WorldSystem::drawTutorialTextInShop() {
-	std::string header = "CHOOSE WISELY"; 
+	std::string header = "choose wisely"; 
 	int headerLen = header.length(); 
 	float xPosOffset = scaleCoordinate(-(headerLen / 2) * CAPSLETTER_BB_WIDTH); 
-	float yPosOffset = scaleCoordinate(CAPSLETTER_BB_HEIGHT); 
+	float yPosOffset = scaleCoordinate(CAPSLETTER_BB_HEIGHT)+100*defaultResolution.scaling; 
 	vec2 position = vec2(defaultResolution.width / 2  + xPosOffset , defaultResolution.height + yPosOffset); 
 	createSentence(position, header);
 
-	header = "EXIT DOOR TO START LEVEL"; 
+	header = "exit door to start"; 
 	headerLen = header.length();
 	xPosOffset = scaleCoordinate(0.5*CAPSLETTER_BB_WIDTH - ((headerLen / 2) * CAPSLETTER_BB_WIDTH));
 	yPosOffset = defaultResolution.defaultHeight - scaleCoordinate(CAPSLETTER_BB_HEIGHT);
@@ -1453,6 +1465,8 @@ void WorldSystem::setupLevel(int levelNum) {
 	if (levelNum == bossMode.finalLevelNum) {
 		// final boss level
 		bossMode.level = level;
+		vec2 textpos = vec2(50 * defaultResolution.scaling, defaultResolution.height - 50 * defaultResolution.scaling);
+		createSentence(textpos, "the invisible");
 		bossMode.currentBossLevel = stage1;
 		setFinalLevelStages(level, bossMode.currentBossLevel);
 	}
