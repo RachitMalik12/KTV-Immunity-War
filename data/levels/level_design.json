@@ -24,7 +24,7 @@
           }
         ]
       ],
-      "enemy_types": [7],
+      "enemy_types": [ 7 ],
       "level_type": 0
 
     },
@@ -318,7 +318,7 @@
       "enemies": [ 9 ],
       "blocks": 0,
       "block_positions": [
-        
+
       ],
       "player_position": {
         "x": 600,
@@ -365,6 +365,55 @@
           {
             "x": 900,
             "y": 500
+          }
+        ]
+      ],
+      "enemy_types": [ 8 ],
+      "level_type": 0
+    },
+    {
+      "enemies": [ 7 ],
+      "blocks": 0,
+      "block_positions": [
+
+      ],
+      "player_position": {
+        "x": 600,
+        "y": 400
+      },
+      "player2_position": {
+        "x": 600,
+        "y": 200
+      },
+      "enemy_positions": [
+        [
+          {
+            "x": 500,
+            "y": 100
+          },
+          {
+            "x": 500,
+            "y": 900
+          },
+          {
+            "x": 200,
+            "y": 100
+          },
+          {
+            "x": 360,
+            "y": 100
+          },
+          {
+            "x": 700,
+            "y": 100
+          },
+          {
+            "x": 400,
+            "y": 800
+          },
+          {
+            "x": 700,
+            "y": 200
           }
         ]
       ],
@@ -469,7 +518,7 @@
           }
         ]
       ],
-      "enemy_types": [ 10,9,8 ],
+      "enemy_types": [ 11, 10, 9 ],
       "level_type": 0
     }
   ] 

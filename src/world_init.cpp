@@ -243,7 +243,6 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, int enemyType) {
 		case 8:
 			curEnemy = createEnemyAStar(renderer, position);
 			break;
-			break;
 		case 9:  
 			curEnemy = createEnemyMinions(renderer, position); 
 			break;

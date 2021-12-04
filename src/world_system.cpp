@@ -530,9 +530,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			storyClicker();
 		}
 
-		if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE && !helpMode.isOnTopInGameMenu) {
-			toggleInGameMenu();
-		}
+		
+	}
+	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE && !helpMode.isOnTopInGameMenu) {
+		toggleInGameMenu();
 	}
 
 	if (action == GLFW_RELEASE && (key == GLFW_KEY_F || key == GLFW_KEY_H || key == GLFW_KEY_G || key == GLFW_KEY_T)) {
@@ -1536,14 +1537,14 @@ void WorldSystem::setFinalLevelStages(Level level, bossLevels stage) {
 	motionVoid.scale = vec2({ BACKGROUND_BB_WIDTH * defaultResolution.scaling, BOSS_BB_HEIGHT * defaultResolution.scaling });
 
 	if (stage == stage1) {
-		createEnemyFilteredByType(level, 8);
+		createEnemyFilteredByType(level, 9);
 	}
 	else if (stage == stage2) {
-		createEnemyFilteredByType(level, 9);
+		createEnemyFilteredByType(level, 10);
 		bossMode.currentBossLevel = stage2;
 	}
 	else if (stage == stage3) {
-		createEnemyFilteredByType(level, 10);
+		createEnemyFilteredByType(level, 11);
 		bossMode.currentBossLevel = stage3;
 	}
 }
