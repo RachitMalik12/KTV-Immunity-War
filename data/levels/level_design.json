@@ -416,7 +416,6 @@
       "enemy_types": [ 8 ],
       "level_type": 0
     },
-    // final level
     {
       "enemies": [ 7 ],
       "blocks": 11,
