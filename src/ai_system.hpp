@@ -51,6 +51,10 @@ private:
 	vec2 calculateHCost(const Motion& player, vec2 currNode);
 	vec2 calculateGCost(Entity& enemy, int dir);
 	vec2 nextNode(vec2 currNode, Entity& player, Entity& enemy, float width, float height);
+	void stepMovement(Entity& enemyAStar);
+	vec2 findFinalPosition(vec2 currNode, Entity& enemy, float width, float height, int currMinPosition);
+	void pathCalculationInit(Entity& enemyAStar, float width, float height);
+	int findMin(vec2 upSumCost, vec2 rightSumCost, vec2 downSumCost, vec2 leftSumCost);
 	Entity pickAPlayer();
 	void swarmFireProjectileAtPlayer(Entity swarmEntity);
 	void swarmSpreadOut(Entity swarmEntity);
