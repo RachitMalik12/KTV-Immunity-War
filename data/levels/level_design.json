@@ -1,6 +1,34 @@
 {
   "levels": [
     {
+      "enemies": [ 2 ],
+      "blocks": 0,
+      "block_positions": [],
+      "player_position": {
+        "x": 200,
+        "y": 700
+      },
+      "player2_position": {
+        "x": 1000,
+        "y": 700
+      },
+      "enemy_positions": [
+        [
+          {
+            "x": 300,
+            "y": 700
+          },
+          {
+            "x": 900,
+            "y": 700
+          }
+        ]
+      ],
+      "enemy_types": [7],
+      "level_type": 0
+
+    },
+    {
       "enemies": [ 2, 2, 4 ],
       "blocks": 0,
       "block_positions": [],
