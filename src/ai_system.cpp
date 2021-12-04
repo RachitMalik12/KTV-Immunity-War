@@ -735,7 +735,6 @@ Entity AISystem::pickAPlayer() {
 
 
 vec2 AISystem::nextNode(vec2 currNode, Entity& player, Entity& enemy, float width, float height) {
-	std::cout << "in next";
 	Motion& motionAStar = registry.motions.get(enemy);
 	Motion& motionPlayer = registry.motions.get(player);
 	// Calculate H Cost value (distance between current node and the end position) and G Cost (distance between current node and the NEXT position)
@@ -818,7 +817,7 @@ vec2 AISystem::nextNode(vec2 currNode, Entity& player, Entity& enemy, float widt
 	}
 	// push the next node the queue and return the node
 	std::pair<int, int> currPosition = { finX , finY };
-	registry.enemyAStars.get(enemy).traversalStack.push(currPosition);
+	registry.enemyAStars.get(enemy).traversalQueue.push(currPosition);
 	return { finX, finY };
 }
 
@@ -862,8 +861,6 @@ void AISystem::handleAStarPathCalculation(Entity& player, Entity& enemy, float w
 	vec2 currNode = { motionAStar.position.x, motionAStar.position.y };
 	while (abs(currNode.x - finNode.x) > registry.enemyAStars.get(enemy).distanceCloseToPlayer 
 		&& abs(currNode.y - finNode.y) > registry.enemyAStars.get(enemy).distanceCloseToPlayer) {
-		std::cout << "in while \n";
-		std::cout << abs(currNode.x - finNode.x) << ", " << abs(currNode.y - finNode.y) << "\n";
 		currNode = nextNode(currNode, player, enemy, width, height);
 	}
 }
@@ -877,7 +874,6 @@ void AISystem::stepEnemyAStar(float elapsed_ms, float width, float height) {
 			registry.enemyAStars.get(entityAStar).next_AStar_behaviour_calculation -= elapsed_ms;
 			registry.enemyAStars.get(entityAStar).next_bacteria_movement -= elapsed_ms;
 			if (registry.enemyAStars.get(entityAStar).next_AStar_behaviour_calculation < 0.f) {
-				std::cout << "calculating \n";
 				registry.enemyAStars.get(entityAStar).finishedPathCalculation = false;
 				registry.enemyAStars.get(entityAStar).next_AStar_behaviour_calculation = registry.enemyAStars.get(entityAStar).AStarBehaviourUpdateTime;
 				Entity player = pickAPlayer();
@@ -887,14 +883,10 @@ void AISystem::stepEnemyAStar(float elapsed_ms, float width, float height) {
 
 			if (registry.enemyAStars.get(entityAStar).next_bacteria_movement < 0.f) {
 				registry.enemyAStars.get(entityAStar).next_bacteria_movement = registry.enemyAStars.get(entityAStar).movementUpdateTime;
-				if (!registry.enemyAStars.get(entityAStar).traversalStack.empty()) {
+				if (!registry.enemyAStars.get(entityAStar).traversalQueue.empty()) {
 					std::pair<int, int> currPosition = { -1 , -1 };
-					currPosition = registry.enemyAStars.get(entityAStar).traversalStack.front();
-					registry.enemyAStars.get(entityAStar).traversalStack.pop();
-					std::cout << "moving to: \n";
-					std::cout << "    " << currPosition.first << "\n";
-					std::cout << "    " << currPosition.second << "\n";
-
+					currPosition = registry.enemyAStars.get(entityAStar).traversalQueue.front();
+					registry.enemyAStars.get(entityAStar).traversalQueue.pop();
 					moveToSpot(AStarMotion.position.x, AStarMotion.position.y, currPosition.first, currPosition.second, entityAStar);
 				}
 			}

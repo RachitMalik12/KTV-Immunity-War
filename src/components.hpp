@@ -157,7 +157,7 @@ struct EnemyAStar
 	float next_bacteria_movement;
 	float stepSizes = 200.f;
 	float distanceCloseToPlayer = 100.f;
-	std::queue<std::pair<int, int>> traversalStack;
+	std::queue<std::pair<int, int>> traversalQueue;
 	bool finishedPathCalculation = false;
 	bool isXCalculationFinished = false;
 	bool isYCalculationFinished = false;
