@@ -1,6 +1,5 @@
 // internal
 #include "ai_system.hpp"
-#include "iostream";
 
 void AISystem::step(float elapsed_ms, float width, float height) {
 	stepEnemyHunter(elapsed_ms);
