@@ -438,7 +438,6 @@ void PhysicsSystem::moveEntities(float elapsed_ms) {
 			}
 			bounceEnemies(entity, hitABlock);
 			bounceEnemyRun(entity);
-			/*rotateSword(entity, elapsed_ms);*/
 		}
 		
 		

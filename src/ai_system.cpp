@@ -664,18 +664,6 @@ void AISystem::stepEnemySwarm(float elapsed_ms) {
 	}
 }
 
-void AISystem::stepEnemyBossHand(float elapsed_ms) {
-	for (Entity bossEntity : registry.enemyBossHand.entities) {
-		/*Entity bossEntity = registry.enemyBossHand.entities[0];*/
-		EnemyBossHand& boss = registry.enemyBossHand.get(bossEntity);
-		Enemy& bossStatus = registry.enemies.get(bossEntity);
-		if (!bossStatus.isDead) {
-				bossHandFireAtPlayer(bossEntity);
-			
-		}
-	}
-}
-
 void AISystem::swarmSpreadOut(Entity swarmEntity) {
 	if (registry.enemySwarms.entities.size() == 1) {
 		setEnemyWonderingRandomly(swarmEntity);
@@ -741,17 +729,6 @@ void AISystem::swarmFireProjectileAtPlayer(Entity swarmEntity) {
 	else {
 		createEnemyProjectile(renderer, swarmMotion.position, velocity, angle, swarmEntity);
 	}
-}
-
-
-void AISystem::bossHandFireAtPlayer(Entity handEntity) {
-	EnemyBossHand& hand = registry.enemyBossHand.get(handEntity);
-	Motion& handMotion = registry.motions.get(handEntity);
-	Motion& playerMotion = registry.motions.get(pickAPlayer());
-	vec2 diff = playerMotion.position - handMotion.position;
-	float angle = atan2(diff.y, diff.x);
-	vec2 velocity = vec2(cos(angle) * hand.projectileSpeed, sin(angle) * hand.projectileSpeed);
-	createEnemyProjectile(renderer, handMotion.position, velocity, angle, handEntity);
 }
 
 Entity AISystem::pickAPlayer() {
