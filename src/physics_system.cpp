@@ -528,29 +528,23 @@ void PhysicsSystem::enemyHitHandling(Entity enemyEntity) {
 				GEOMETRY_BUFFER_ID::SPRITE });
 		registry.enemyHunters.get(enemyEntity).isAnimatingHurt = true;
 	}
-	else if (registry.enemyBossHand.has(enemyEntity)) {
-		
-	}
-	else {
-		if (registry.enemySwarms.has(enemyEntity)) {
-			registry.renderRequests.remove(enemyEntity);
-			if (bossMode.currentBossLevel == STAGE1) {
-				registry.renderRequests.insert(
-					enemyEntity,
-					{ TEXTURE_ASSET_ID::MINIONCRAZY,
-						EFFECT_ASSET_ID::ENEMY,
-						GEOMETRY_BUFFER_ID::SPRITE });
-			}
-			else {
-				registry.renderRequests.insert(
-					enemyEntity,
-					{ TEXTURE_ASSET_ID::ENEMYSWARMHURT,
-						EFFECT_ASSET_ID::ENEMY,
-						GEOMETRY_BUFFER_ID::SPRITE });
-			}
-			registry.enemySwarms.get(enemyEntity).isAnimatingHurt = true;
+	else if (registry.enemySwarms.has(enemyEntity) && !registry.enemyBossHand.has(enemyEntity)) {
+		registry.renderRequests.remove(enemyEntity);
+		if (bossMode.currentBossLevel == STAGE1) {
+			registry.renderRequests.insert(
+				enemyEntity,
+				{ TEXTURE_ASSET_ID::MINIONCRAZY,
+					EFFECT_ASSET_ID::ENEMY,
+					GEOMETRY_BUFFER_ID::SPRITE });
 		}
-		
+		else {
+			registry.renderRequests.insert(
+				enemyEntity,
+				{ TEXTURE_ASSET_ID::ENEMYSWARMHURT,
+					EFFECT_ASSET_ID::ENEMY,
+					GEOMETRY_BUFFER_ID::SPRITE });
+		}
+		registry.enemySwarms.get(enemyEntity).isAnimatingHurt = true;
 	}
 }
 

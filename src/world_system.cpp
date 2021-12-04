@@ -426,49 +426,41 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_0) {
-			bossMode.currentBossLevel = NONE;
 			level_number = 0;
 			setupLevel(level_number);
 		}
 		// load level 1
 		if (action == GLFW_PRESS && key == GLFW_KEY_1) {
-			bossMode.currentBossLevel = NONE;
 			level_number = 1;
 			setupLevel(level_number);
 		}
 		// load level 2
 		if (action == GLFW_PRESS && key == GLFW_KEY_2) {
-			bossMode.currentBossLevel = NONE;
 			level_number = 2;
 			setupLevel(level_number);
 		}
 		// load level 3
 		if (action == GLFW_PRESS && key == GLFW_KEY_3) {
-			bossMode.currentBossLevel = NONE;
 			level_number = 3;
 			setupLevel(level_number);
 		}
 		// load level 4
 		if (action == GLFW_PRESS && key == GLFW_KEY_4) {
-			bossMode.currentBossLevel = NONE;
 			level_number = 4;
 			setupLevel(level_number);
 		}
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_5) {
-			bossMode.currentBossLevel = NONE;
 			level_number = 5;
 			setupLevel(level_number);
 		}
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_6) {
-			bossMode.currentBossLevel = NONE;
 			level_number = 6;
 			setupLevel(level_number);
 		}
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_8) {
-			bossMode.currentBossLevel = NONE;
 			level_number = 8;
 			setupLevel(level_number);
 		}
@@ -1454,6 +1446,7 @@ void WorldSystem::setupLevel(int levelNum) {
 	auto enemies = level.enemies;
 	auto enemy_types = level.enemy_types;
 	auto enemyPositions = level.enemyPositions;
+	bossMode.currentBossLevel = NONE;
 	if (levelNum == bossMode.finalLevelNum) {
 		// final boss level
 		bossMode.level = level;
