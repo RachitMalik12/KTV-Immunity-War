@@ -60,7 +60,7 @@ void PhysicsSystem::handle_collision() {
 			}
 		}
 
-		if (registry.players.has(entity) ) {
+		if (registry.players.has(entity) && !registry.players.get(entity).isDead) {
 			// Check Player - Enemy collisions 
 			bool enemyConditionCheck = registry.enemies.has(entity_other) && !registry.enemies.get(entity_other).isDead
 				&& !registry.enemiesTutorial.has(entity_other); 
@@ -256,7 +256,7 @@ bool PhysicsSystem::collides(const Entity entity, const Entity other_entity)
 	const Motion& motion = registry.motions.get(entity);
 	const Motion& other_motion = registry.motions.get(other_entity);
 
-	if (bossMode.currentBossLevel == 3) {
+	if (bossMode.currentBossLevel == STAGE3) {
 		return doesBoxCollide(motion, other_motion);
 	}
 	else { return doesRadiusCollide(motion, other_motion); }

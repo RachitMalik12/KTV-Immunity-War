@@ -79,7 +79,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		playerEffects(program, entity);
 		gl_has_errors();
 	}
-	else if (render_request.used_effect == EFFECT_ASSET_ID::ENEMY)
+	else if (render_request.used_effect == EFFECT_ASSET_ID::ENEMY || render_request.used_effect == EFFECT_ASSET_ID::BOSS)
 	{
 		textureEffectSetup(program, entity);
 		gl_has_errors();

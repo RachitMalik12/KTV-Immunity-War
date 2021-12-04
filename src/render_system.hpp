@@ -111,7 +111,8 @@ class RenderSystem {
 		shader_path("enemy"),
 		shader_path("number"),
 		shader_path("powerup"),
-		shader_path("letter")
+		shader_path("letter"),
+		shader_path("boss")
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;

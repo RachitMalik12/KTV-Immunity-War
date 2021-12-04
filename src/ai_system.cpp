@@ -8,6 +8,7 @@ void AISystem::step(float elapsed_ms, float width, float height) {
 	stepEnemySwarm(elapsed_ms);
 	stepEnemyGerm(elapsed_ms);
 	stepEnemyAStar(elapsed_ms, width, height);
+	stepEnemyBoss(elapsed_ms);
 }
 
 void AISystem::stepEnemyHunter(float elapsed_ms) {
@@ -914,6 +915,35 @@ void AISystem::stepEnemyAStar(float elapsed_ms, float width, float height) {
 
 			if (aStarEnemy.next_bacteria_movement < 0.f) {
 				stepMovement(entityAStar);
+			}
+		}
+	}
+}
+
+void AISystem::bossFireProjectileAtPlayer(Entity entity) {
+	EnemyBoss& boss = registry.enemyBoss.get(entity);
+	Motion& bossMotion = registry.motions.get(entity);
+	Motion& playerMotion = registry.motions.get(pickAPlayer());
+	vec2 diff = playerMotion.position - bossMotion.position;
+	float angle = atan2(diff.y, diff.x);
+	vec2 velocity = vec2(cos(angle) * boss.projectileSpeed, sin(angle) * boss.projectileSpeed);
+	createHandProjectile(renderer, vec2(bossMotion.position.x, BOSS_BB_HEIGHT * defaultResolution.scaling), velocity, angle, entity);
+}
+
+
+void AISystem::stepEnemyBoss(float elapsed_ms) {
+	if (bossMode.currentBossLevel == STAGE3 && registry.enemyBoss.entities.size() > 0) {
+		Entity bossEntity = registry.enemyBoss.entities.front();
+		EnemyBoss& boss = registry.enemyBoss.get(bossEntity);
+		if (boss.timeToUpdateAi) {
+			bossFireProjectileAtPlayer(bossEntity);
+			boss.timeToUpdateAi = false;
+			boss.aiUpdateTimer = 0;
+		}
+		else {
+			boss.aiUpdateTimer += elapsed_ms;
+			if (boss.aiUpdateTimer > boss.aiUpdateInterval) {
+				boss.timeToUpdateAi = true;
 			}
 		}
 	}

@@ -177,20 +177,14 @@ struct EnemySwarm {
 };
 
 struct EnemyBoss {
-	float aiUpdateTime = 3000.f;
-	// Wait 1000ms after level loads
-	float aiUpdateTimer = 1000.f;
-	bool timeToUpdateAi = false;
-	float projectileSpeed = 500.f;
-	
+	float aiUpdateInterval = 1000.f;
+	float aiUpdateTimer = 0;
+	bool timeToUpdateAi = true;
+	float projectileSpeed = 150.f;
 };
 
 struct EnemyBossHand {
-	float aiUpdateTime = 3000.f;
-	// Wait 1000ms after level loads
-	float aiUpdateTimer = 1000.f;
-	bool timeToUpdateAi = true;
-	float projectileSpeed = 200.f;
+
 };
 
 struct Powerup 
@@ -606,7 +600,8 @@ enum class EFFECT_ASSET_ID {
 	NUMBER = ENEMY + 1,
 	POWERUP = NUMBER + 1,
 	LETTER = POWERUP + 1, 
-	EFFECT_COUNT = LETTER + 1
+	BOSS = LETTER + 1,
+	EFFECT_COUNT = BOSS + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
