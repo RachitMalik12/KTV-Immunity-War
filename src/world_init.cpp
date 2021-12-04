@@ -597,19 +597,16 @@ Entity createEnemyBoss(RenderSystem* renderer, vec2 position) {
 
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
-	motion.position = vec2(position.x + 25 * defaultResolution.scaling, position.y);
-	//======
+	motion.position = position;
 	motion.scale = vec2({ BOSS_BB_WIDTH * defaultResolution.scaling, BOSS_BB_HEIGHT * defaultResolution.scaling });
-	registry.enemies.emplace(entity);
-	// Set enemy attributes
+	auto& enemyCom = registry.enemies.emplace(entity);
 	registry.enemyBoss.emplace(entity);
 	// Set enemy attributes
-	auto& enemyCom = registry.enemies.get(entity);
 	enemyCom.damage = 1;
 	enemyCom.hp = 10;
 	enemyCom.max_hp = enemyCom.hp;
 	enemyCom.loot = 1;
-	enemyCom.speed = 200.f * defaultResolution.scaling;
+	enemyCom.speed = 0.f;
 	motion.velocity = vec2(0.f, 0.f);
 
 	registry.renderRequests.insert(
