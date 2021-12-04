@@ -418,7 +418,7 @@
     },
     // final level
     {
-      "enemies": [ 6 ],
+      "enemies": [ 7 ],
       "blocks": 11,
       "block_positions": [
         {
