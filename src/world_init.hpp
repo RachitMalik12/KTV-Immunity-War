@@ -16,7 +16,7 @@ const float BLOCK_BB_WIDTH = 0.09f * 871.f;
 const float BLOCK_BB_HEIGHT = 0.09f * 1549.f;
 const float WATERBALL_BB_WIDTH = 0.04f * 1954.f;
 const float WATERBALL_BB_HEIGHT = 0.04f * 1602.f;
-const float FIREBALL_BB_WIDTH = 0.15f * 512.f;
+const float FIREBALL_BB_WIDTH = 0.15f * 328.f;
 const float FIREBALL_BB_HEIGHT = 0.15f * 328.f;
 const float ENEMYBLOB_BB_HEIGHT = 0.3f * 250.f;
 const float ENEMYBLOB_BB_WIDTH = 0.3f * 250.f;
@@ -32,6 +32,7 @@ const float ENEMYASTAR_BB_HEIGHT = 0.11f * 550.f;
 const float ENEMYASTAR_BB_WIDTH = 0.11f * 700.f;
 const float ENEMYCHASE_BB_HEIGHT = 0.05f * 1024.f;
 const float ENEMYCHASE_BB_WIDTH = 0.05f * 1258.f;
+const float ENEMYMINION_BB_WH = 0.1f*820.f;
 const float HELP_BB_WIDTH = 1000.f;
 const float HELP_BB_HEIGHT = 641.f;
 const float STORY_BB_WIDTH = 0.5*2388.f;
@@ -66,9 +67,15 @@ const float TUTORIAL_INSTRUCTIONS_WIDTH = (5.f / 8.f) * 1600.f;
 const float TUTORIAL_INSTRUCTIONS_HEIGHT = (0.5f) * 800.f; 
 const float ARROW_WIDTH = (0.05088195386) * 1474.f;
 const float ARROW_HEIGHT = (0.05572065378f) * 1346.f;
+const float BOSS_BB_WIDTH = 492.f;
+const float BOSS_BB_HEIGHT = 161.f;
+const float HAND_BB_WIDTH = 269.f;
+const float HAND_BB_HEIGHT = 189.f;
+
 
 // background
 Entity createBackground(RenderSystem* renderer, vec2 pos);
+Entity createFinalBackground(RenderSystem* renderer, vec2 position);
 
 // menu dimensions
 const float BUTTON_BB_WIDTH = 0.5 * 459.f;
@@ -93,6 +100,8 @@ Entity createSword(RenderSystem* renderer, float angle, Entity playerEntity);
 // the projectile  
 Entity createProjectile(RenderSystem* render, vec2 pos, vec2 velocity, float angle, Entity playerEntity);
 Entity createEnemyProjectile(RenderSystem* renderer, vec2 pos, vec2 velocity, float angle, Entity enemyEntity);
+Entity createHandProjectile(RenderSystem* renderer, vec2 pos, vec2 velocity, float angle, Entity enemyEntity);
+
 // create wall
 Entity createWall(vec2 position, vec2 scale);
 
@@ -126,6 +135,15 @@ Entity createEnemyAStar(RenderSystem* renderer, vec2 position);
 
 // Behaviour Tree enemy
 Entity createEnemyGerm(RenderSystem* renderer, vec2 position);
+
+// Final boss
+Entity createEnemyBoss(RenderSystem* renderer, vec2 position);
+
+// Final boss minions
+Entity createEnemyMinions(RenderSystem* renderer, vec2 position);
+
+// Final boss minions
+Entity createEnemyBossHand(RenderSystem* renderer, vec2 position);
 
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);

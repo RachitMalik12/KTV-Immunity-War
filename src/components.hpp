@@ -176,6 +176,17 @@ struct EnemySwarm {
 	bool isAnimatingHurt = false;
 };
 
+struct EnemyBoss {
+	float aiUpdateInterval = 1500.f;
+	float aiUpdateTimer = 0;
+	bool timeToUpdateAi = true;
+	float projectileSpeed = 100.f;
+};
+
+struct EnemyBossHand {
+
+};
+
 struct Powerup 
 {
 	// Price rendering only supports 0 - 99 inclusive
@@ -481,6 +492,21 @@ struct Arrow {
 
 };
 
+enum BossPhase {
+	NONE,
+	STAGE1,
+	STAGE2,
+	STAGE3
+};
+
+struct BossMode {
+	int finalLevelNum = 8;
+	// which stage in the final boss we are in.
+	BossPhase currentBossLevel = NONE;
+	Level level;
+};
+extern BossMode bossMode;
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -553,7 +579,13 @@ enum class TEXTURE_ASSET_ID {
 	TUTINSTRUCTIONS = SMALLETTER + 1,
 	ARROW = TUTINSTRUCTIONS + 1,
 	ENEMYASTAR = ARROW + 1,
-	TEXTURE_COUNT = ENEMYASTAR + 1
+	FINALBACKGROUND = ENEMYASTAR + 1,
+	HAND = FINALBACKGROUND + 1,
+	MINION = HAND + 1,
+	MINIONCRAZY = MINION + 1,
+	BOSSFIREBALL = MINIONCRAZY + 1,
+	BOSS = BOSSFIREBALL + 1,
+	TEXTURE_COUNT = BOSS + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -568,7 +600,8 @@ enum class EFFECT_ASSET_ID {
 	NUMBER = ENEMY + 1,
 	POWERUP = NUMBER + 1,
 	LETTER = POWERUP + 1, 
-	EFFECT_COUNT = LETTER + 1
+	BOSS = LETTER + 1,
+	EFFECT_COUNT = BOSS + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 

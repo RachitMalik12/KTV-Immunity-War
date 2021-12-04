@@ -212,7 +212,7 @@ void WorldSystem::restart_game() {
 	tutorialEnemyFinishTransition = false; 
 	tutorialEnemyTransition = true; 
 	shopHintCreated = false; 
-
+	
 	// set help mode to false again
 	helpMode.inHelpMode = false;
 
@@ -228,9 +228,6 @@ void WorldSystem::restart_game() {
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
-
-	// Create background texture
-	createBackground(renderer, vec2(defaultResolution.width / 2, defaultResolution.height));
 
 	// Setup level
 	setupLevel(level_number);
@@ -460,6 +457,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			setupLevel(level_number);
 		}
 
+		if (action == GLFW_PRESS && key == GLFW_KEY_8) {
+			level_number = 8;
+			setupLevel(level_number);
+		}
+
 		// Open/close door
 		if (action == GLFW_PRESS && key == GLFW_KEY_O) {
 			if (registry.doors.entities.size() == 0) {
@@ -523,9 +525,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			storyClicker();
 		}
 
-		if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE && !helpMode.isOnTopInGameMenu) {
-			toggleInGameMenu();
-		}
+		
+	}
+	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE && !helpMode.isOnTopInGameMenu) {
+		toggleInGameMenu();
 	}
 
 	if (action == GLFW_RELEASE && (key == GLFW_KEY_F || key == GLFW_KEY_H || key == GLFW_KEY_G || key == GLFW_KEY_T)) {
@@ -535,7 +538,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 void WorldSystem::toggleInGameMenu() {
 	// if menu has no been created or menu is back from help
-		// 
 	if (menuMode.menuType == 0 && !menuMode.inHelpDrawn) {
 		menuMode.menuType = 2;
 		menuMode.inGameMode = true;
@@ -1112,15 +1114,30 @@ void WorldSystem::stopPlayerAtMouseDestination() {
 	}
 }
 
+void WorldSystem::advanceToShopOrStage() {
+	vec2 textpos = vec2(50 * defaultResolution.scaling, defaultResolution.height - 50 * defaultResolution.scaling);
+	vec2 textposCenter = vec2(defaultResolution.width / 4, defaultResolution.height / 4);
+	if (level_number == 0 && !shopHintCreated) {
+		createShopHint();
+		shopHintCreated = true;
+	}
+	if (bossMode.currentBossLevel == STAGE1) {
+		setFinalLevelStages(bossMode.level, STAGE2);
+	}
+	else if (bossMode.currentBossLevel == STAGE2) {
+		setFinalLevelStages(bossMode.level, STAGE3);
+	}
+	else {
+		
+		transitionToShop();
+		isLevelOver = true;
+	}
+}
+
 void WorldSystem::levelCompletionCheck(float elapsed_ms_since_last_update) {
 	// Check level completion 
 	if (registry.enemies.size() == 0) {
-		if (level_number == 0 && !shopHintCreated) {
-			createShopHint(); 
-			shopHintCreated = true;
-		}
-		transitionToShop();
-		isLevelOver = true;
+		advanceToShopOrStage();
 	}
 	if (isLevelOver && isTransitionOver) {
 		int nextLevel = level_number + 1;
@@ -1321,14 +1338,14 @@ void WorldSystem::setTransitionFlag(Entity player) {
 }
 
 void WorldSystem::drawTutorialTextInShop() {
-	std::string header = "CHOOSE WISELY"; 
+	std::string header = "choose wisely"; 
 	int headerLen = header.length(); 
 	float xPosOffset = scaleCoordinate(-(headerLen / 2) * CAPSLETTER_BB_WIDTH); 
-	float yPosOffset = scaleCoordinate(CAPSLETTER_BB_HEIGHT); 
+	float yPosOffset = scaleCoordinate(CAPSLETTER_BB_HEIGHT)+100*defaultResolution.scaling; 
 	vec2 position = vec2(defaultResolution.width / 2  + xPosOffset , defaultResolution.height + yPosOffset); 
 	createSentence(position, header);
 
-	header = "EXIT DOOR TO START LEVEL"; 
+	header = "exit door to start"; 
 	headerLen = header.length();
 	xPosOffset = scaleCoordinate(0.5*CAPSLETTER_BB_WIDTH - ((headerLen / 2) * CAPSLETTER_BB_WIDTH));
 	yPosOffset = defaultResolution.defaultHeight - scaleCoordinate(CAPSLETTER_BB_HEIGHT);
@@ -1381,9 +1398,12 @@ void WorldSystem::animateWizard(float elapsed_ms_since_last_update) {
 	}
 }
 
+// TODO: Jasmine
 void WorldSystem::setupLevel(int levelNum) {
 	int screen_width, screen_height;
 	glfwGetFramebufferSize(window, &screen_width, &screen_height);
+
+	createLevelBackground(levelNum);
 
 	while (registry.players.entities.size() > 0)
 		registry.remove_all_components_of(registry.players.entities.back());
@@ -1423,12 +1443,22 @@ void WorldSystem::setupLevel(int levelNum) {
 	auto enemies = level.enemies;
 	auto enemy_types = level.enemy_types;
 	auto enemyPositions = level.enemyPositions;
-	for (int i = 0; i < enemyPositions.size(); i++) {
-		for (int j = 0; j < enemyPositions[i].size(); j++) {
-			createEnemy(renderer, enemyPositions[i][j] * defaultResolution.scaling, enemy_types[i]);
+	bossMode.currentBossLevel = NONE;
+	if (levelNum == bossMode.finalLevelNum) {
+		// final boss level
+		bossMode.level = level;
+		vec2 textpos = vec2(50 * defaultResolution.scaling, defaultResolution.height - 50 * defaultResolution.scaling);
+		bossMode.currentBossLevel = STAGE1;
+		setFinalLevelStages(level, bossMode.currentBossLevel);
+	}
+	else {
+		for (int i = 0; i < enemyPositions.size(); i++) {
+			for (int j = 0; j < enemyPositions[i].size(); j++) {
+				createEnemy(renderer, enemyPositions[i][j] * defaultResolution.scaling, enemy_types[i]);
+			}
 		}
 	}
-
+	
 	// Blocks 
 	for (int b = 0; b < level.block_positions.size(); b++) {
 		vec2 block_pos_i = level.block_positions[b];
@@ -1468,6 +1498,7 @@ void WorldSystem::setupLevel(int levelNum) {
 		Motion& player2Motion = registry.motions.get(player2_wizard);
 		player2Motion.position = level.player2_position * defaultResolution.scaling;
 	}
+
 	// Update state 
 	startingNewLevel = true;
 	isLevelOver = false;
@@ -1484,6 +1515,56 @@ void WorldSystem::setupLevel(int levelNum) {
 	std::stringstream ss;
 	ss << "ktv: immunity war Level: " << levelNum;
 	glfwSetWindowTitle(window, ss.str().c_str());
+}
+
+void WorldSystem::setFinalLevelStages(Level level, BossPhase phase) {
+	auto entityWall = Entity();
+	registry.walls.emplace(entityWall);
+	auto& motionVoid = registry.motions.emplace(entityWall);
+	motionVoid.position = vec2(600*defaultResolution.scaling, 40*defaultResolution.scaling); // find out better way to pass in position? bossmode
+	motionVoid.scale = vec2({ BACKGROUND_BB_WIDTH * defaultResolution.scaling, BOSS_BB_HEIGHT * defaultResolution.scaling });
+
+	if (phase == STAGE1) {
+		createEnemyFilteredByType(level, 9);
+	}
+	else if (phase == STAGE2) {
+		createEnemyFilteredByType(level, 10);
+		bossMode.currentBossLevel = STAGE2;
+	}
+	else if (phase == STAGE3) {
+		createEnemyFilteredByType(level, 11);
+		bossMode.currentBossLevel = STAGE3;
+	}
+}
+
+void WorldSystem::createEnemyFilteredByType(Level level, int enemyFilter) {
+	auto enemies = level.enemies;
+	auto enemy_types = level.enemy_types;
+	auto enemyPositions = level.enemyPositions;
+
+	for (int i = 0; i < enemyPositions.size(); i++) {
+		if (enemy_types[i] == enemyFilter) {
+			for (int j = 0; j < enemyPositions[i].size(); j++) {
+				createEnemy(renderer, enemyPositions[i][j] * defaultResolution.scaling, enemy_types[i]);
+			}
+		}
+	}
+
+}
+
+void WorldSystem::createLevelBackground(int levelNum) {
+	if (levelNum == bossMode.finalLevelNum) {
+		if (registry.players.entities.size() > 0) {
+			registry.remove_all_components_of(registry.backgrounds.entities.back());
+		}
+		createFinalBackground(renderer, vec2(defaultResolution.width / 2, defaultResolution.height));
+	}
+	else {
+		if (registry.players.entities.size() > 0) {
+			registry.remove_all_components_of(registry.backgrounds.entities.back());
+		}
+		createBackground(renderer, vec2(defaultResolution.width / 2, defaultResolution.height));
+	}
 }
 
 float WorldSystem::scaleCoordinate(float coordinate) {

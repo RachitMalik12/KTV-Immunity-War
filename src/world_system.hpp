@@ -57,6 +57,8 @@ private:
 	void setupTutorial();
 	void createShopHint();
 	void waitAndMakeEnemiesVisible(float elapsed_ms); 
+	// create correct background for level
+	void createLevelBackground(int levelNum);
 	// OpenGL window handle
 	GLFWwindow* window;
 	int level_number;
@@ -116,12 +118,15 @@ private:
 	void invincibilityTimer(float elapsed_ms_since_last_update);
 	void stopPlayerAtMouseDestination();
 	void levelCompletionCheck(float elapsed_ms_since_last_update);
+	void advanceToShopOrStage();
 	void animateKnight(float elapsed_ms_since_last_update);
 	void animateWizard(float elpased_ms_since_last_update);
 	void checkIfPlayersAreMoving();
 	void removeDeadPlayersAndEnemies(float elapsed_ms);
 	// misc
 	void playerTwoJoinOrLeave();
+	void setFinalLevelStages(Level level, BossPhase phase);
+	void createEnemyFilteredByType(Level level, int enemyFilter);
 	// utils 
 	float scaleCoordinate(float coordinate);
 	// animation

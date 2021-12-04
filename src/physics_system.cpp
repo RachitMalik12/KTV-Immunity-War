@@ -60,10 +60,10 @@ void PhysicsSystem::handle_collision() {
 			}
 		}
 
-		if (registry.players.has(entity) ) {
+		if (registry.players.has(entity) && !registry.players.get(entity).isDead) {
 			// Check Player - Enemy collisions 
 			bool enemyConditionCheck = registry.enemies.has(entity_other) && !registry.enemies.get(entity_other).isDead
-				&& !registry.enemiesTutorial.has(entity_other); 
+				&& !registry.enemiesTutorial.has(entity_other) && !registry.enemyBoss.has(entity_other); 
 			if (enemyConditionCheck) {
 				int enemyDamage = registry.enemies.get(entity_other).damage;
 				resolvePlayerDamage(entity, enemyDamage);
@@ -239,6 +239,7 @@ bool PhysicsSystem::collides(const Entity entity, const Entity other_entity)
 	}
 	const Motion& motion = registry.motions.get(entity);
 	const Motion& other_motion = registry.motions.get(other_entity);
+
 	return doesRadiusCollide(motion, other_motion);
 }
 
@@ -297,8 +298,6 @@ void PhysicsSystem::drawBoundingBoxDebug(const Motion& motion) {
 }
 
 void PhysicsSystem::bounceEnemyRun(Entity curEntity) {
-	// if enemyrun within MAX_DIST_WZ_EN of either wizard
-		// change enemyrun direction 
 	if (registry.enemiesrun.has(curEntity)) {
 		Motion& motion_en = registry.motions.get(curEntity);
 		Enemy& enemyCom = registry.enemies.get(curEntity);
@@ -338,6 +337,10 @@ void PhysicsSystem::bounceEnemies(Entity curEntity, bool hitABlock) {
 	if (hitABlock) {
 		if (registry.projectiles.has(curEntity) || registry.enemyProjectiles.has(curEntity)) {
 			registry.remove_all_components_of(curEntity);
+		}
+		else if (registry.enemyBossHand.has(curEntity)) {
+			Motion& enemyBossMotion = registry.motions.get(curEntity);
+			enemyBossMotion.velocity.x *= -1;
 		}
 		else if (registry.enemyBlobs.has(curEntity)) {
 			Motion& enemyMotion = registry.motions.get(curEntity);
@@ -399,15 +402,19 @@ void PhysicsSystem::moveEntities(float elapsed_ms) {
 	{
 		Motion& motion = registry.motions.components[i];
 		Entity entity = registry.motions.entities[i];
-		float step_seconds = 1.0f * (elapsed_ms / 1000.f);
-		vec2 nextPosition = vec2(motion.position.x + motion.velocity.x * step_seconds,
-			motion.position.y + motion.velocity.y * step_seconds);
-		bool hitABlock = hitBlockOrWall(nextPosition, motion);
-		if (!hitABlock) {
-			motion.position = nextPosition;
+		if(!registry.enemyBoss.has(entity)){
+			float step_seconds = 1.0f * (elapsed_ms / 1000.f);
+			vec2 nextPosition = vec2(motion.position.x + motion.velocity.x * step_seconds,
+				motion.position.y + motion.velocity.y * step_seconds);
+			bool hitABlock = hitBlockOrWall(nextPosition, motion);
+			if (!hitABlock) {
+				motion.position = nextPosition;
+			}
+			bounceEnemies(entity, hitABlock);
+			bounceEnemyRun(entity);
 		}
-		bounceEnemies(entity, hitABlock);
-		bounceEnemyRun(entity);
+		
+		
 	}
 }
 
@@ -438,6 +445,7 @@ void PhysicsSystem::rotateSwords(float elapsed_ms) {
 		else {
 			registry.remove_all_components_of(entity);
 		}
+		
 	}
 }
 
@@ -495,13 +503,22 @@ void PhysicsSystem::enemyHitHandling(Entity enemyEntity) {
 				GEOMETRY_BUFFER_ID::SPRITE });
 		registry.enemyHunters.get(enemyEntity).isAnimatingHurt = true;
 	}
-	else if (registry.enemySwarms.has(enemyEntity)) {
+	else if (registry.enemySwarms.has(enemyEntity) && !registry.enemyBossHand.has(enemyEntity)) {
 		registry.renderRequests.remove(enemyEntity);
-		registry.renderRequests.insert(
-			enemyEntity,
-			{ TEXTURE_ASSET_ID::ENEMYSWARMHURT,
-				EFFECT_ASSET_ID::ENEMY,
-				GEOMETRY_BUFFER_ID::SPRITE });
+		if (bossMode.currentBossLevel == STAGE1) {
+			registry.renderRequests.insert(
+				enemyEntity,
+				{ TEXTURE_ASSET_ID::MINIONCRAZY,
+					EFFECT_ASSET_ID::ENEMY,
+					GEOMETRY_BUFFER_ID::SPRITE });
+		}
+		else {
+			registry.renderRequests.insert(
+				enemyEntity,
+				{ TEXTURE_ASSET_ID::ENEMYSWARMHURT,
+					EFFECT_ASSET_ID::ENEMY,
+					GEOMETRY_BUFFER_ID::SPRITE });
+		}
 		registry.enemySwarms.get(enemyEntity).isAnimatingHurt = true;
 	}
 }
