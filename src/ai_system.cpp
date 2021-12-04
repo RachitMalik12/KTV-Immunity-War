@@ -735,11 +735,12 @@ Entity AISystem::pickAPlayer() {
 
 
 vec2 AISystem::nextNode(vec2 currNode, Entity& player, Entity& enemy, float width, float height) {
-	std::cout << "in next node \n";
-
+	std::cout << "in next";
 	Motion& motionAStar = registry.motions.get(enemy);
 	Motion& motionPlayer = registry.motions.get(player);
-
+	// Calculate H Cost value (distance between current node and the end position) and G Cost (distance between current node and the NEXT position)
+	// Add the sum of these two.
+	
 	// UP
 	vec2 UpHCost = abs(calculateHCost(motionPlayer, { currNode.x, currNode.y - registry.enemyAStars.get(enemy).stepSizes }));
 	vec2 UpSUMCost = abs(calculateGCost(enemy, 0)) + UpHCost;
@@ -755,6 +756,8 @@ vec2 AISystem::nextNode(vec2 currNode, Entity& player, Entity& enemy, float widt
 	// LEFT
 	vec2 LeftHCost = abs(calculateHCost(motionPlayer, { currNode.x - registry.enemyAStars.get(enemy).stepSizes, currNode.y }));
 	vec2 LeftSUMCost = abs(calculateGCost(enemy, 3)) + LeftHCost;
+
+	// Find the min of all the values
 
 	float currMin = INT_MAX;
 	int currMinPosition = -1;
@@ -777,6 +780,8 @@ vec2 AISystem::nextNode(vec2 currNode, Entity& player, Entity& enemy, float widt
 	}
 	int finX = currNode.x;
 	int finY = currNode.y;
+	
+	// depending on the min direction, choose that one, and made it the finX, finY
 	switch (currMinPosition) {
 		case 0: // up
 			if (currNode.y - registry.enemyAStars.get(enemy).stepSizes > 0.f) {
@@ -811,6 +816,7 @@ vec2 AISystem::nextNode(vec2 currNode, Entity& player, Entity& enemy, float widt
 				break;
 			}
 	}
+	// push the next node the queue and return the node
 	std::pair<int, int> currPosition = { finX , finY };
 	registry.enemyAStars.get(enemy).traversalStack.push(currPosition);
 	return { finX, finY };
@@ -854,12 +860,11 @@ void AISystem::handleAStarPathCalculation(Entity& player, Entity& enemy, float w
 	vec2 finNode = { motionPlayer.position.x, motionPlayer.position.y };
 
 	vec2 currNode = { motionAStar.position.x, motionAStar.position.y };
-	while (!registry.enemyAStars.get(enemy).finishedPathCalculation) {
+	while (abs(currNode.x - finNode.x) > registry.enemyAStars.get(enemy).distanceCloseToPlayer 
+		&& abs(currNode.y - finNode.y) > registry.enemyAStars.get(enemy).distanceCloseToPlayer) {
 		std::cout << "in while \n";
+		std::cout << abs(currNode.x - finNode.x) << ", " << abs(currNode.y - finNode.y) << "\n";
 		currNode = nextNode(currNode, player, enemy, width, height);
-		if (abs(currNode.x - finNode.x) <= registry.enemyAStars.get(enemy).distanceCloseToPlayer && abs(currNode.y - finNode.y) <= registry.enemyAStars.get(enemy).distanceCloseToPlayer) {
-			registry.enemyAStars.get(enemy).finishedPathCalculation = true;
-		}
 	}
 }
 
