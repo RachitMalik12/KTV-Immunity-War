@@ -252,13 +252,7 @@ bool WorldSystem::is_over() const {
 void WorldSystem::on_key(int key, int, int action, int mod) {
 	int w, h;
 	glfwGetWindowSize(window, &w, &h);
-	// Resetting game
-	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
-        restart_game();
-	}
 
-
-	
 	Motion& player1motion = registry.motions.get(player_knight);
 	Player& player = registry.players.get(player_knight);
 	PlayerStat& playerOneStat = registry.playerStats.get(player.playerStat);
@@ -374,6 +368,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (devMode == true) {
 		if (action == GLFW_PRESS && key == GLFW_KEY_K) {
 			saveGame();
+		}
+
+		// Resetting game
+		if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
+			restart_game();
 		}
 
 		// level loading
