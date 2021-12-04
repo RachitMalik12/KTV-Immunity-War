@@ -467,6 +467,12 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			setupLevel(level_number);
 		}
 
+		if (action == GLFW_PRESS && key == GLFW_KEY_8) {
+			bossMode.currentBossLevel = none;
+			level_number = 8;
+			setupLevel(level_number);
+		}
+
 		// Open/close door
 		if (action == GLFW_PRESS && key == GLFW_KEY_O) {
 			if (registry.doors.entities.size() == 0) {
