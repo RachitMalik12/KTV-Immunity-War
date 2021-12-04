@@ -785,34 +785,28 @@ vec2 AISystem::nextNode(vec2 currNode, Entity& player, Entity& enemy, float widt
 			if (currNode.y - registry.enemyAStars.get(enemy).stepSizes > 0.f) {
 				finX = currNode.x;
 				finY = currNode.y - registry.enemyAStars.get(enemy).stepSizes;
-			}
-			else {
 				break;
 			}
 		case 1: // right
 			if (currNode.x + registry.enemyAStars.get(enemy).stepSizes < width) {
 				finX = currNode.x + registry.enemyAStars.get(enemy).stepSizes;
 				finY = currNode.y;
-			}
-			else {
 				break;
 			}
 		case 2: // down
 			if (currNode.y + registry.enemyAStars.get(enemy).stepSizes < height) {
 				finX = currNode.x;
 				finY = currNode.y + registry.enemyAStars.get(enemy).stepSizes;
-			}
-			else {
 				break;
 			}
 		case 3: // left
 			if (currNode.x - registry.enemyAStars.get(enemy).stepSizes > 0.f) {
 				finX = currNode.x - registry.enemyAStars.get(enemy).stepSizes;
 				finY = currNode.y;
-			}
-			else {
 				break;
 			}
+		default:
+			break;
 	}
 	// push the next node the queue and return the node
 	std::pair<int, int> currPosition = { finX , finY };
@@ -866,7 +860,7 @@ void AISystem::handleAStarPathCalculation(Entity& player, Entity& enemy, float w
 
 
 void AISystem::stepEnemyAStar(float elapsed_ms, float width, float height) {
-	for (Entity& entityAStar : registry.enemyAStars.entities) {
+	for (Entity& entityAStar : registry.enemyAStars.entities) {  
 		Enemy& enemy = registry.enemies.get(entityAStar);
 		Motion AStarMotion = registry.motions.get(entityAStar);
 		if (!enemy.isDead) {
