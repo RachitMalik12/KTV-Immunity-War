@@ -125,7 +125,7 @@ private:
 	void removeDeadPlayersAndEnemies(float elapsed_ms);
 	// misc
 	void playerTwoJoinOrLeave();
-	void setFinalLevelStages(Level level, bossLevels stage);
+	void setFinalLevelStages(Level level, BossPhase phase);
 	void createEnemyFilteredByType(Level level, int enemyFilter);
 	// utils 
 	float scaleCoordinate(float coordinate);

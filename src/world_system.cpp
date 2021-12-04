@@ -1520,21 +1520,21 @@ void WorldSystem::setupLevel(int levelNum) {
 	glfwSetWindowTitle(window, ss.str().c_str());
 }
 
-void WorldSystem::setFinalLevelStages(Level level, bossLevels stage) {
+void WorldSystem::setFinalLevelStages(Level level, BossPhase phase) {
 	auto entityWall = Entity();
 	registry.walls.emplace(entityWall);
 	auto& motionVoid = registry.motions.emplace(entityWall);
 	motionVoid.position = vec2(600*defaultResolution.scaling, 40*defaultResolution.scaling); // find out better way to pass in position? bossmode
 	motionVoid.scale = vec2({ BACKGROUND_BB_WIDTH * defaultResolution.scaling, BOSS_BB_HEIGHT * defaultResolution.scaling });
 
-	if (stage == STAGE1) {
+	if (phase == STAGE1) {
 		createEnemyFilteredByType(level, 9);
 	}
-	else if (stage == STAGE2) {
+	else if (phase == STAGE2) {
 		createEnemyFilteredByType(level, 10);
 		bossMode.currentBossLevel = STAGE2;
 	}
-	else if (stage == STAGE3) {
+	else if (phase == STAGE3) {
 		createEnemyFilteredByType(level, 11);
 		bossMode.currentBossLevel = STAGE3;
 	}
