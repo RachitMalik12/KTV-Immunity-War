@@ -257,12 +257,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
         restart_game();
 	}
 
-	// Debugging
-	if (key == GLFW_KEY_BACKSLASH) {
-		if (action == GLFW_RELEASE) {
-			debugging.in_debug_mode = !debugging.in_debug_mode;
-		}
-	}
+
 	
 	Motion& player1motion = registry.motions.get(player_knight);
 	Player& player = registry.players.get(player_knight);
@@ -372,53 +367,60 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}	
 
-	if (action == GLFW_PRESS && key == GLFW_KEY_K) {
-		saveGame();
+	if (action == GLFW_PRESS && key == GLFW_KEY_GRAVE_ACCENT) {
+		devMode = true;
 	}
 
-	// level loading
-	if (action == GLFW_PRESS && key == GLFW_KEY_L) {
-		// Update player mode based on savefile
-		dataManager.setPlayerModeFromFile();
-		int player_mode_file = dataManager.getPlayerMode();
-		if (player_mode_file == 1) {
-			twoPlayer.inTwoPlayerMode = false;
+	if (devMode == true) {
+		if (action == GLFW_PRESS && key == GLFW_KEY_K) {
+			saveGame();
 		}
-		else {
-			twoPlayer.inTwoPlayerMode = true;
-		}
-		setPlayersStats(); 
 
-		if (twoPlayer.inTwoPlayerMode) {
-			dataManager.setPlayerStatEntity(player_stat, player2_stat); 
-		}
-		else {
-			dataManager.setPlayerStatEntity(player_stat);
-		}
-		bool loadFile = dataManager.loadFile();
-		if (!loadFile) {
-			// If load failed due to file missing,load level 1 with 1 player. 
-			twoPlayer.inTwoPlayerMode = false;
-			setupLevel(0);
-		}
-		else {
-			level_number = dataManager.getLevelNumber();
-			int playerModeFile = dataManager.getPlayerMode();
-			if (playerModeFile == 1) {
+		// level loading
+		if (action == GLFW_PRESS && key == GLFW_KEY_L) {
+			// Update player mode based on savefile
+			dataManager.setPlayerModeFromFile();
+			int player_mode_file = dataManager.getPlayerMode();
+			if (player_mode_file == 1) {
 				twoPlayer.inTwoPlayerMode = false;
 			}
 			else {
 				twoPlayer.inTwoPlayerMode = true;
 			}
-			setupLevel(level_number);
+			setPlayersStats();
+
+			if (twoPlayer.inTwoPlayerMode) {
+				dataManager.setPlayerStatEntity(player_stat, player2_stat);
+			}
+			else {
+				dataManager.setPlayerStatEntity(player_stat);
+			}
+			bool loadFile = dataManager.loadFile();
+			if (!loadFile) {
+				// If load failed due to file missing,load level 1 with 1 player. 
+				twoPlayer.inTwoPlayerMode = false;
+				setupLevel(0);
+			}
+			else {
+				level_number = dataManager.getLevelNumber();
+				int playerModeFile = dataManager.getPlayerMode();
+				if (playerModeFile == 1) {
+					twoPlayer.inTwoPlayerMode = false;
+				}
+				else {
+					twoPlayer.inTwoPlayerMode = true;
+				}
+				setupLevel(level_number);
+			}
 		}
-	}
 
-	if (action == GLFW_PRESS && key == GLFW_KEY_M) {
-		devMode = true;
-	}
+		// Debugging
+		if (key == GLFW_KEY_BACKSLASH) {
+			if (action == GLFW_RELEASE) {
+				debugging.in_debug_mode = !debugging.in_debug_mode;
+			}
+		}
 
-	if (devMode == true) {
 		if (action == GLFW_PRESS && key == GLFW_KEY_0) {
 			level_number = 0;
 			setupLevel(level_number);
@@ -493,38 +495,37 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 				debugging.in_debug_mode = true;
 		}
 
+		// Switch between one player/two player
+		if (action == GLFW_PRESS && key == GLFW_KEY_X) {
+			playerTwoJoinOrLeave();
+		}
+
+		// Control if in help mode or not
+		if (action == GLFW_RELEASE && key == GLFW_KEY_P) {
+			if (helpMode.inHelpMode) {
+				helpMode.inHelpMode = false;
+				for (Entity entity : registry.helpModes.entities) {
+					registry.remove_all_components_of(entity);
+				}
+			}
+			else {
+				helpMode.inHelpMode = true;
+				createHelp();
+			}
+		}
+
+		// storymode
+		if (action == GLFW_RELEASE && key == GLFW_KEY_SPACE && storyMode.firstLoad) {
+			storyClicker();
+		}
+
+		if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE && !helpMode.isOnTopInGameMenu) {
+			toggleInGameMenu();
+		}
 	}
 
 	if (action == GLFW_RELEASE && (key == GLFW_KEY_F || key == GLFW_KEY_H || key == GLFW_KEY_G || key == GLFW_KEY_T)) {
 		player.isFiringProjectile = false;
-	}
-
-	// Switch between one player/two player
-	if (action == GLFW_PRESS && key == GLFW_KEY_X) {
-		playerTwoJoinOrLeave();
-	}
-
-	// Control if in help mode or not
-	if (action == GLFW_RELEASE && key == GLFW_KEY_P) {
-		if (helpMode.inHelpMode) {
-			helpMode.inHelpMode = false;
-			for (Entity entity : registry.helpModes.entities) {
-				registry.remove_all_components_of(entity);
-			}
-		}
-		else {
-			helpMode.inHelpMode = true;
-			createHelp();
-		}
-	}
-
-	// storymode
-	if (action == GLFW_RELEASE && key == GLFW_KEY_SPACE && storyMode.firstLoad) {
-		storyClicker();
-	}
-
-	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE && !helpMode.isOnTopInGameMenu) {
-		toggleInGameMenu();
 	}
 }
 
