@@ -362,7 +362,12 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}	
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_GRAVE_ACCENT) {
-		devMode = true;
+		if (devMode == false) {
+			devMode = true;
+		}
+		else {
+			devMode = false;
+		}
 	}
 
 	if (devMode == true) {
