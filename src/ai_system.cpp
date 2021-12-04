@@ -623,7 +623,7 @@ void AISystem::stepEnemySwarm(float elapsed_ms) {
 		Enemy& swarmStatus = registry.enemies.get(swarmEntity);
 		if (!swarmStatus.isDead) {
 			if (swarm.timeToUpdateAi) {
-				if (bossMode.currentBossLevel == 2) {
+				if (bossMode.currentBossLevel == STAGE2) {
 					swarm.aiUpdateTimer -= 5000;
 					swarm.timeToUpdateAi = false;
 				}
@@ -644,7 +644,7 @@ void AISystem::stepEnemySwarm(float elapsed_ms) {
 
 			if (swarm.isAnimatingHurt && !swarmStatus.isInvin) {
 				registry.renderRequests.remove(swarmEntity);
-				if (bossMode.currentBossLevel == stage1) {
+				if (bossMode.currentBossLevel == STAGE1) {
 					registry.renderRequests.insert(
 						swarmEntity,
 						{ TEXTURE_ASSET_ID::MINION,
@@ -735,7 +735,7 @@ void AISystem::swarmFireProjectileAtPlayer(Entity swarmEntity) {
 	vec2 diff = playerMotion.position - swarmMotion.position;
 	float angle = atan2(diff.y, diff.x);
 	vec2 velocity = vec2(cos(angle) * swarm.projectileSpeed, sin(angle) * swarm.projectileSpeed);
-	if (bossMode.currentBossLevel == 2) {
+	if (bossMode.currentBossLevel == STAGE2) {
 		createHandProjectile(renderer, swarmMotion.position, velocity, angle, swarmEntity);
 	}
 	else {

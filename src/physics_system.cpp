@@ -536,7 +536,7 @@ void PhysicsSystem::enemyHitHandling(Entity enemyEntity) {
 	else {
 		if (registry.enemySwarms.has(enemyEntity)) {
 			registry.renderRequests.remove(enemyEntity);
-			if (bossMode.currentBossLevel == stage1) {
+			if (bossMode.currentBossLevel == STAGE1) {
 				registry.renderRequests.insert(
 					enemyEntity,
 					{ TEXTURE_ASSET_ID::MINIONCRAZY,

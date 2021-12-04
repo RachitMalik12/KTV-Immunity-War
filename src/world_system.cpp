@@ -214,7 +214,7 @@ void WorldSystem::restart_game() {
 	shopHintCreated = false; 
 
 	// Reset bossmode
-	bossMode.currentBossLevel = none;
+	bossMode.currentBossLevel = NONE;
 	
 	// set help mode to false again
 	helpMode.inHelpMode = false;
@@ -426,49 +426,49 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_0) {
-			bossMode.currentBossLevel = none;
+			bossMode.currentBossLevel = NONE;
 			level_number = 0;
 			setupLevel(level_number);
 		}
 		// load level 1
 		if (action == GLFW_PRESS && key == GLFW_KEY_1) {
-			bossMode.currentBossLevel = none;
+			bossMode.currentBossLevel = NONE;
 			level_number = 1;
 			setupLevel(level_number);
 		}
 		// load level 2
 		if (action == GLFW_PRESS && key == GLFW_KEY_2) {
-			bossMode.currentBossLevel = none;
+			bossMode.currentBossLevel = NONE;
 			level_number = 2;
 			setupLevel(level_number);
 		}
 		// load level 3
 		if (action == GLFW_PRESS && key == GLFW_KEY_3) {
-			bossMode.currentBossLevel = none;
+			bossMode.currentBossLevel = NONE;
 			level_number = 3;
 			setupLevel(level_number);
 		}
 		// load level 4
 		if (action == GLFW_PRESS && key == GLFW_KEY_4) {
-			bossMode.currentBossLevel = none;
+			bossMode.currentBossLevel = NONE;
 			level_number = 4;
 			setupLevel(level_number);
 		}
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_5) {
-			bossMode.currentBossLevel = none;
+			bossMode.currentBossLevel = NONE;
 			level_number = 5;
 			setupLevel(level_number);
 		}
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_6) {
-			bossMode.currentBossLevel = none;
+			bossMode.currentBossLevel = NONE;
 			level_number = 6;
 			setupLevel(level_number);
 		}
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_8) {
-			bossMode.currentBossLevel = none;
+			bossMode.currentBossLevel = NONE;
 			level_number = 8;
 			setupLevel(level_number);
 		}
@@ -1132,18 +1132,11 @@ void WorldSystem::advanceToShopOrStage() {
 		createShopHint();
 		shopHintCreated = true;
 	}
-
-	if (bossMode.currentBossLevel == stage1) {
-		while (registry.letters.entities.size() > 0)
-			registry.remove_all_components_of(registry.letters.entities.back());
-		createSentence(textpos, "the hand");
-		setFinalLevelStages(bossMode.level, stage2);
+	if (bossMode.currentBossLevel == STAGE1) {
+		setFinalLevelStages(bossMode.level, STAGE2);
 	}
-	else if (bossMode.currentBossLevel == stage2) {
-		while (registry.letters.entities.size() > 0)
-			registry.remove_all_components_of(registry.letters.entities.back());
-		createSentence(textpos, "the virus");
-		setFinalLevelStages(bossMode.level, stage3);
+	else if (bossMode.currentBossLevel == STAGE2) {
+		setFinalLevelStages(bossMode.level, STAGE3);
 	}
 	else {
 		
@@ -1465,8 +1458,7 @@ void WorldSystem::setupLevel(int levelNum) {
 		// final boss level
 		bossMode.level = level;
 		vec2 textpos = vec2(50 * defaultResolution.scaling, defaultResolution.height - 50 * defaultResolution.scaling);
-		createSentence(textpos, "the invisible");
-		bossMode.currentBossLevel = stage1;
+		bossMode.currentBossLevel = STAGE1;
 		setFinalLevelStages(level, bossMode.currentBossLevel);
 	}
 	else {
@@ -1542,16 +1534,16 @@ void WorldSystem::setFinalLevelStages(Level level, bossLevels stage) {
 	motionVoid.position = vec2(600*defaultResolution.scaling, 40*defaultResolution.scaling); // find out better way to pass in position? bossmode
 	motionVoid.scale = vec2({ BACKGROUND_BB_WIDTH * defaultResolution.scaling, BOSS_BB_HEIGHT * defaultResolution.scaling });
 
-	if (stage == stage1) {
+	if (stage == STAGE1) {
 		createEnemyFilteredByType(level, 9);
 	}
-	else if (stage == stage2) {
+	else if (stage == STAGE2) {
 		createEnemyFilteredByType(level, 10);
-		bossMode.currentBossLevel = stage2;
+		bossMode.currentBossLevel = STAGE2;
 	}
-	else if (stage == stage3) {
+	else if (stage == STAGE3) {
 		createEnemyFilteredByType(level, 11);
-		bossMode.currentBossLevel = stage3;
+		bossMode.currentBossLevel = STAGE3;
 	}
 }
 

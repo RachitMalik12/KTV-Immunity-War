@@ -499,10 +499,10 @@ struct Arrow {
 };
 
 enum bossLevels {
-	none,
-	stage1,
-	stage2,
-	stage3
+	NONE,
+	STAGE1,
+	STAGE2,
+	STAGE3
 };
 
 struct BossMode {
