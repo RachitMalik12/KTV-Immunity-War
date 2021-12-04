@@ -414,82 +414,89 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	if (action == GLFW_PRESS && key == GLFW_KEY_0) {
-		level_number = 0;
-		setupLevel(level_number);
-	}
-	// load level 1
-	if (action == GLFW_PRESS && key == GLFW_KEY_1) {
-		level_number = 1; 
-		setupLevel(level_number);
-	}
-	// load level 2
-	if (action == GLFW_PRESS && key == GLFW_KEY_2) {
-		level_number = 2; 
-		setupLevel(level_number);
-	}
-	// load level 3
-	if (action == GLFW_PRESS && key == GLFW_KEY_3) {
-		level_number = 3;
-		setupLevel(level_number);
-	}
-	// load level 4
-	if (action == GLFW_PRESS && key == GLFW_KEY_4) {
-		level_number = 4;
-		setupLevel(level_number);
+	if (action == GLFW_PRESS && key == GLFW_KEY_M) {
+		devMode = true;
 	}
 
-	if (action == GLFW_PRESS && key == GLFW_KEY_5) {
-		level_number = 5;
-		setupLevel(level_number);
-	}
-	
-	if (action == GLFW_PRESS && key == GLFW_KEY_6) {
-		level_number = 6;
-		setupLevel(level_number);
-	}
+	if (devMode == true) {
+		if (action == GLFW_PRESS && key == GLFW_KEY_0) {
+			level_number = 0;
+			setupLevel(level_number);
+		}
+		// load level 1
+		if (action == GLFW_PRESS && key == GLFW_KEY_1) {
+			level_number = 1;
+			setupLevel(level_number);
+		}
+		// load level 2
+		if (action == GLFW_PRESS && key == GLFW_KEY_2) {
+			level_number = 2;
+			setupLevel(level_number);
+		}
+		// load level 3
+		if (action == GLFW_PRESS && key == GLFW_KEY_3) {
+			level_number = 3;
+			setupLevel(level_number);
+		}
+		// load level 4
+		if (action == GLFW_PRESS && key == GLFW_KEY_4) {
+			level_number = 4;
+			setupLevel(level_number);
+		}
 
+		if (action == GLFW_PRESS && key == GLFW_KEY_5) {
+			level_number = 5;
+			setupLevel(level_number);
+		}
+
+		if (action == GLFW_PRESS && key == GLFW_KEY_6) {
+			level_number = 6;
+			setupLevel(level_number);
+		}
+
+		// Open/close door
+		if (action == GLFW_PRESS && key == GLFW_KEY_O) {
+			if (registry.doors.entities.size() == 0) {
+				createADoor(w, h);
+			}
+			else {
+				Entity door = registry.doors.entities.front();
+				registry.remove_all_components_of(door);
+			}
+		}
+		// Debug mode to get to level transition
+		if (action == GLFW_RELEASE && key == GLFW_KEY_B) {
+			while (registry.enemies.entities.size() > 0)
+				registry.remove_all_components_of(registry.enemies.entities.back());
+		}
+		// Debug mode - give player 99 dollars.
+		if (action == GLFW_RELEASE && key == GLFW_KEY_N) {
+			PlayerStat& ps1 = registry.playerStats.get(player_stat);
+			int moneyLimit = ps1.playerMoneyLimit;
+			if (twoPlayer.inTwoPlayerMode) {
+				PlayerStat& ps2 = registry.playerStats.get(player2_stat);
+				ps1.money = moneyLimit;
+				ps2.money = moneyLimit;
+				updateHudCoin(WIZARD);
+			}
+			else {
+				ps1.money = moneyLimit;
+			}
+			updateHudCoin(KNIGHT);
+		}
+
+		// Debugging
+		if (key == GLFW_KEY_Z) {
+			if (action == GLFW_RELEASE)
+				debugging.in_debug_mode = false;
+			else
+				debugging.in_debug_mode = true;
+		}
+
+	}
 
 	if (action == GLFW_RELEASE && (key == GLFW_KEY_F || key == GLFW_KEY_H || key == GLFW_KEY_G || key == GLFW_KEY_T)) {
 		player.isFiringProjectile = false;
-	}
-
-	// Open/close door
-	if (action == GLFW_PRESS && key == GLFW_KEY_O) {
-		if (registry.doors.entities.size() == 0) {
-			createADoor(w, h);
-		} else {
-			Entity door = registry.doors.entities.front();
-			registry.remove_all_components_of(door);
-		}
-	}
-	// Debug mode to get to level transition
-	if (action == GLFW_RELEASE && key == GLFW_KEY_B) {
-		while (registry.enemies.entities.size() > 0)
-			registry.remove_all_components_of(registry.enemies.entities.back());
-	}
-	// Debug mode - give player 99 dollars.
-	if (action == GLFW_RELEASE && key == GLFW_KEY_N) {
-		PlayerStat& ps1 = registry.playerStats.get(player_stat);
-		int moneyLimit = ps1.playerMoneyLimit;
-		if (twoPlayer.inTwoPlayerMode) {
-			PlayerStat& ps2 = registry.playerStats.get(player2_stat); 
-			ps1.money = moneyLimit;
-			ps2.money = moneyLimit;
-			updateHudCoin(WIZARD);
-		}
-		else {
-			ps1.money = moneyLimit;
-		}
-		updateHudCoin(KNIGHT);
-	}
-
-	// Debugging
-	if (key == GLFW_KEY_Z) {
-		if (action == GLFW_RELEASE)
-			debugging.in_debug_mode = false;
-		else
-			debugging.in_debug_mode = true;
 	}
 
 	// Switch between one player/two player

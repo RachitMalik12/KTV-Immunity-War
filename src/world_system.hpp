@@ -62,6 +62,7 @@ private:
 	int level_number;
 	std::vector<Level> levels;  
 	bool isLevelOver;
+	bool devMode = false;
 	bool isTransitionOver;
 	bool firstEntranceToShop; 
 	bool startingNewLevel = false;
