@@ -4,7 +4,7 @@
 Required Features:  
 -Gameplay III (ALL):
 
--Advanced Decision-Making (FC):
+-Advanced Decision-Making (FC): The algorithm implemented calculates H Cost (distance between the enemy and end goal) and a G Cost (distance between the enemy and next position). What happens is at the current position of the enemy, they will calculate the G+H cost of the positions up/left/right/down of it. whichever one has the lowest G+H cost, we will add to the queue. After we finish calculating and adding until we get to the player's position, we will slowly push all positions as positions to move to, creating a path to the player from the enemy that the enemy follows.
 
 -Cooperative Planning (LT):
 
