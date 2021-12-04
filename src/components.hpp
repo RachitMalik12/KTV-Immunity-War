@@ -151,12 +151,16 @@ struct EnemyGerm
 // A* Enemy
 struct EnemyAStar
 {
-	float germBehaviourUpdateTime = 1500.f;
-	float next_germ_behaviour_calculation;
-	float mode;
-	float explosionCountDown = 0;
-	float explosionCountInit = 5;
-	float playerChaseThreshold = 5;
+	float movementUpdateTime = 500.f;
+	float AStarBehaviourUpdateTime = 3000.f;
+	float next_AStar_behaviour_calculation;
+	float next_bacteria_movement;
+	float stepSizes = 200.f;
+	float distanceCloseToPlayer = 100.f;
+	std::queue<std::pair<int, int>> traversalStack;
+	bool finishedPathCalculation = false;
+	bool isXCalculationFinished = false;
+	bool isYCalculationFinished = false;
 };
 
 struct EnemySwarm {
