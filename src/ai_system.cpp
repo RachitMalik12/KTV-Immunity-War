@@ -624,21 +624,16 @@ void AISystem::stepEnemySwarm(float elapsed_ms) {
 		Enemy& swarmStatus = registry.enemies.get(swarmEntity);
 		if (!swarmStatus.isDead) {
 			if (swarm.timeToUpdateAi) {
-				if (bossMode.currentBossLevel == STAGE2) {
-					swarm.aiUpdateTimer -= 5000;
-					swarm.timeToUpdateAi = false;
-				}
-				else {
+				if (bossMode.currentBossLevel != STAGE2) {
 					swarmSpreadOut(swarmEntity);
-					swarm.timeToUpdateAi = false;
 				}
 				swarmFireProjectileAtPlayer(swarmEntity);
-				
-				swarm.aiUpdateTimer = swarm.aiUpdateTime;
+				swarm.timeToUpdateAi = false;
+				swarm.aiUpdateTimer = 0;
 			}
 			else {
-				swarm.aiUpdateTimer -= elapsed_ms;
-				if (swarm.aiUpdateTimer < 0) {
+				swarm.aiUpdateTimer += elapsed_ms;
+				if (swarm.aiUpdateTimer > swarm.aiUpdateTime) {
 					swarm.timeToUpdateAi = true;
 				}
 			}
