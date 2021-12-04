@@ -189,7 +189,6 @@ bool PhysicsSystem::doesRadiusCollide(const Motion& motion, const Motion& other_
 	return false;
 }
 
-//TODO: doesBoxCollide
 bool PhysicsSystem::doesBoxCollide(const Motion& motion, const Motion& other_motion) {
 	vec2 pos1 = motion.position;
 	vec2 pos2 = other_motion.position;

@@ -92,7 +92,6 @@ class RenderSystem {
 			textures_path("shop-arrow.png"),
 			textures_path("AStarEnemy.png"),
 			textures_path("bg_final.png"),
-			// hand, minion, fireball
 			textures_path("hand.png"),
 			textures_path("minion.png"),
 			textures_path("minioncrazy.png"),
