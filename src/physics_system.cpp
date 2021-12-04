@@ -39,17 +39,6 @@ void PhysicsSystem::handle_collision() {
 			}
 		}
 
-		// Checking collision of enemies or enemies run with walls or blocks
-		if (registry.enemies.has(entity)) {
-			if (registry.blocks.has(entity_other) || registry.walls.has(entity_other)) {
-				// start a timer and pass the enemies/enemies run's current position
-				if (!registry.stuckTimers.has(entity)) {
-					registry.stuckTimers.emplace(entity);
-					registry.stuckTimers.get(entity).stuck_pos = vec2(registry.motions.get(entity).position.x, registry.motions.get(entity).position.y);
-				}
-			}
-		}
-
 		if (registry.powerups.has(entity)) {
 			if (registry.players.has(entity_other)) {
 				//Deduct if money is available

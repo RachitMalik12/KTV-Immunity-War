@@ -14,7 +14,6 @@ public:
 	ComponentContainer<EndLevelTimer> endLevelTimers;
 	ComponentContainer<StartLevelTimer> startLevelTimers;
 	ComponentContainer<DeathTimer> deathTimers;
-	ComponentContainer<StuckTimer> stuckTimers;
 	ComponentContainer<TutorialTimer> tutorialTimers; 
 	ComponentContainer<Motion> motions;
 	ComponentContainer<Collision> collisions;
@@ -72,7 +71,6 @@ public:
 		registry_list.push_back(&startLevelTimers);
 		registry_list.push_back(&endLevelTimers);
 		registry_list.push_back(&deathTimers);
-		registry_list.push_back(&stuckTimers);
 		registry_list.push_back(&tutorialTimers); 
 		registry_list.push_back(&motions);
 		registry_list.push_back(&collisions);

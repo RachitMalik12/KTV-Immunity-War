@@ -143,7 +143,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	progressBrightenScreen(elapsed_ms_since_last_update);
 	levelCompletionCheck(elapsed_ms_since_last_update);
 	stopPlayerAtMouseDestination();
-	stuckTimer(elapsed_ms_since_last_update, screen_width, screen_height);
 	invincibilityTimer(elapsed_ms_since_last_update);
 	checkIfPlayersAreMoving();
 	animateKnight(elapsed_ms_since_last_update);
@@ -1080,26 +1079,6 @@ void WorldSystem::invincibilityTimer(float elapsed_ms_since_last_update) {
 			enemy.invinTimerInMs += elapsed_ms_since_last_update;
 			if (enemy.invinTimerInMs > enemy.invinFrame) {
 				enemy.isInvin = false;
-			}
-		}
-	}
-}
-
-void WorldSystem::stuckTimer(float elapsed_ms_since_last_update, int screen_width, int screen_height) {
-	// update Stuck timers and remove if time drops below zero, similar to the death counter
-	for (Entity entity : registry.stuckTimers.entities) {
-		StuckTimer& counter = registry.stuckTimers.get(entity);
-		// remove timer if current position is the different from "stuck" position
-		if (registry.motions.get(entity).position != counter.stuck_pos) {
-			registry.stuckTimers.remove(entity);
-		}
-		// else if entity is "stuck" in same position, progress timer
-		else {
-			// progress timer
-			counter.counter_ms -= elapsed_ms_since_last_update;
-			// remove entity (enemies/enemies run) when timer expires
-			if (counter.counter_ms < 0) {
-				registry.motions.get(entity).position = vec2(screen_width / 2.f, screen_height / 2.f);
 			}
 		}
 	}

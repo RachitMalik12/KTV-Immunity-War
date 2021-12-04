@@ -337,13 +337,6 @@ struct DeathTimer
 	float counter_ms = 3000;
 };
 
-// A timer that will be associated to enemies/enemies run being stuck
-struct StuckTimer
-{
-	float counter_ms = 4000;
-	vec2 stuck_pos = { 0, 0 };
-};
-
 // An entity that is currently in the item shop. For mouse-controlled characters.
 struct InShop 
 {
