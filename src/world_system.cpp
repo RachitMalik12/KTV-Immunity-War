@@ -143,7 +143,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	progressBrightenScreen(elapsed_ms_since_last_update);
 	levelCompletionCheck(elapsed_ms_since_last_update);
 	stopPlayerAtMouseDestination();
-	/*stuckTimer(elapsed_ms_since_last_update, screen_width, screen_height);*/
 	invincibilityTimer(elapsed_ms_since_last_update);
 	checkIfPlayersAreMoving();
 	animateKnight(elapsed_ms_since_last_update);
@@ -253,18 +252,7 @@ bool WorldSystem::is_over() const {
 void WorldSystem::on_key(int key, int, int action, int mod) {
 	int w, h;
 	glfwGetWindowSize(window, &w, &h);
-	// Resetting game
-	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
-        restart_game();
-	}
 
-	// Debugging
-	if (key == GLFW_KEY_BACKSLASH) {
-		if (action == GLFW_RELEASE) {
-			debugging.in_debug_mode = !debugging.in_debug_mode;
-		}
-	}
-	
 	Motion& player1motion = registry.motions.get(player_knight);
 	Player& player = registry.players.get(player_knight);
 	PlayerStat& playerOneStat = registry.playerStats.get(player.playerStat);
@@ -373,158 +361,182 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}	
 
-	if (action == GLFW_PRESS && key == GLFW_KEY_K) {
-		saveGame();
+	if (action == GLFW_PRESS && key == GLFW_KEY_GRAVE_ACCENT) {
+		if (devMode == false) {
+			devMode = true;
+		}
+		else {
+			devMode = false;
+		}
 	}
 
-	// level loading
-	if (action == GLFW_PRESS && key == GLFW_KEY_L) {
-		// Update player mode based on savefile
-		dataManager.setPlayerModeFromFile();
-		int player_mode_file = dataManager.getPlayerMode();
-		if (player_mode_file == 1) {
-			twoPlayer.inTwoPlayerMode = false;
+	if (devMode == true) {
+		if (action == GLFW_PRESS && key == GLFW_KEY_K) {
+			saveGame();
 		}
-		else {
-			twoPlayer.inTwoPlayerMode = true;
-		}
-		setPlayersStats(); 
 
-		if (twoPlayer.inTwoPlayerMode) {
-			dataManager.setPlayerStatEntity(player_stat, player2_stat); 
+		// Resetting game
+		if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
+			restart_game();
 		}
-		else {
-			dataManager.setPlayerStatEntity(player_stat);
-		}
-		bool loadFile = dataManager.loadFile();
-		if (!loadFile) {
-			// If load failed due to file missing,load level 1 with 1 player. 
-			twoPlayer.inTwoPlayerMode = false;
-			setupLevel(0);
-		}
-		else {
-			level_number = dataManager.getLevelNumber();
-			int playerModeFile = dataManager.getPlayerMode();
-			if (playerModeFile == 1) {
+
+		// level loading
+		if (action == GLFW_PRESS && key == GLFW_KEY_L) {
+			// Update player mode based on savefile
+			dataManager.setPlayerModeFromFile();
+			int player_mode_file = dataManager.getPlayerMode();
+			if (player_mode_file == 1) {
 				twoPlayer.inTwoPlayerMode = false;
 			}
 			else {
 				twoPlayer.inTwoPlayerMode = true;
 			}
-			setupLevel(level_number);
-		}
-	}
+			setPlayersStats();
 
-	if (action == GLFW_PRESS && key == GLFW_KEY_0) {
-		level_number = 0;
-		setupLevel(level_number);
-	}
-	// load level 1
-	if (action == GLFW_PRESS && key == GLFW_KEY_1) {
-		bossMode.currentBossLevel = none;
-		level_number = 1; 
-		setupLevel(level_number);
-	}
-	// load level 2
-	if (action == GLFW_PRESS && key == GLFW_KEY_2) {
-		bossMode.currentBossLevel = none;
-		level_number = 2; 
-		setupLevel(level_number);
-	}
-	// load level 3
-	if (action == GLFW_PRESS && key == GLFW_KEY_3) {
-		bossMode.currentBossLevel = none;
-		level_number = 3;
-		setupLevel(level_number);
-	}
-	// load level 4
-	if (action == GLFW_PRESS && key == GLFW_KEY_4) {
-		bossMode.currentBossLevel = none;
-		level_number = 4;
-		setupLevel(level_number);
-	}
-	// load level 5
-	if (action == GLFW_PRESS && key == GLFW_KEY_5) {
-		bossMode.currentBossLevel = none;
-		level_number = 5;
-		setupLevel(level_number);
-	}
-	// final level
-	if (action == GLFW_PRESS && key == GLFW_KEY_6) {
-		bossMode.currentBossLevel = none;
-		level_number = 6;
-		setupLevel(level_number);
-	}
-
-	
-	if (action == GLFW_RELEASE && (key == GLFW_KEY_F || key == GLFW_KEY_H || key == GLFW_KEY_G || key == GLFW_KEY_T)) {
-		player.isFiringProjectile = false;
-	}
-
-	// Open/close door
-	if (action == GLFW_PRESS && key == GLFW_KEY_O) {
-		if (registry.doors.entities.size() == 0) {
-			createADoor(w, h);
-		} else {
-			Entity door = registry.doors.entities.front();
-			registry.remove_all_components_of(door);
-		}
-	}
-	// Debug mode to get to level transition
-	if (action == GLFW_RELEASE && key == GLFW_KEY_B) {
-		while (registry.enemies.entities.size() > 0)
-			registry.remove_all_components_of(registry.enemies.entities.back());
-	}
-	// Debug mode - give player 99 dollars.
-	if (action == GLFW_RELEASE && key == GLFW_KEY_N) {
-		PlayerStat& ps1 = registry.playerStats.get(player_stat);
-		int moneyLimit = ps1.playerMoneyLimit;
-		if (twoPlayer.inTwoPlayerMode) {
-			PlayerStat& ps2 = registry.playerStats.get(player2_stat); 
-			ps1.money = moneyLimit;
-			ps2.money = moneyLimit;
-			updateHudCoin(WIZARD);
-		}
-		else {
-			ps1.money = moneyLimit;
-		}
-		updateHudCoin(KNIGHT);
-	}
-
-	// Debugging
-	if (key == GLFW_KEY_Z) {
-		if (action == GLFW_RELEASE)
-			debugging.in_debug_mode = false;
-		else
-			debugging.in_debug_mode = true;
-	}
-
-	// Switch between one player/two player
-	if (action == GLFW_PRESS && key == GLFW_KEY_X) {
-		playerTwoJoinOrLeave();
-	}
-
-	// Control if in help mode or not
-	if (action == GLFW_RELEASE && key == GLFW_KEY_P) {
-		if (helpMode.inHelpMode) {
-			helpMode.inHelpMode = false;
-			for (Entity entity : registry.helpModes.entities) {
-				registry.remove_all_components_of(entity);
+			if (twoPlayer.inTwoPlayerMode) {
+				dataManager.setPlayerStatEntity(player_stat, player2_stat);
+			}
+			else {
+				dataManager.setPlayerStatEntity(player_stat);
+			}
+			bool loadFile = dataManager.loadFile();
+			if (!loadFile) {
+				// If load failed due to file missing,load level 1 with 1 player. 
+				twoPlayer.inTwoPlayerMode = false;
+				setupLevel(0);
+			}
+			else {
+				level_number = dataManager.getLevelNumber();
+				int playerModeFile = dataManager.getPlayerMode();
+				if (playerModeFile == 1) {
+					twoPlayer.inTwoPlayerMode = false;
+				}
+				else {
+					twoPlayer.inTwoPlayerMode = true;
+				}
+				setupLevel(level_number);
 			}
 		}
-		else {
-			helpMode.inHelpMode = true;
-			createHelp();
+
+		// Debugging
+		if (key == GLFW_KEY_BACKSLASH) {
+			if (action == GLFW_RELEASE) {
+				debugging.in_debug_mode = !debugging.in_debug_mode;
+			}
+		}
+
+		if (action == GLFW_PRESS && key == GLFW_KEY_0) {
+			bossMode.currentBossLevel = none;
+			level_number = 0;
+			setupLevel(level_number);
+		}
+		// load level 1
+		if (action == GLFW_PRESS && key == GLFW_KEY_1) {
+			bossMode.currentBossLevel = none;
+			level_number = 1;
+			setupLevel(level_number);
+		}
+		// load level 2
+		if (action == GLFW_PRESS && key == GLFW_KEY_2) {
+			bossMode.currentBossLevel = none;
+			level_number = 2;
+			setupLevel(level_number);
+		}
+		// load level 3
+		if (action == GLFW_PRESS && key == GLFW_KEY_3) {
+			bossMode.currentBossLevel = none;
+			level_number = 3;
+			setupLevel(level_number);
+		}
+		// load level 4
+		if (action == GLFW_PRESS && key == GLFW_KEY_4) {
+			bossMode.currentBossLevel = none;
+			level_number = 4;
+			setupLevel(level_number);
+		}
+
+		if (action == GLFW_PRESS && key == GLFW_KEY_5) {
+			bossMode.currentBossLevel = none;
+			level_number = 5;
+			setupLevel(level_number);
+		}
+
+		if (action == GLFW_PRESS && key == GLFW_KEY_6) {
+			bossMode.currentBossLevel = none;
+			level_number = 6;
+			setupLevel(level_number);
+		}
+
+		// Open/close door
+		if (action == GLFW_PRESS && key == GLFW_KEY_O) {
+			if (registry.doors.entities.size() == 0) {
+				createADoor(w, h);
+			}
+			else {
+				Entity door = registry.doors.entities.front();
+				registry.remove_all_components_of(door);
+			}
+		}
+		// Debug mode to get to level transition
+		if (action == GLFW_RELEASE && key == GLFW_KEY_B) {
+			while (registry.enemies.entities.size() > 0)
+				registry.remove_all_components_of(registry.enemies.entities.back());
+		}
+		// Debug mode - give player 99 dollars.
+		if (action == GLFW_RELEASE && key == GLFW_KEY_N) {
+			PlayerStat& ps1 = registry.playerStats.get(player_stat);
+			int moneyLimit = ps1.playerMoneyLimit;
+			if (twoPlayer.inTwoPlayerMode) {
+				PlayerStat& ps2 = registry.playerStats.get(player2_stat);
+				ps1.money = moneyLimit;
+				ps2.money = moneyLimit;
+				updateHudCoin(WIZARD);
+			}
+			else {
+				ps1.money = moneyLimit;
+			}
+			updateHudCoin(KNIGHT);
+		}
+
+		// Debugging
+		if (key == GLFW_KEY_Z) {
+			if (action == GLFW_RELEASE)
+				debugging.in_debug_mode = false;
+			else
+				debugging.in_debug_mode = true;
+		}
+
+		// Switch between one player/two player
+		if (action == GLFW_PRESS && key == GLFW_KEY_X) {
+			playerTwoJoinOrLeave();
+		}
+
+		// Control if in help mode or not
+		if (action == GLFW_RELEASE && key == GLFW_KEY_P) {
+			if (helpMode.inHelpMode) {
+				helpMode.inHelpMode = false;
+				for (Entity entity : registry.helpModes.entities) {
+					registry.remove_all_components_of(entity);
+				}
+			}
+			else {
+				helpMode.inHelpMode = true;
+				createHelp();
+			}
+		}
+
+		// storymode
+		if (action == GLFW_RELEASE && key == GLFW_KEY_SPACE && storyMode.firstLoad) {
+			storyClicker();
+		}
+
+		if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE && !helpMode.isOnTopInGameMenu) {
+			toggleInGameMenu();
 		}
 	}
 
-	// storymode
-	if (action == GLFW_RELEASE && key == GLFW_KEY_SPACE && storyMode.firstLoad) {
-		storyClicker();
-	}
-
-	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE && !helpMode.isOnTopInGameMenu) {
-		toggleInGameMenu();
+	if (action == GLFW_RELEASE && (key == GLFW_KEY_F || key == GLFW_KEY_H || key == GLFW_KEY_G || key == GLFW_KEY_T)) {
+		player.isFiringProjectile = false;
 	}
 }
 
@@ -1085,26 +1097,6 @@ void WorldSystem::invincibilityTimer(float elapsed_ms_since_last_update) {
 			enemy.invinTimerInMs += elapsed_ms_since_last_update;
 			if (enemy.invinTimerInMs > enemy.invinFrame) {
 				enemy.isInvin = false;
-			}
-		}
-	}
-}
-
-void WorldSystem::stuckTimer(float elapsed_ms_since_last_update, int screen_width, int screen_height) {
-	// update Stuck timers and remove if time drops below zero, similar to the death counter
-	for (Entity entity : registry.stuckTimers.entities) {
-		StuckTimer& counter = registry.stuckTimers.get(entity);
-		// remove timer if current position is the different from "stuck" position
-		if (registry.motions.get(entity).position != counter.stuck_pos) {
-			registry.stuckTimers.remove(entity);
-		}
-		// else if entity is "stuck" in same position, progress timer
-		else {
-			// progress timer
-			counter.counter_ms -= elapsed_ms_since_last_update;
-			// remove entity (enemies/enemies run) when timer expires
-			if (counter.counter_ms < 0) {
-				registry.motions.get(entity).position = vec2(screen_width / 2.f, screen_height / 2.f);
 			}
 		}
 	}

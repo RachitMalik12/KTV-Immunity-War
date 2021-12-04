@@ -28,6 +28,8 @@ const float ENEMYBACTERIA_BB_HEIGHT = 0.11f * 691.f;
 const float ENEMYBACTERIA_BB_WIDTH = 0.11f * 800.f;
 const float ENEMYGERM_BB_HEIGHT = 0.11f * 691.f;
 const float ENEMYGERM_BB_WIDTH = 0.11f * 800.f;
+const float ENEMYASTAR_BB_HEIGHT = 0.11f * 550.f;
+const float ENEMYASTAR_BB_WIDTH = 0.11f * 700.f;
 const float ENEMYCHASE_BB_HEIGHT = 0.05f * 1024.f;
 const float ENEMYCHASE_BB_WIDTH = 0.05f * 1258.f;
 const float ENEMYMINION_BB_WH = 0.1f*820.f;
@@ -125,8 +127,11 @@ Entity createEnemyHunter(RenderSystem* renderer, vec2 position);
 // BFS enemy
 Entity createEnemyBacteria(RenderSystem* renderer, vec2 position);
 
-// BFS enemy
+// Chase enemy
 Entity createEnemyChase(RenderSystem* renderer, vec2 position);
+
+// AStar enemy
+Entity createEnemyAStar(RenderSystem* renderer, vec2 position);
 
 // Behaviour Tree enemy
 Entity createEnemyGerm(RenderSystem* renderer, vec2 position);

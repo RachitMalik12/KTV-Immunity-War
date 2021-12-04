@@ -151,7 +151,20 @@ struct EnemyGerm
 	float playerChaseThreshold = 5;
 };
 
-
+// A* Enemy
+struct EnemyAStar
+{
+	float movementUpdateTime = 200.f;
+	float AStarBehaviourUpdateTime = 1500.f;
+	float next_AStar_behaviour_calculation;
+	float next_bacteria_movement;
+	float stepSizes = 200.f;
+	float distanceCloseToPlayer = 100.f;
+	std::queue<std::pair<int, int>> traversalQueue;
+	bool finishedPathCalculation = false;
+	bool isXCalculationFinished = false;
+	bool isYCalculationFinished = false;
+};
 
 struct EnemySwarm {
 	float aiUpdateTime = 3000.f;
@@ -339,13 +352,6 @@ struct StartLevelTimer
 struct DeathTimer
 {
 	float counter_ms = 3000;
-};
-
-// A timer that will be associated to enemies/enemies run being stuck
-struct StuckTimer
-{
-	float counter_ms = 4000;
-	vec2 stuck_pos = { 0, 0 };
 };
 
 // An entity that is currently in the item shop. For mouse-controlled characters.
@@ -578,7 +584,8 @@ enum class TEXTURE_ASSET_ID {
 	SMALLETTER = CAPSLETTER + 1,
 	TUTINSTRUCTIONS = SMALLETTER + 1,
 	ARROW = TUTINSTRUCTIONS + 1,
-	FINALBACKGROUND = ARROW + 1,
+	ENEMYASTAR = ARROW + 1,
+	FINALBACKGROUND = ENEMYASTAR + 1,
 	HAND = FINALBACKGROUND+1,
 	MINION = HAND+1,
 	MINIONCRAZY = MINION+1,

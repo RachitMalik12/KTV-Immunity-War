@@ -14,7 +14,6 @@ public:
 	ComponentContainer<EndLevelTimer> endLevelTimers;
 	ComponentContainer<StartLevelTimer> startLevelTimers;
 	ComponentContainer<DeathTimer> deathTimers;
-	ComponentContainer<StuckTimer> stuckTimers;
 	ComponentContainer<TutorialTimer> tutorialTimers; 
 	ComponentContainer<Motion> motions;
 	ComponentContainer<Collision> collisions;
@@ -42,6 +41,7 @@ public:
 	ComponentContainer<EnemyGerm> enemyGerms;
 	ComponentContainer<EnemyChase> enemyChase;
 	ComponentContainer<EnemySwarm> enemySwarms;
+	ComponentContainer<EnemyAStar> enemyAStars;
 	ComponentContainer<EnemyBoss> enemyBoss;
 	ComponentContainer<EnemyBossHand> enemyBossHand;
 	ComponentContainer<Powerup> powerups; 
@@ -73,7 +73,6 @@ public:
 		registry_list.push_back(&startLevelTimers);
 		registry_list.push_back(&endLevelTimers);
 		registry_list.push_back(&deathTimers);
-		registry_list.push_back(&stuckTimers);
 		registry_list.push_back(&tutorialTimers); 
 		registry_list.push_back(&motions);
 		registry_list.push_back(&collisions);
@@ -100,7 +99,8 @@ public:
 		registry_list.push_back(&enemyBacterias);
 		registry_list.push_back(&enemyGerms);
 		registry_list.push_back(&enemyChase);
-		registry_list.push_back(&enemySwarms); 
+		registry_list.push_back(&enemySwarms);
+		registry_list.push_back(&enemyAStars);
 		registry_list.push_back(&enemyBoss);
 		registry_list.push_back(&enemyBossHand);
 		registry_list.push_back(&powerups);

@@ -7,6 +7,7 @@ void AISystem::step(float elapsed_ms, float width, float height) {
 	stepEnemyChase(elapsed_ms);
 	stepEnemySwarm(elapsed_ms);
 	stepEnemyGerm(elapsed_ms);
+	stepEnemyAStar(elapsed_ms, width, height);
 }
 
 void AISystem::stepEnemyHunter(float elapsed_ms) {
@@ -258,7 +259,6 @@ void AISystem::stepEnemyGerm(float elapsed_ms) {
 
 			// BTNode (node that is a condition, and if condition is met, will run the child node that is passed in)
 			BTIfCondition chase = BTIfCondition(&chasePlayer, conditionChasePlayer);
-			
 			// BTNode (leaf node, a process that will be run if reached)
 			Explode explode;
 
@@ -773,4 +773,171 @@ Entity AISystem::pickAPlayer() {
 		}
 	}
 	return playerEntity;
+}
+
+int AISystem::findMin(vec2 upSumCost, vec2 rightSumCost, vec2 downSumCost, vec2 leftSumCost) {
+	float currMin = INT_MAX;
+	int currMinPosition = -1;
+	// UP
+	if (upSumCost.x + upSumCost.y < currMin) {
+		currMin = upSumCost.x + upSumCost.y;
+		currMinPosition = 0;
+	}	// RIGHT
+	if (rightSumCost.x + rightSumCost.y < currMin) {
+		currMin = rightSumCost.x + rightSumCost.y;
+		currMinPosition = 1;
+	}	// DOWN
+	if (downSumCost.x + downSumCost.y < currMin) {
+		currMin = downSumCost.x + downSumCost.y;
+		currMinPosition = 2;
+	}	// LEFT
+	if (leftSumCost.x + leftSumCost.y < currMin) {
+		currMin = leftSumCost.x + leftSumCost.y;
+		currMinPosition = 3;
+	}
+	return currMinPosition;
+}
+
+vec2 AISystem::findFinalPosition(vec2 currNode, Entity& enemy, float width, float height, int currMinPosition) {
+	int finX = currNode.x;
+	int finY = currNode.y;
+
+	// depending on the min direction, choose that one, and made it the finX, finY
+	switch (currMinPosition) {
+	case 0: // up
+		if (currNode.y - registry.enemyAStars.get(enemy).stepSizes > 0.f) {
+			finY = currNode.y - registry.enemyAStars.get(enemy).stepSizes;
+		}
+		break;
+	case 1: // right
+		if (currNode.x + registry.enemyAStars.get(enemy).stepSizes < width) {
+			finX = currNode.x + registry.enemyAStars.get(enemy).stepSizes;
+		}
+		break;
+	case 2: // down
+		if (currNode.y + registry.enemyAStars.get(enemy).stepSizes < height) {
+			finY = currNode.y + registry.enemyAStars.get(enemy).stepSizes;
+		}
+		break;
+	case 3: // left
+		if (currNode.x - registry.enemyAStars.get(enemy).stepSizes > 0.f) {
+			finX = currNode.x - registry.enemyAStars.get(enemy).stepSizes;
+		}
+		break;
+	default:
+		break;
+	}
+
+	return { finX, finY };
+
+}
+
+vec2 AISystem::nextNode(vec2 currNode, Entity& player, Entity& enemy, float width, float height) {
+	Motion& motionAStar = registry.motions.get(enemy);
+	Motion& motionPlayer = registry.motions.get(player);
+	// Calculate H Cost value (distance between current node and the end position) and G Cost (distance between current node and the NEXT position)
+	// Add the sum of these two.
+	vec2 upHCost = abs(calculateHCost(motionPlayer, { currNode.x, currNode.y - registry.enemyAStars.get(enemy).stepSizes }));
+	vec2 upSumCost = abs(calculateGCost(enemy, 0)) + upHCost;
+
+	// RIGHT
+	vec2 rightHCost = abs(calculateHCost(motionPlayer, { currNode.x + registry.enemyAStars.get(enemy).stepSizes, currNode.y }));
+	vec2 rightSumCost = abs(calculateGCost(enemy, 1)) + rightHCost;
+
+	// DOWN
+	vec2 downHCost = abs(calculateHCost(motionPlayer, { currNode.x, currNode.y + registry.enemyAStars.get(enemy).stepSizes }));
+	vec2 downSumCost = abs(calculateGCost(enemy, 2)) + downHCost;
+
+	// LEFT
+	vec2 leftHCost = abs(calculateHCost(motionPlayer, { currNode.x - registry.enemyAStars.get(enemy).stepSizes, currNode.y }));
+	vec2 leftSumCost = abs(calculateGCost(enemy, 3)) + leftHCost;
+	// Find the min of all the values
+	
+	int currMinPosition = findMin(upSumCost, rightSumCost, downSumCost, leftSumCost);
+	vec2 finalPosition = findFinalPosition(currNode, enemy, width, height, currMinPosition);
+
+	// push the next node the queue and return the node
+	std::pair<int, int> currPosition = { finalPosition.x , finalPosition.y };
+	registry.enemyAStars.get(enemy).traversalQueue.push(currPosition);
+	return { finalPosition.x, finalPosition.y };
+}
+
+// Distance between enemy and endgoal
+vec2 AISystem::calculateHCost(const Motion& player, vec2 currNode) {
+	float distanceX = abs(player.position.x - currNode.x);
+	float distanceY = abs(player.position.y - currNode.y);
+
+	return { distanceX, distanceY };
+}
+
+// Distance between enemy and next position
+vec2 AISystem::calculateGCost(Entity& enemy, int dir) {
+	float distanceX = 0.f;
+	float distanceY = 0.f;
+	if (dir == 0) {			// up
+		distanceY = registry.enemyAStars.get(enemy).stepSizes;
+	}
+	else if (dir == 1) {	// right
+		distanceX = registry.enemyAStars.get(enemy).stepSizes;
+	}
+	else if (dir == 2) {	// down
+		distanceY = registry.enemyAStars.get(enemy).stepSizes;
+	}
+	else if (dir == 3) {	// left
+		distanceX = registry.enemyAStars.get(enemy).stepSizes;
+	}
+
+	return { distanceX, distanceY };
+}
+
+void AISystem::handleAStarPathCalculation(Entity& player, Entity& enemy, float width, float height) {
+	Motion& motionAStar = registry.motions.get(enemy);
+	Motion& motionPlayer = registry.motions.get(player);
+	vec2 finNode = { motionPlayer.position.x, motionPlayer.position.y };
+
+	vec2 currNode = { motionAStar.position.x, motionAStar.position.y };
+	while (abs(currNode.x - finNode.x) > registry.enemyAStars.get(enemy).distanceCloseToPlayer 
+		&& abs(currNode.y - finNode.y) > registry.enemyAStars.get(enemy).distanceCloseToPlayer) {
+		currNode = nextNode(currNode, player, enemy, width, height);
+	}
+}
+
+void AISystem::pathCalculationInit(Entity& enemyAStar, float width, float height) {
+	EnemyAStar& aStarEnemy = registry.enemyAStars.get(enemyAStar);
+	aStarEnemy.finishedPathCalculation = false;
+	aStarEnemy.next_AStar_behaviour_calculation = aStarEnemy.AStarBehaviourUpdateTime;
+	Entity player = pickAPlayer();
+	Motion& playerMotion = registry.motions.get(player);
+	handleAStarPathCalculation(player, enemyAStar, width, height);
+}
+
+void AISystem::stepMovement(Entity& enemyAStar) {
+	EnemyAStar& aStarEnemy = registry.enemyAStars.get(enemyAStar);
+	Motion AStarMotion = registry.motions.get(enemyAStar);
+	aStarEnemy.next_bacteria_movement = aStarEnemy.movementUpdateTime;
+	if (!aStarEnemy.traversalQueue.empty()) {
+		std::pair<int, int> currPosition = { -1 , -1 };
+		currPosition = aStarEnemy.traversalQueue.front();
+		aStarEnemy.traversalQueue.pop();
+		moveToSpot(AStarMotion.position.x, AStarMotion.position.y, currPosition.first, currPosition.second, enemyAStar);
+	}
+}
+
+void AISystem::stepEnemyAStar(float elapsed_ms, float width, float height) {
+	for (Entity& entityAStar : registry.enemyAStars.entities) {  
+		Enemy& enemy = registry.enemies.get(entityAStar);
+		Motion AStarMotion = registry.motions.get(entityAStar);
+		EnemyAStar& aStarEnemy = registry.enemyAStars.get(entityAStar);
+		if (!enemy.isDead) {
+			aStarEnemy.next_AStar_behaviour_calculation -= elapsed_ms;
+			aStarEnemy.next_bacteria_movement -= elapsed_ms;
+			if (aStarEnemy.next_AStar_behaviour_calculation < 0.f) {
+				pathCalculationInit(entityAStar, width, height);
+			}
+
+			if (aStarEnemy.next_bacteria_movement < 0.f) {
+				stepMovement(entityAStar);
+			}
+		}
+	}
 }
