@@ -440,15 +440,13 @@ Entity createEnemyAStar(RenderSystem* renderer, vec2 position) {
 	auto entity = Entity();
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
-	Mesh& hitbox = renderer->getMesh(GEOMETRY_BUFFER_ID::ASTAR);
-	registry.hitboxes.emplace(entity, &hitbox);
 
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
 	motion.velocity = vec2(0, 0);
 	motion.position = position;
 
-	motion.scale = vec2({ ENEMYGERM_BB_WIDTH * defaultResolution.scaling, ENEMYGERM_BB_HEIGHT * defaultResolution.scaling });
+	motion.scale = vec2({ ENEMYASTAR_BB_WIDTH * defaultResolution.scaling, ENEMYASTAR_BB_HEIGHT * defaultResolution.scaling });
 
 	registry.enemies.emplace(entity);
 	registry.enemyAStars.emplace(entity);
