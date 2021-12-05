@@ -374,7 +374,6 @@ void PhysicsSystem::bounceEnemies(Entity curEntity, bool hitABlock) {
 			Motion& motion = registry.motions.get(curEntity);
 			float wallBounceVelocityDecreaseFactor = -0.8f;
 			motion.velocity = vec2(motion.velocity.x * wallBounceVelocityDecreaseFactor, motion.velocity.y * wallBounceVelocityDecreaseFactor);
-			std::cout << motion.velocity.x << std::endl;
 		}
 	}
 }
