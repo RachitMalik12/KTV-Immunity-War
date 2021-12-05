@@ -583,9 +583,9 @@ Entity createEnemySwarm(RenderSystem* renderer, vec2 position) {
 	swarm.projectileSpeed = swarm.projectileSpeed * defaultResolution.scaling;
 	auto& enemyCom = registry.enemies.get(entity);
 	enemyCom.damage = 1;
-	enemyCom.hp = 3;
+	enemyCom.hp = 6;
 	enemyCom.max_hp = enemyCom.hp;
-	enemyCom.loot = 1;
+	enemyCom.loot = 2;
 	enemyCom.speed = 100.f * defaultResolution.scaling;
 	motion.velocity = vec2(0, 0);
 
