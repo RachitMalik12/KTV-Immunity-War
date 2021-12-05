@@ -287,7 +287,7 @@ Entity createEnemyBlob(RenderSystem* renderer, vec2 position)
 	enemyCom.damage = 1;
 	enemyCom.hp = 3;
 	enemyCom.max_hp = enemyCom.hp;
-	enemyCom.loot = 1;
+	enemyCom.loot = 2;
 	enemyCom.speed = 200.f * defaultResolution.scaling;
 	motion.velocity = vec2(0.f, enemyCom.speed);
 
@@ -356,10 +356,10 @@ Entity createEnemyRun(RenderSystem* renderer, vec2 position)
 	// Set enemy attributes
 	auto& enemyCom = registry.enemies.get(entity);
 	enemyCom.damage = 1;
-	enemyCom.hp = 2;
+	enemyCom.hp = 3;
 	enemyCom.max_hp = enemyCom.hp;
-	enemyCom.loot = 1;
-	enemyCom.speed = 200.f * defaultResolution.scaling;
+	enemyCom.loot = 2;
+	enemyCom.speed = 150.f * defaultResolution.scaling;
 	motion.velocity = vec2(uniform_dist(rng) * enemyCom.speed, uniform_dist(rng) * enemyCom.speed);;
 
 	registry.renderRequests.insert(
