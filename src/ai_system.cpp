@@ -731,24 +731,19 @@ void AISystem::swarmFireProjectileAtPlayer(Entity swarmEntity) {
 void AISystem::stepEnemyCoord(float elapsed_ms, float width, float height) {
 	for (Entity headEntity : registry.enemyCoordHeads.entities) {
 		EnemyCoordHead& head = registry.enemyCoordHeads.get(headEntity);
-		Enemy& headStatus = registry.enemies.get(headEntity);
-		Entity tailEntity = head.belongToTail;
-		EnemyCoordTail& tail = registry.enemyCoordTails.get(tailEntity);
-		if (!headStatus.isDead) {
-			moveAwayfromOtherCoord(headEntity, tailEntity, elapsed_ms);
-		};
-		if (head.isHeadStuck) {
-			head.stuckUpdateTimer -= elapsed_ms;
-			if (head.stuckUpdateTimer < 0) {
-				head.isHeadStuck = false;
-				head.stuckUpdateTimer = head.stuckUpdateTime;
-				Motion& headMotion = registry.motions.get(headEntity);
-				// randomize pos if the current pos is the same as when head was first stuck
-				if (head.stuckPosition == headMotion.position) {
-					float randomNumBetweenZeroAndScreenWidth = uniform_dist(rng) * (width - 100) * defaultResolution.scaling;
-					float randomNumBetweenZeroAndScreenHeight = uniform_dist(rng) * (height - 100) * defaultResolution.scaling;
-					headMotion.position = { randomNumBetweenZeroAndScreenWidth, randomNumBetweenZeroAndScreenHeight};
-				}
+		if (head.timeToUpdateAi) {
+			Enemy& headStatus = registry.enemies.get(headEntity);
+			Entity tailEntity = head.belongToTail;
+			if (!headStatus.isDead) {
+				moveAwayfromOtherCoord(headEntity, tailEntity, elapsed_ms);
+			}
+			head.aiUpdateTimer = 0;
+			head.timeToUpdateAi = false;
+		}
+		else {
+			head.aiUpdateTimer += head.aiUpdateTime;
+			if (head.aiUpdateTimer > head.aiUpdateTime) {
+				head.timeToUpdateAi = true;
 			}
 		}
 	}
@@ -802,23 +797,12 @@ void AISystem::moveAwayfromOtherCoord(Entity enemyEntity, Entity otherEnemyEntit
 					handleCoordEnemyUpdate(player1Motion, enemyMotion, otherEnemyMotion, enemyEntity, otherEnemyEntity);
 				}
 				else {
-					if (enemyHead.timeToUpdateAi) {
-						setEnemyWonderingRandomly(enemyEntity);
-						setEnemyWonderingRandomly(otherEnemyEntity);
-						enemyHead.timeToUpdateAi = false;
-						enemyHead.aiUpdateTimer = enemyHead.aiUpdateTime;
-					}
-					else {
-						enemyHead.aiUpdateTimer -= elapsed_ms;
-						if (enemyHead.aiUpdateTimer < 0) {
-							enemyHead.timeToUpdateAi = true;
-						}
-					}
+					setEnemyWonderingRandomly(enemyEntity);
+					setEnemyWonderingRandomly(otherEnemyEntity);
 				}
 			}
 		}
 	}
-	// TODO: if tail too close to player, then head increases speed?
 }
 
 void AISystem::handleCoordEnemyUpdate(Motion& playerMotion, Motion& enemyMotion, Motion& otherEnemyMotion, Entity enemyEntity, Entity otherEnemyEntity) {

@@ -612,7 +612,8 @@ Entity createEnemyCoordHead(RenderSystem* renderer, vec2 position) {
 	motion.scale = vec2({ ENEMYHEAD_BB_WIDTH * defaultResolution.scaling, ENEMYHEAD_BB_HEIGHT * defaultResolution.scaling });
 	auto& enemyCom = registry.enemies.emplace(entity);
 	// Set enemy attributes
-	registry.enemyCoordHeads.emplace(entity);
+	auto& head = registry.enemyCoordHeads.emplace(entity);
+	head.minDistFromTail *= defaultResolution.scaling;
 	enemyCom.damage = 1;
 	enemyCom.hp = 4;
 	enemyCom.max_hp = enemyCom.hp;
@@ -643,8 +644,9 @@ Entity createEnemyCoordTail(RenderSystem* renderer, vec2 position) {
 	motion.scale = vec2({ ENEMYTAIL_BB_WIDTH * defaultResolution.scaling, ENEMYTAIL_BB_HEIGHT * defaultResolution.scaling });
 	registry.enemies.emplace(entity);
 	// Set enemy attributes
-	registry.enemyCoordTails.emplace(entity);
+	auto& tail = registry.enemyCoordTails.emplace(entity);
 	auto& enemyCom = registry.enemies.get(entity);
+	tail.minDistFromHead *= defaultResolution.scaling;
 	enemyCom.damage = 1;
 	enemyCom.hp = 100;
 	enemyCom.max_hp = enemyCom.hp;

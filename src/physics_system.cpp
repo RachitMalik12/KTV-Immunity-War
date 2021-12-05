@@ -374,18 +374,8 @@ void PhysicsSystem::bounceEnemies(Entity curEntity, bool hitABlock) {
 			Motion& motion = registry.motions.get(curEntity);
 			float wallBounceVelocityDecreaseFactor = -0.8f;
 			motion.velocity = vec2(motion.velocity.x * wallBounceVelocityDecreaseFactor, motion.velocity.y * wallBounceVelocityDecreaseFactor);
+			std::cout << motion.velocity.x << std::endl;
 		}
-
-		// if not already marked as stuck, then mark as stuck so can start stuck timer
-		if (registry.enemyCoordHeads.has(curEntity)) {
-			EnemyCoordHead& head = registry.enemyCoordHeads.get(curEntity);
-			if (!head.isHeadStuck) {
-				head.isHeadStuck = true;
-				Motion& motion = registry.motions.get(curEntity);
-				head.stuckPosition = motion.position;
-			}
-		}
-
 	}
 }
 

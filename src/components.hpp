@@ -177,20 +177,14 @@ struct EnemySwarm {
 };
 
 struct EnemyCoordHead {
-	float aiUpdateTime = 4000.f;
+	float aiUpdateTime = 2000.f;
 	float aiUpdateTimer = 0;
-	bool timeToUpdateAi = false;
+	bool timeToUpdateAi = true;
 	float minDistFromTail = 300.f;
 	Entity belongToTail;
-	float stuckUpdateTime = 1000.f;
-	float stuckUpdateTimer = 0;
-	bool isHeadStuck = false;
-	vec2 stuckPosition = { 0,0 };
 };
 
 struct EnemyCoordTail {
-	float aiUpdateTime = 1000.f;
-	float aiUpdateTimer = 0;
 	float minDistFromHead = 300.f;
 };
 
