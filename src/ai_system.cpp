@@ -818,7 +818,7 @@ void AISystem::moveAwayfromOtherCoord(Entity enemyEntity, Entity otherEnemyEntit
 			}
 		}
 	}
-	// maybe: if tail too close to player, then head increases speed? (after everything else implemented)
+	// TODO: if tail too close to player, then head increases speed?
 }
 
 void AISystem::handleCoordEnemyUpdate(Motion& playerMotion, Motion& enemyMotion, Motion& otherEnemyMotion, Entity enemyEntity, Entity otherEnemyEntity) {
