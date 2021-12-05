@@ -741,7 +741,7 @@ void AISystem::stepEnemyCoord(float elapsed_ms, float width, float height) {
 			head.timeToUpdateAi = false;
 		}
 		else {
-			head.aiUpdateTimer += head.aiUpdateTime;
+			head.aiUpdateTimer += elapsed_ms;
 			if (head.aiUpdateTimer > head.aiUpdateTime) {
 				head.timeToUpdateAi = true;
 			}
