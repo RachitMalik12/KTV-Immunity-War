@@ -17,7 +17,7 @@ to make a good choice. From a technical perspective, this required rendering tex
 I also had to add some logic to render a sentence on screen correctly to ensure the position and scaling was correct for all resolutions. In addition, a timer to ensure the 
 tutorial enemies appear after exactly 7 secs was implemented. 
 
--Game Balance (BS):
+-Game Balance (BS): Initially, we made some analysis based off of the example given in class, where we balanced money rewards with respect to health. However, it was overengineered, as well as fundamentally flawed; Because the cost of powerups remains constant, it didn't really make much sense to award more money, and this problem was reflected in practical testing. Thus, the idea was scrapped, but the notebook showing the initial analysis is included. Rather, we balanced enemy health with respect to level, where the goal was to make subsequent levels linearly more difficult. Details on the new, final analysis is included in the PDF.
 
 -Audio Feedback (BS): Audio feedback for menu click, player damage, enemy damage, attacks, movement, BGM, purchase, level start/end.
 
