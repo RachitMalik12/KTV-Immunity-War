@@ -42,6 +42,9 @@ private:
 	void stepEnemyGerm(float elapsed_ms);
 	void stepEnemyBacteria(float elapsed_ms, const float width, const float height);
 	void stepEnemySwarm(float elapsed_ms);
+	void stepEnemyCoord(float elapsed_ms, float width, float height);
+	void moveAwayfromOtherCoord(Entity enemyEntity, Entity otherEnemyEntity, float elapsed_ms);
+	void handleCoordEnemyUpdate(Motion& playerMotion, Motion& enemyMotion, Motion& otherEnemyMotion, Entity enemyEntity, Entity otherEnemyEntity);
 	void stepEnemyBoss(float elapsed_ms);
 	bool handlePath(float width, float height, Entity& bacteriaEntity);
 	void bfsSearchPath(float initX, float initY, float finX, float finY, Entity& bacteriaEntity, float width, float height);

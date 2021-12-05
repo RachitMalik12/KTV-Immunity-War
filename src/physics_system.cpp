@@ -375,7 +375,6 @@ void PhysicsSystem::bounceEnemies(Entity curEntity, bool hitABlock) {
 			float wallBounceVelocityDecreaseFactor = -0.8f;
 			motion.velocity = vec2(motion.velocity.x * wallBounceVelocityDecreaseFactor, motion.velocity.y * wallBounceVelocityDecreaseFactor);
 		}
-
 	}
 }
 
@@ -551,6 +550,20 @@ void PhysicsSystem::enemyHitStatUpdate(Entity enemyEntity, Entity playerEntity, 
 				updateHudCoin(WIZARD);
 			}
 			enemyCom.isDead = true;
+
+			// if dead enemy is head, make tail die too
+			if (registry.enemyCoordHeads.has(enemyEntity)) {
+				Entity& tailEnemy = registry.enemyCoordHeads.get(enemyEntity).belongToTail;
+				DeadEnemy& deadTailEnemy = registry.deadEnemies.emplace(tailEnemy);
+				Motion& tailMotion = registry.motions.get(tailEnemy);
+				tailMotion.velocity = vec2(0, 0);
+				if (playerEntity.getId() == registry.players.entities.front()) {
+					deadTailEnemy.gotCut = true;
+				}
+				Enemy& enemyTailCom = registry.enemies.get(enemyEntity);
+				enemyTailCom.isDead = true;
+				enemyTailCom.hp = 0;
+			}
 		}
 		else {
 			enemyCom.isInvin = true;

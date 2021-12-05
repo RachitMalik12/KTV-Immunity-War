@@ -176,6 +176,18 @@ struct EnemySwarm {
 	bool isAnimatingHurt = false;
 };
 
+struct EnemyCoordHead {
+	float aiUpdateTime = 2000.f;
+	float aiUpdateTimer = 0;
+	bool timeToUpdateAi = true;
+	float minDistFromTail = 300.f;
+	Entity belongToTail;
+};
+
+struct EnemyCoordTail {
+	float minDistFromHead = 300.f;
+};
+
 struct EnemyBoss {
 	float aiUpdateInterval = 1500.f;
 	float aiUpdateTimer = 0;
@@ -312,7 +324,6 @@ struct Lighting {
 // Sets the brightness of the screen
 struct ScreenState
 {
-	float darken_screen_factor = -1;
 	float brighten_screen_factor = -1;
 	int game_over_factor = 0;
 };
@@ -328,25 +339,12 @@ struct TutorialTimer {
 	float counter_ms = 7000.f;
 };
 
-// A timer that will be associated to level ending
-struct EndLevelTimer
-{
-	float counter_ms = 1500;
-};
-
 // A timer that will be associated to level starting
 struct StartLevelTimer
 {
 	float counter_ms = 1500;
 };
 
-// A timer that will be associated to player(s) dying/game ending
-// separate from level ending due to player(s) killing all enemies
-// (for that see EndLevelTimer)
-struct DeathTimer
-{
-	float counter_ms = 3000;
-};
 
 // An entity that is currently in the item shop. For mouse-controlled characters.
 struct InShop 
@@ -585,7 +583,9 @@ enum class TEXTURE_ASSET_ID {
 	MINIONCRAZY = MINION + 1,
 	BOSSFIREBALL = MINIONCRAZY + 1,
 	BOSS = BOSSFIREBALL + 1,
-	TEXTURE_COUNT = BOSS + 1
+	ENEMYHEAD = BOSS + 1,
+	ENEMYTAIL = ENEMYHEAD + 1,
+	TEXTURE_COUNT = ENEMYTAIL + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
