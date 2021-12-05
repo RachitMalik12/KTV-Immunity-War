@@ -25,8 +25,9 @@ Custom Features:
 -Final Boss Level (10 points custom) (JK): Added 3 enemy types on final level, the boss hand, the final boss as well as its minions. There are also 3 stages to the boss fight and restricted movement on the map to make dodging and maneuvering a little harder. The first stage, the enemies are invisible and shoot at the players (choosing one randomly) this is using the swarm logic, found in M3. In the second level, the hand moves back and forth, firing projectiles towards the player as well at a higher rate. On the final level, the boss appears at the top of the screen and shoots projectile at player. Added new sprites for the invisible enemies for a little bit of pizzazz, as well as used the blocks for level design, so players can strategically use it to block proejctiles.
 
 -HUD (5 points custom) (BZ): Added HP and money count on the top of the screen for P1 and P2. Added shop price numbers for power ups.
+
 Memory Management:  
--Memory and Performance Profiling (BS):
+-Memory and Performance Profiling (BS): A similar procedure to M3 for resource diagnostics was undertaken. No unusual nor problematic behavior of resource usage were found.
 
 Graphic Assets (JK):  Created background and new sprites, custom for the boss/final level. Sprites include, original minion, hand, boss, final background, coins, leave piles.
 
