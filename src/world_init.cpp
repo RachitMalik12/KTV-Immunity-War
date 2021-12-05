@@ -252,6 +252,12 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, int enemyType) {
 		case 11:
 			curEnemy = createEnemyBoss(renderer, position);
 			break;
+		case 12:
+			curEnemy = createEnemyCoordHead(renderer, position);
+			break;
+		case 13:
+			curEnemy = createEnemyCoordTail(renderer, position);
+			break;
 	}
 	return curEnemy;
 }
@@ -586,6 +592,74 @@ Entity createEnemySwarm(RenderSystem* renderer, vec2 position) {
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ENEMYSWARM,
+			EFFECT_ASSET_ID::ENEMY,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	return entity;
+}
+
+Entity createEnemyCoordHead(RenderSystem* renderer, vec2 position) {
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.position = position;
+	motion.scale = vec2({ ENEMYHEAD_BB_WIDTH * defaultResolution.scaling, ENEMYHEAD_BB_HEIGHT * defaultResolution.scaling });
+	registry.enemies.emplace(entity);
+	// Set enemy attributes
+	EnemyCoordHead& head = registry.enemyCoordHeads.emplace(entity);
+	auto& enemyCom = registry.enemies.get(entity);
+	enemyCom.damage = 0;
+	enemyCom.hp = 4;
+	enemyCom.max_hp = enemyCom.hp;
+	enemyCom.loot = 1;
+	enemyCom.speed = 100.f * defaultResolution.scaling;
+	motion.velocity = vec2(0, -200);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ENEMYHEAD,
+			EFFECT_ASSET_ID::ENEMY,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	return entity;
+}
+
+Entity createEnemyCoordTail(RenderSystem* renderer, vec2 position) {
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.position = position;
+	motion.scale = vec2({ ENEMYTAIL_BB_WIDTH * defaultResolution.scaling, ENEMYTAIL_BB_HEIGHT * defaultResolution.scaling });
+	registry.enemies.emplace(entity);
+	// Set enemy attributes
+	EnemyCoordTail& tail = registry.enemyCoordTails.emplace(entity);
+	auto& enemyCom = registry.enemies.get(entity);
+	enemyCom.damage = 0;
+	enemyCom.hp = 100;
+	enemyCom.max_hp = enemyCom.hp;
+	enemyCom.loot = 1;
+	enemyCom.speed = 100.f * defaultResolution.scaling;
+	motion.velocity = vec2(0, -200);
+
+	// refer correct head to this tail
+	Entity headEntity = registry.enemyCoordHeads.entities[registry.enemyCoordTails.size() - 1];
+	registry.enemyCoordHeads.get(headEntity).belongToTail = entity;
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ENEMYTAIL,
 			EFFECT_ASSET_ID::ENEMY,
 			GEOMETRY_BUFFER_ID::SPRITE });
 	return entity;

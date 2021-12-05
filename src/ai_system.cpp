@@ -6,6 +6,7 @@ void AISystem::step(float elapsed_ms, float width, float height) {
 	stepEnemyBacteria(elapsed_ms, width, height);
 	stepEnemyChase(elapsed_ms);
 	stepEnemySwarm(elapsed_ms);
+	stepEnemyCoord(elapsed_ms, width, height);
 	stepEnemyGerm(elapsed_ms);
 	stepEnemyAStar(elapsed_ms, width, height);
 	stepEnemyBoss(elapsed_ms);
@@ -725,6 +726,117 @@ void AISystem::swarmFireProjectileAtPlayer(Entity swarmEntity) {
 	else {
 		createEnemyProjectile(renderer, swarmMotion.position, velocity, angle, swarmEntity);
 	}
+}
+
+void AISystem::stepEnemyCoord(float elapsed_ms, float width, float height) {
+	for (Entity headEntity : registry.enemyCoordHeads.entities) {
+		EnemyCoordHead& head = registry.enemyCoordHeads.get(headEntity);
+		Enemy& headStatus = registry.enemies.get(headEntity);
+		Entity tailEntity = head.belongToTail;
+		EnemyCoordTail& tail = registry.enemyCoordTails.get(tailEntity);
+		if (!headStatus.isDead) {
+			moveAwayfromOtherCoord(headEntity, tailEntity, elapsed_ms);
+		};
+		if (head.isHeadStuck) {
+			head.stuckUpdateTimer -= elapsed_ms;
+			if (head.stuckUpdateTimer < 0) {
+				head.isHeadStuck = false;
+				head.stuckUpdateTimer = head.stuckUpdateTime;
+				Motion& headMotion = registry.motions.get(headEntity);
+				// randomize pos if the current pos is the same as when head was first stuck
+				if (head.stuckPosition == headMotion.position) {
+					float randomNumBetweenZeroAndScreenWidth = uniform_dist(rng) * (width - 100) * defaultResolution.scaling;
+					float randomNumBetweenZeroAndScreenHeight = uniform_dist(rng) * (height - 100) * defaultResolution.scaling;
+					headMotion.position = { randomNumBetweenZeroAndScreenWidth, randomNumBetweenZeroAndScreenHeight};
+				}
+			}
+		}
+	}
+}
+
+void AISystem::moveAwayfromOtherCoord(Entity enemyEntity, Entity otherEnemyEntity, float elapsed_ms) {
+	if (registry.motions.has(otherEnemyEntity)) {
+		Motion& enemyMotion = registry.motions.get(enemyEntity);
+		Motion& otherEnemyMotion = registry.motions.get(otherEnemyEntity);
+		EnemyCoordHead& enemyHead = registry.enemyCoordHeads.get(enemyEntity);
+		float distance = sqrt(pow(enemyMotion.position.x - otherEnemyMotion.position.x, 2) +
+			pow(enemyMotion.position.y - otherEnemyMotion.position.y, 2));
+		// if head tail too close, move away from each other to maintain distance
+		if (distance < enemyHead.minDistFromTail) {
+			vec2 directionFromEnemyToOtherEnemy =
+				vec2(otherEnemyMotion.position.x - enemyMotion.position.x, otherEnemyMotion.position.y - enemyMotion.position.y);
+			vec2 oppositeOfDirection = vec2(directionFromEnemyToOtherEnemy.x * -1.f, directionFromEnemyToOtherEnemy.y * -1.f);
+			vec2 normalizedOppositeDirection = vec2(oppositeOfDirection.x / sqrt(pow(oppositeOfDirection.x, 2) + pow(oppositeOfDirection.y, 2)),
+				oppositeOfDirection.y / sqrt(pow(oppositeOfDirection.x, 2) + pow(oppositeOfDirection.y, 2)));
+			Enemy& enemyStatus = registry.enemies.get(enemyEntity);
+			enemyMotion.velocity = vec2(normalizedOppositeDirection.x * enemyStatus.speed, normalizedOppositeDirection.y * enemyStatus.speed);
+			vec2 normalizedDirection = vec2(directionFromEnemyToOtherEnemy.x / sqrt(pow(directionFromEnemyToOtherEnemy.x, 2) + pow(directionFromEnemyToOtherEnemy.y, 2)),
+				directionFromEnemyToOtherEnemy.y / sqrt(pow(directionFromEnemyToOtherEnemy.x, 2) + pow(directionFromEnemyToOtherEnemy.y, 2)));
+			Enemy& otherEnemyStatus = registry.enemies.get(otherEnemyEntity);
+			otherEnemyMotion.velocity = vec2(normalizedDirection.x * otherEnemyStatus.speed, normalizedDirection.y * otherEnemyStatus.speed);
+		}
+		else {
+			Entity playerOneEntity = registry.players.entities.front();
+			if (twoPlayer.inTwoPlayerMode) {
+				Entity playerTwoEntity = registry.players.entities.back();
+				Player& player1 = registry.players.get(playerOneEntity);
+				Player& player2 = registry.players.get(playerTwoEntity);
+				if (!player1.isDead) {
+					Motion& player1Motion = registry.motions.get(registry.players.entities.front());
+					handleCoordEnemyUpdate(player1Motion, enemyMotion, otherEnemyMotion, enemyEntity, otherEnemyEntity);
+				}
+				else {
+					Motion& player2Motion = registry.motions.get(registry.players.entities.back());
+					handleCoordEnemyUpdate(player2Motion, enemyMotion, otherEnemyMotion, enemyEntity, otherEnemyEntity);
+				}
+			}
+			else {
+				Entity playerOneEntity = registry.players.entities.front();
+				Player& player1 = registry.players.get(playerOneEntity);
+				// head running away from player
+				Motion& player1Motion = registry.motions.get(registry.players.entities.front());
+				// if head too close to player, then tail chases player, otherwise they both move randomly
+				float distance = sqrt(pow(enemyMotion.position.x - player1Motion.position.x, 2) +
+					pow(enemyMotion.position.y - player1Motion.position.y, 2));
+				if (distance < 300.f) {
+					handleCoordEnemyUpdate(player1Motion, enemyMotion, otherEnemyMotion, enemyEntity, otherEnemyEntity);
+				}
+				else {
+					if (enemyHead.timeToUpdateAi) {
+						setEnemyWonderingRandomly(enemyEntity);
+						setEnemyWonderingRandomly(otherEnemyEntity);
+						enemyHead.timeToUpdateAi = false;
+						enemyHead.aiUpdateTimer = enemyHead.aiUpdateTime;
+					}
+					else {
+						enemyHead.aiUpdateTimer -= elapsed_ms;
+						if (enemyHead.aiUpdateTimer < 0) {
+							enemyHead.timeToUpdateAi = true;
+						}
+					}
+				}
+			}
+		}
+	}
+	// maybe: if tail too close to player, then head increases speed? (after everything else implemented)
+}
+
+void AISystem::handleCoordEnemyUpdate(Motion& playerMotion, Motion& enemyMotion, Motion& otherEnemyMotion, Entity enemyEntity, Entity otherEnemyEntity) {
+	// head moving away from player
+	vec2 directionHeadToPlayer =
+		vec2(playerMotion.position.x - enemyMotion.position.x, playerMotion.position.y - enemyMotion.position.y);
+	vec2 oppositeOfDirection = vec2(directionHeadToPlayer.x * -1.f, directionHeadToPlayer.y * -1.f);
+	vec2 normalizedOppositeDirection = vec2(oppositeOfDirection.x / sqrt(pow(oppositeOfDirection.x, 2) + pow(oppositeOfDirection.y, 2)),
+		oppositeOfDirection.y / sqrt(pow(oppositeOfDirection.x, 2) + pow(oppositeOfDirection.y, 2)));
+	Enemy& enemyStatus = registry.enemies.get(enemyEntity);
+	enemyMotion.velocity = vec2(normalizedOppositeDirection.x * enemyStatus.speed, normalizedOppositeDirection.y * enemyStatus.speed);
+	// tail running towards player
+	vec2 directionTailToPlayer =
+		vec2(playerMotion.position.x - otherEnemyMotion.position.x, playerMotion.position.y - otherEnemyMotion.position.y);
+	vec2 normalizedDirection = vec2(directionTailToPlayer.x / sqrt(pow(directionTailToPlayer.x, 2) + pow(directionTailToPlayer.y, 2)),
+		directionTailToPlayer.y / sqrt(pow(directionTailToPlayer.x, 2) + pow(directionTailToPlayer.y, 2)));
+	Enemy& otherEnemyStatus = registry.enemies.get(otherEnemyEntity);
+	otherEnemyMotion.velocity = vec2(normalizedDirection.x * otherEnemyStatus.speed, normalizedDirection.y * otherEnemyStatus.speed);
 }
 
 Entity AISystem::pickAPlayer() {

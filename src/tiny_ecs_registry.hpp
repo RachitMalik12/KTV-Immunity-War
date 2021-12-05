@@ -11,7 +11,6 @@ class ECSRegistry
 
 public:
 	// Manually created list of all components this game has
-	ComponentContainer<EndLevelTimer> endLevelTimers;
 	ComponentContainer<StartLevelTimer> startLevelTimers;
 	ComponentContainer<DeathTimer> deathTimers;
 	ComponentContainer<TutorialTimer> tutorialTimers; 
@@ -41,6 +40,8 @@ public:
 	ComponentContainer<EnemyGerm> enemyGerms;
 	ComponentContainer<EnemyChase> enemyChase;
 	ComponentContainer<EnemySwarm> enemySwarms;
+	ComponentContainer<EnemyCoordHead> enemyCoordHeads;
+	ComponentContainer<EnemyCoordTail> enemyCoordTails;
 	ComponentContainer<EnemyAStar> enemyAStars;
 	ComponentContainer<EnemyBoss> enemyBoss;
 	ComponentContainer<EnemyBossHand> enemyBossHand;
@@ -71,7 +72,6 @@ public:
 	ECSRegistry()
 	{
 		registry_list.push_back(&startLevelTimers);
-		registry_list.push_back(&endLevelTimers);
 		registry_list.push_back(&deathTimers);
 		registry_list.push_back(&tutorialTimers); 
 		registry_list.push_back(&motions);
@@ -100,6 +100,8 @@ public:
 		registry_list.push_back(&enemyGerms);
 		registry_list.push_back(&enemyChase);
 		registry_list.push_back(&enemySwarms);
+		registry_list.push_back(&enemyCoordHeads);
+		registry_list.push_back(&enemyCoordTails);
 		registry_list.push_back(&enemyAStars);
 		registry_list.push_back(&enemyBoss);
 		registry_list.push_back(&enemyBossHand);

@@ -2,7 +2,6 @@
 
 uniform sampler2D screen_texture;
 uniform float time;
-uniform float darken_screen_factor;
 uniform float brighten_screen_factor;
 uniform int game_over_factor;
 
@@ -31,9 +30,7 @@ vec4 color_shift(vec4 in_color)
 
 vec4 fade_color(vec4 in_color)
 {
-	if (darken_screen_factor > 0) {
-		in_color -= darken_screen_factor * vec4(0.8, 0.8, 0.8, 0);
-	} else if (brighten_screen_factor > 0) {
+	if (brighten_screen_factor > 0) {
 		in_color += brighten_screen_factor * vec4(0.8, 0.8, 0.8, 0);
 	}
 	return in_color;

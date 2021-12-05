@@ -457,6 +457,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			setupLevel(level_number);
 		}
 
+		if (action == GLFW_PRESS && key == GLFW_KEY_7) {
+			level_number = 7;
+			setupLevel(level_number);
+		}
+
 		if (action == GLFW_PRESS && key == GLFW_KEY_8) {
 			level_number = 8;
 			setupLevel(level_number);
@@ -1142,29 +1147,9 @@ void WorldSystem::levelCompletionCheck(float elapsed_ms_since_last_update) {
 	if (isLevelOver && isTransitionOver) {
 		int nextLevel = level_number + 1;
 		if (nextLevel < levels.size()) {
-			ScreenState& screen = registry.screenStates.components[0];
-			float min_counter_ms = 3000.f;
-			for (Entity entity : registry.endLevelTimers.entities) {
-				// progress timer
-				EndLevelTimer& counter = registry.endLevelTimers.get(entity);
-				counter.counter_ms -= elapsed_ms_since_last_update;
-				if (counter.counter_ms < min_counter_ms) {
-					min_counter_ms = counter.counter_ms;
-				}
-
-				// move on to next level the game once the end level timer expired
-				if (counter.counter_ms < 0) {
-					registry.endLevelTimers.remove(entity);
-					screen.darken_screen_factor = 0;
-					level_number = nextLevel;
-					setupLevel(level_number);
-				}
-				else {
-					screen.darken_screen_factor = 1 - min_counter_ms / 3000;
-					Mix_FadeOutMusic(fade_duration);
-				}
-				
-			}
+			level_number = nextLevel;
+			setupLevel(level_number);
+			Mix_FadeOutMusic(fade_duration);
 		}
 	}
 }
@@ -1327,10 +1312,6 @@ void WorldSystem::setTransitionFlag(Entity player) {
 	}
 	if (!registry.inShops.has(player) && !firstEntranceToShop) {
 		isTransitionOver = true;
-		if (registry.endLevelTimers.entities.size() == 0) {
-			Entity entity1 = Entity();
-			registry.endLevelTimers.emplace(entity1);
-		}
 	}
 	else {
 		isTransitionOver = false;
