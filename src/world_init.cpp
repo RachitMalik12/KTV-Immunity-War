@@ -390,10 +390,10 @@ Entity createEnemyHunter(RenderSystem* renderer, vec2 position) {
 	// Set enemy attributes
 	auto& enemyCom = registry.enemies.get(entity);
 	enemyCom.damage = 1;
-	enemyCom.hp = 5;
+	enemyCom.hp = 6;
 	enemyCom.max_hp = enemyCom.hp;
 	enemyCom.loot = 2;
-	enemyCom.speed = 200.f * defaultResolution.scaling;
+	enemyCom.speed = 150.f * defaultResolution.scaling;
 	auto& hunterCom = registry.enemyHunters.get(entity);
 	hunterCom.currentState = hunterCom.searchingMode;
 	hunterCom.huntingRange = hunterCom.huntingRange * defaultResolution.scaling;
