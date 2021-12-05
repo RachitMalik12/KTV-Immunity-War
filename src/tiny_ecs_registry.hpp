@@ -12,7 +12,6 @@ class ECSRegistry
 public:
 	// Manually created list of all components this game has
 	ComponentContainer<StartLevelTimer> startLevelTimers;
-	ComponentContainer<DeathTimer> deathTimers;
 	ComponentContainer<TutorialTimer> tutorialTimers; 
 	ComponentContainer<Motion> motions;
 	ComponentContainer<Collision> collisions;
@@ -72,7 +71,6 @@ public:
 	ECSRegistry()
 	{
 		registry_list.push_back(&startLevelTimers);
-		registry_list.push_back(&deathTimers);
 		registry_list.push_back(&tutorialTimers); 
 		registry_list.push_back(&motions);
 		registry_list.push_back(&collisions);

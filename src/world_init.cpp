@@ -610,16 +610,15 @@ Entity createEnemyCoordHead(RenderSystem* renderer, vec2 position) {
 	motion.angle = 0.f;
 	motion.position = position;
 	motion.scale = vec2({ ENEMYHEAD_BB_WIDTH * defaultResolution.scaling, ENEMYHEAD_BB_HEIGHT * defaultResolution.scaling });
-	registry.enemies.emplace(entity);
+	auto& enemyCom = registry.enemies.emplace(entity);
 	// Set enemy attributes
-	EnemyCoordHead& head = registry.enemyCoordHeads.emplace(entity);
-	auto& enemyCom = registry.enemies.get(entity);
-	enemyCom.damage = 0;
+	registry.enemyCoordHeads.emplace(entity);
+	enemyCom.damage = 1;
 	enemyCom.hp = 4;
 	enemyCom.max_hp = enemyCom.hp;
 	enemyCom.loot = 1;
 	enemyCom.speed = 100.f * defaultResolution.scaling;
-	motion.velocity = vec2(0, -200);
+	motion.velocity = vec2(0, 0);
 
 	registry.renderRequests.insert(
 		entity,
@@ -644,14 +643,14 @@ Entity createEnemyCoordTail(RenderSystem* renderer, vec2 position) {
 	motion.scale = vec2({ ENEMYTAIL_BB_WIDTH * defaultResolution.scaling, ENEMYTAIL_BB_HEIGHT * defaultResolution.scaling });
 	registry.enemies.emplace(entity);
 	// Set enemy attributes
-	EnemyCoordTail& tail = registry.enemyCoordTails.emplace(entity);
+	registry.enemyCoordTails.emplace(entity);
 	auto& enemyCom = registry.enemies.get(entity);
-	enemyCom.damage = 0;
+	enemyCom.damage = 1;
 	enemyCom.hp = 100;
 	enemyCom.max_hp = enemyCom.hp;
 	enemyCom.loot = 1;
 	enemyCom.speed = 100.f * defaultResolution.scaling;
-	motion.velocity = vec2(0, -200);
+	motion.velocity = vec2(0, 0);
 
 	// refer correct head to this tail
 	Entity headEntity = registry.enemyCoordHeads.entities[registry.enemyCoordTails.size() - 1];

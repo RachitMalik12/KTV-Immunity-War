@@ -159,6 +159,5 @@ private:
 	void drawTutorialTextInShop(); 
 	void reviveWizard(Player& p1, PlayerStat& p1Stat); 
 	void reviveKnight(Player& p2, PlayerStat& p2Stat); 
-	void progressGameEndEffect(float elapsed_ms_since_last_update);
 	void progressBrightenScreen(float elapsed_ms_since_last_update);
 }; 

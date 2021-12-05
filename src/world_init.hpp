@@ -164,7 +164,6 @@ Entity createEnemySwarmTriplet(RenderSystem* renderer, vec2 position);
 Entity createStory();
 
 // Coord Enemy
-Entity createCoordEnemy(RenderSystem* renderer, vec2 position);
 Entity createEnemyCoordHead(RenderSystem* renderer, vec2 position);
 Entity createEnemyCoordTail(RenderSystem* renderer, vec2 position);
 
