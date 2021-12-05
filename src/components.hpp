@@ -351,13 +351,6 @@ struct StartLevelTimer
 	float counter_ms = 1500;
 };
 
-// A timer that will be associated to player(s) dying/game ending
-// separate from level ending due to player(s) killing all enemies
-// (for that see EndLevelTimer)
-struct DeathTimer
-{
-	float counter_ms = 3000;
-};
 
 // An entity that is currently in the item shop. For mouse-controlled characters.
 struct InShop 

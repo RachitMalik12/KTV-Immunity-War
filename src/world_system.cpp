@@ -171,33 +171,6 @@ void WorldSystem::deathHandling() {
 	}
 }
 
-void WorldSystem::progressGameEndEffect(float elapsed_ms_since_last_update) {
-	// Check level completion 
-	if (isGameOver == true) {
-		isGameOver = false;
-		auto entity1 = Entity();
-		registry.deathTimers.emplace(entity1);
-	}
-
-	ScreenState& screen = registry.screenStates.components[0];
-	float min_counter_ms = 3000.f;
-	for (Entity entity : registry.deathTimers.entities) {
-		// progress timer
-		DeathTimer& counter = registry.deathTimers.get(entity);
-		counter.counter_ms -= elapsed_ms_since_last_update;
-		if (counter.counter_ms < min_counter_ms) {
-			min_counter_ms = counter.counter_ms;
-		}
-
-		// stop shake effect and move onto next level once timer expires
-		if (counter.counter_ms < 0) {
-			registry.deathTimers.remove(entity);
-			setupLevel(level_number);
-			screen.game_over_factor = 0;
-		}
-	}
-}
-
 // Reset the world state to its initial state
 void WorldSystem::restart_game() {
 	int screenWidth, screenHeight;
