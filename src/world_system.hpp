@@ -50,6 +50,7 @@ private:
 	void on_mouse_click(int button, int action, int mods);
 	// restart level
 	void restart_game();
+	void clearLevel();
 	void setupLevel(int levelNum);
 	void setPlayersStats();
 	void setPlayerOneStats();
