@@ -1105,6 +1105,9 @@ void WorldSystem::advanceToShopOrStage() {
 	else if (bossMode.currentBossLevel == STAGE2) {
 		setFinalLevelStages(bossMode.level, STAGE3);
 	}
+	else if (bossMode.currentBossLevel == STAGE3) {
+		setFinalLevelStages(bossMode.level, STAGE4);
+	}
 	else {
 		
 		transitionToShop();
@@ -1489,6 +1492,9 @@ void WorldSystem::setFinalLevelStages(Level level, BossPhase phase) {
 		createEnemyFilteredByType(level, 11);
 		bossMode.currentBossLevel = STAGE3;
 	}
+	else if (phase == STAGE4) {
+		createEndScene();
+	}
 }
 
 void WorldSystem::createEnemyFilteredByType(Level level, int enemyFilter) {
@@ -1695,6 +1701,8 @@ Entity WorldSystem::createInGameMenu() {
 
 	return entity;
 }
+
+
 
 void WorldSystem::createTitleScreen(vec2 mouse_position) {
 	if(registry.menuModes.size()>0){

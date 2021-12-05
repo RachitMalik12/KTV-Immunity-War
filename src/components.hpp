@@ -494,7 +494,8 @@ enum BossPhase {
 	NONE,
 	STAGE1,
 	STAGE2,
-	STAGE3
+	STAGE3,
+	STAGE4
 };
 
 struct BossMode {
@@ -585,7 +586,8 @@ enum class TEXTURE_ASSET_ID {
 	BOSS = BOSSFIREBALL + 1,
 	ENEMYHEAD = BOSS + 1,
 	ENEMYTAIL = ENEMYHEAD + 1,
-	TEXTURE_COUNT = ENEMYTAIL + 1
+	END1 = ENEMYTAIL +1,
+	TEXTURE_COUNT = END1 + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
