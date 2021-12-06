@@ -678,7 +678,7 @@ Entity createEnemyBoss(RenderSystem* renderer, vec2 position) {
 	registry.enemyBoss.emplace(entity);
 	// Set enemy attributes
 	enemyCom.damage = 1;
-	enemyCom.hp = 40;
+	enemyCom.hp = 55;
 	enemyCom.max_hp = enemyCom.hp;
 	enemyCom.loot = 99;
 	enemyCom.speed = 0.f;
@@ -712,7 +712,7 @@ Entity createEnemyMinions(RenderSystem* renderer, vec2 position) {
 	swarm.projectileSpeed = swarm.projectileSpeed * defaultResolution.scaling;
 	auto& enemyCom = registry.enemies.get(entity);
 	enemyCom.damage = 1;
-	enemyCom.hp = 10;
+	enemyCom.hp = 11;
 	enemyCom.max_hp = enemyCom.hp;
 	enemyCom.loot = 2;
 	enemyCom.speed = 100.f * defaultResolution.scaling;
@@ -741,7 +741,7 @@ Entity createEnemyBossHand(RenderSystem* renderer, vec2 position) {
 	hand.projectileSpeed = 300.f* defaultResolution.scaling;
 	auto& enemyCom = registry.enemies.get(entity);
 	enemyCom.damage = 1;
-	enemyCom.hp = 20;
+	enemyCom.hp = 30;
 	enemyCom.max_hp = enemyCom.hp;
 	enemyCom.loot = 2;
 	enemyCom.speed = 400.f * defaultResolution.scaling;
