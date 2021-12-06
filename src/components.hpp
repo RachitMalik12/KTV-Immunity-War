@@ -192,7 +192,7 @@ struct EnemyBoss {
 	float aiUpdateInterval = 1500.f;
 	float aiUpdateTimer = 0;
 	bool timeToUpdateAi = true;
-	float projectileSpeed = 100.f;
+	float projectileSpeed = 150.f;
 };
 
 struct EnemyBossHand {
@@ -494,7 +494,8 @@ enum BossPhase {
 	NONE,
 	STAGE1,
 	STAGE2,
-	STAGE3
+	STAGE3,
+	STAGE4
 };
 
 struct BossMode {
@@ -585,7 +586,9 @@ enum class TEXTURE_ASSET_ID {
 	BOSS = BOSSFIREBALL + 1,
 	ENEMYHEAD = BOSS + 1,
 	ENEMYTAIL = ENEMYHEAD + 1,
-	TEXTURE_COUNT = ENEMYTAIL + 1
+	END1 = ENEMYTAIL +1,
+	END2 = END1 + 1,
+	TEXTURE_COUNT = END2 + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

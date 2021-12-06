@@ -228,7 +228,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	PlayerStat& playerOneStat = registry.playerStats.get(player.playerStat);
 	KnightAnimation& playerOneAnimation = registry.knightAnimations.get(registry.knightAnimations.entities.front());
 
-	if (!player.isDead) {
+	if (!player.isDead && bossMode.currentBossLevel != STAGE4) {
 		vec2 currentVelocity = vec2(player1motion.velocity.x, player1motion.velocity.y);
 		if (action == GLFW_PRESS && key == GLFW_KEY_W) {
 			playerOneAnimation.moving = true;
@@ -576,7 +576,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 	if (twoPlayer.inTwoPlayerMode && storyMode.inStoryMode==0 && menuMode.menuType ==0) {
 		Player& wizard2_player = registry.players.get(player2_wizard);
 		WizardAnimation& animation = registry.wizardAnimations.get(player2_wizard);
-		if (!wizard2_player.isDead) {
+		if (!wizard2_player.isDead && bossMode.currentBossLevel != STAGE4) {
 			if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_LEFT) {
 				if (registry.mouseDestinations.has(player2_wizard))
 					registry.mouseDestinations.remove(player2_wizard);
@@ -640,6 +640,16 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 	}
 	
 	bool left_clicked = (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_LEFT);
+	if (bossMode.currentBossLevel == STAGE4 && left_clicked) {
+		Entity ent = registry.storyModes.entities[0];
+		registry.renderRequests.remove(ent);
+		registry.renderRequests.insert(
+			ent,
+			{ TEXTURE_ASSET_ID::END2,
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE }, false);
+	}
+
 	// menu is in-game menu
 	if (helpMode.clicked == 1) {
 		helpMode.clicked = 2;
@@ -1105,8 +1115,14 @@ void WorldSystem::advanceToShopOrStage() {
 	else if (bossMode.currentBossLevel == STAGE2) {
 		setFinalLevelStages(bossMode.level, STAGE3);
 	}
+	else if (bossMode.currentBossLevel == STAGE3) {
+		bossMode.currentBossLevel = STAGE4;
+		setFinalLevelStages(bossMode.level, STAGE4);
+	}
+	else if (bossMode.currentBossLevel == STAGE4) {
+		isLevelOver = true;
+	}
 	else {
-		
 		transitionToShop();
 		isLevelOver = true;
 	}
@@ -1352,13 +1368,7 @@ void WorldSystem::animateWizard(float elapsed_ms_since_last_update) {
 	}
 }
 
-// TODO: Jasmine
-void WorldSystem::setupLevel(int levelNum) {
-	int screen_width, screen_height;
-	glfwGetFramebufferSize(window, &screen_width, &screen_height);
-
-	createLevelBackground(levelNum);
-
+void WorldSystem::clearLevel() {
 	while (registry.players.entities.size() > 0)
 		registry.remove_all_components_of(registry.players.entities.back());
 	while (registry.projectiles.entities.size() > 0)
@@ -1387,6 +1397,15 @@ void WorldSystem::setupLevel(int levelNum) {
 		registry.remove_all_components_of(registry.instructions.entities.back());
 	while (registry.arrows.entities.size() > 0)
 		registry.remove_all_components_of(registry.arrows.entities.back());
+}
+
+void WorldSystem::setupLevel(int levelNum) {
+	int screen_width, screen_height;
+	glfwGetFramebufferSize(window, &screen_width, &screen_height);
+
+	createLevelBackground(levelNum);
+
+	clearLevel();
 
 	// Close the door at the start of every level after player leaves the shop. 
 	createADoor(screen_width, screen_height);
@@ -1488,6 +1507,19 @@ void WorldSystem::setFinalLevelStages(Level level, BossPhase phase) {
 	else if (phase == STAGE3) {
 		createEnemyFilteredByType(level, 11);
 		bossMode.currentBossLevel = STAGE3;
+	}
+	else if (phase == STAGE4) {
+		while (registry.hudElements.entities.size() > 0)
+			registry.remove_all_components_of(registry.hudElements.entities.back());
+		while (registry.blocks.entities.size() > 0)
+			registry.remove_all_components_of(registry.blocks.entities.back());
+		while (registry.numbers.entities.size() > 0)
+			registry.remove_all_components_of(registry.numbers.entities.back());
+		while (registry.enemyProjectiles.entities.size() > 0)
+			registry.remove_all_components_of(registry.enemyProjectiles.entities.back());
+		registry.renderRequests.remove(player_knight);
+		registry.renderRequests.remove(player2_wizard);
+		createEndScene();
 	}
 }
 
@@ -1695,6 +1727,8 @@ Entity WorldSystem::createInGameMenu() {
 
 	return entity;
 }
+
+
 
 void WorldSystem::createTitleScreen(vec2 mouse_position) {
 	if(registry.menuModes.size()>0){

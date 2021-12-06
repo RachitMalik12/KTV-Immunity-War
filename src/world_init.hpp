@@ -33,8 +33,8 @@ const float ENEMYASTAR_BB_WIDTH = 0.11f * 700.f;
 const float ENEMYCHASE_BB_HEIGHT = 0.05f * 1024.f;
 const float ENEMYCHASE_BB_WIDTH = 0.05f * 1258.f;
 const float ENEMYMINION_BB_WH = 0.1f*820.f;
-const float HELP_BB_WIDTH = 1000.f;
-const float HELP_BB_HEIGHT = 641.f;
+const float HELP_BB_WIDTH = 800.f;
+const float HELP_BB_HEIGHT = 400.f;
 const float STORY_BB_WIDTH = 0.5*2388.f;
 const float STORY_BB_HEIGHT = 0.5*1668.f;
 const float ENEMYSWARM_BB_WIDTH = 0.14 * 553.f;
@@ -157,6 +157,7 @@ Entity createHelp();
 
 // story cutscenes
 Entity createStory();
+Entity createEndScene();
 
 // Swarm
 Entity createEnemySwarm(RenderSystem* renderer, vec2 position);
