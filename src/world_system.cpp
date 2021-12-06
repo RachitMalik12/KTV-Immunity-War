@@ -228,7 +228,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	PlayerStat& playerOneStat = registry.playerStats.get(player.playerStat);
 	KnightAnimation& playerOneAnimation = registry.knightAnimations.get(registry.knightAnimations.entities.front());
 
-	if (!player.isDead) {
+	if (!player.isDead && bossMode.currentBossLevel != STAGE4) {
 		vec2 currentVelocity = vec2(player1motion.velocity.x, player1motion.velocity.y);
 		if (action == GLFW_PRESS && key == GLFW_KEY_W) {
 			playerOneAnimation.moving = true;
@@ -576,7 +576,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 	if (twoPlayer.inTwoPlayerMode && storyMode.inStoryMode==0 && menuMode.menuType ==0) {
 		Player& wizard2_player = registry.players.get(player2_wizard);
 		WizardAnimation& animation = registry.wizardAnimations.get(player2_wizard);
-		if (!wizard2_player.isDead) {
+		if (!wizard2_player.isDead && bossMode.currentBossLevel != STAGE4) {
 			if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_LEFT) {
 				if (registry.mouseDestinations.has(player2_wizard))
 					registry.mouseDestinations.remove(player2_wizard);
@@ -648,7 +648,6 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			{ TEXTURE_ASSET_ID::END2,
 				EFFECT_ASSET_ID::TEXTURED,
 				GEOMETRY_BUFFER_ID::SPRITE }, false);
-		bossMode.currentBossLevel = NONE;
 	}
 
 	// menu is in-game menu
@@ -1117,7 +1116,11 @@ void WorldSystem::advanceToShopOrStage() {
 		setFinalLevelStages(bossMode.level, STAGE3);
 	}
 	else if (bossMode.currentBossLevel == STAGE3) {
+		bossMode.currentBossLevel = STAGE4;
 		setFinalLevelStages(bossMode.level, STAGE4);
+	}
+	else if (bossMode.currentBossLevel == STAGE4) {
+		isLevelOver = true;
 	}
 	else {
 		transitionToShop();
@@ -1404,35 +1407,6 @@ void WorldSystem::setupLevel(int levelNum) {
 
 	clearLevel();
 
-	/*while (registry.players.entities.size() > 0)
-		registry.remove_all_components_of(registry.players.entities.back());
-	while (registry.projectiles.entities.size() > 0)
-		registry.remove_all_components_of(registry.projectiles.entities.back());
-	while (registry.enemyProjectiles.entities.size() > 0)
-		registry.remove_all_components_of(registry.enemyProjectiles.entities.back());
-	while (registry.enemies.entities.size() > 0)
-		registry.remove_all_components_of(registry.enemies.entities.back());
-	while (registry.blocks.entities.size() > 0)
-		registry.remove_all_components_of(registry.blocks.entities.back());
-	while (registry.walls.entities.size() > 0)
-		registry.remove_all_components_of(registry.walls.entities.back());
-	while (registry.doors.entities.size() > 0)
-		registry.remove_all_components_of(registry.doors.entities.back());
-	while (registry.numbers.entities.size() > 0)
-		registry.remove_all_components_of(registry.numbers.entities.back());
-	while (registry.hudElements.entities.size() > 0)
-		registry.remove_all_components_of(registry.hudElements.entities.back());
-	while (registry.huds.entities.size() > 0)
-		registry.remove_all_components_of(registry.huds.entities.back());
-	while (registry.powerups.entities.size() > 0)
-		registry.remove_all_components_of(registry.powerups.entities.back());
-	while (registry.letters.entities.size() > 0)
-		registry.remove_all_components_of(registry.letters.entities.back());
-	while (registry.instructions.entities.size() > 0)
-		registry.remove_all_components_of(registry.instructions.entities.back());
-	while (registry.arrows.entities.size() > 0)
-		registry.remove_all_components_of(registry.arrows.entities.back());*/
-
 	// Close the door at the start of every level after player leaves the shop. 
 	createADoor(screen_width, screen_height);
 	createWalls(screen_width, screen_height);
@@ -1535,10 +1509,18 @@ void WorldSystem::setFinalLevelStages(Level level, BossPhase phase) {
 		bossMode.currentBossLevel = STAGE3;
 	}
 	else if (phase == STAGE4) {
-		//TODO
-		restart_game();
+		while (registry.hudElements.entities.size() > 0)
+			registry.remove_all_components_of(registry.hudElements.entities.back());
+		while (registry.blocks.entities.size() > 0)
+			registry.remove_all_components_of(registry.blocks.entities.back());
+		while (registry.numbers.entities.size() > 0)
+			registry.remove_all_components_of(registry.numbers.entities.back());
+		while (registry.enemyProjectiles.entities.size() > 0)
+			registry.remove_all_components_of(registry.enemyProjectiles.entities.back());
+		registry.renderRequests.remove(player_knight);
+		registry.renderRequests.remove(player2_wizard);
+		createADoor(defaultResolution.width, defaultResolution.height);
 		createEndScene();
-		bossMode.currentBossLevel = STAGE4;
 	}
 }
 
