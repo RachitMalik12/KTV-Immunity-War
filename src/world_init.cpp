@@ -492,9 +492,9 @@ Entity createEnemyAStar(RenderSystem* renderer, vec2 position) {
 	// Set enemy attributes
 	auto& enemyCom = registry.enemies.get(entity);
 	enemyCom.damage = 1;
-	enemyCom.hp = 5;
-	enemyCom.loot = 4;
-	enemyCom.speed = 300.f * defaultResolution.scaling;
+	enemyCom.hp = 8;
+	enemyCom.loot = 2;
+	enemyCom.speed = 200.f * defaultResolution.scaling;
 
 	registry.renderRequests.insert(
 		entity,
