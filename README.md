@@ -2,7 +2,7 @@
 
 **Milestone Feature Descriptions:**  
 Required Features:  
--Gameplay III (ALL):
+-Gameplay III (ALL): Added 3 more levels including the final boss level. Added game over screen to complete the story. Added tutorial level. Added 5 new types of enemies. Rebalanced gameplay to be chanllenging but fair. 
 
 - Delay agnostic design (RM & LT): Documented data related to zoom delay and from cross play session to show the game is delay agnostic and the lag is minimum. 
 Documented changes to account for the potential lag faced by some users: https://docs.google.com/document/d/1GNYXo2HXgTYso2Dm1yZy9DnFG0UcxIwP-YOs_e9Npxk/edit?usp=sharing
@@ -36,6 +36,8 @@ Graphic Assets (JK):  Created background and new sprites, custom for the boss/fi
 
 Bug and Feature Fixes:  
 -Level Transition Fix (LT):
+
+-Sword Swing Fix (BZ): Fixed sword swing's angular velocity calculation so it doesn't over calculate and waste cpu usage.
 
 Revised Project Proposal:  
 Feature Changes:  
