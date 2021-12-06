@@ -1519,7 +1519,6 @@ void WorldSystem::setFinalLevelStages(Level level, BossPhase phase) {
 			registry.remove_all_components_of(registry.enemyProjectiles.entities.back());
 		registry.renderRequests.remove(player_knight);
 		registry.renderRequests.remove(player2_wizard);
-		createADoor(defaultResolution.width, defaultResolution.height);
 		createEndScene();
 	}
 }
