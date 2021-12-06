@@ -171,7 +171,7 @@ struct EnemySwarm {
 	// Wait 1000ms before update AI for the first time so it doesn't fire at the player right after level loads
 	float aiUpdateTimer = 1000.f;
 	bool timeToUpdateAi = false;
-	float projectileSpeed = 200.f;
+	float projectileSpeed = 150.f;
 	float spreadOutDistance = 200.f;
 	bool isAnimatingHurt = false;
 };

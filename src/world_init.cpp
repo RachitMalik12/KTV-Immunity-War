@@ -287,7 +287,7 @@ Entity createEnemyBlob(RenderSystem* renderer, vec2 position)
 	enemyCom.damage = 1;
 	enemyCom.hp = 3;
 	enemyCom.max_hp = enemyCom.hp;
-	enemyCom.loot = 1;
+	enemyCom.loot = 2;
 	enemyCom.speed = 200.f * defaultResolution.scaling;
 	motion.velocity = vec2(0.f, enemyCom.speed);
 
@@ -356,10 +356,10 @@ Entity createEnemyRun(RenderSystem* renderer, vec2 position)
 	// Set enemy attributes
 	auto& enemyCom = registry.enemies.get(entity);
 	enemyCom.damage = 1;
-	enemyCom.hp = 2;
+	enemyCom.hp = 3;
 	enemyCom.max_hp = enemyCom.hp;
-	enemyCom.loot = 1;
-	enemyCom.speed = 200.f * defaultResolution.scaling;
+	enemyCom.loot = 2;
+	enemyCom.speed = 150.f * defaultResolution.scaling;
 	motion.velocity = vec2(uniform_dist(rng) * enemyCom.speed, uniform_dist(rng) * enemyCom.speed);;
 
 	registry.renderRequests.insert(
@@ -390,10 +390,10 @@ Entity createEnemyHunter(RenderSystem* renderer, vec2 position) {
 	// Set enemy attributes
 	auto& enemyCom = registry.enemies.get(entity);
 	enemyCom.damage = 1;
-	enemyCom.hp = 5;
+	enemyCom.hp = 6;
 	enemyCom.max_hp = enemyCom.hp;
 	enemyCom.loot = 2;
-	enemyCom.speed = 200.f * defaultResolution.scaling;
+	enemyCom.speed = 150.f * defaultResolution.scaling;
 	auto& hunterCom = registry.enemyHunters.get(entity);
 	hunterCom.currentState = hunterCom.searchingMode;
 	hunterCom.huntingRange = hunterCom.huntingRange * defaultResolution.scaling;
@@ -426,10 +426,10 @@ Entity createEnemyBacteria(RenderSystem* renderer, vec2 position) {
 	// Set enemy attributes
 	auto& enemyCom = registry.enemies.get(entity);
 	enemyCom.damage = 1;
-	enemyCom.hp = 5;
+	enemyCom.hp = 6;
 	enemyCom.max_hp = enemyCom.hp;
-	enemyCom.loot = 4;
-	enemyCom.speed = 200.f * defaultResolution.scaling;
+	enemyCom.loot = 2;
+	enemyCom.speed = 150.f * defaultResolution.scaling;
 	auto& bacteria = registry.enemyBacterias.get(entity);
 
 	registry.renderRequests.insert(
@@ -460,9 +460,9 @@ Entity createEnemyGerm(RenderSystem* renderer, vec2 position) {
 	// Set enemy attributes
 	auto& enemyCom = registry.enemies.get(entity);
 	enemyCom.damage = 1;
-	enemyCom.hp = 5;
-	enemyCom.loot = 4;
-	enemyCom.speed = 200.f * defaultResolution.scaling;
+	enemyCom.hp = 7;
+	enemyCom.loot = 2;
+	enemyCom.speed = 125.f * defaultResolution.scaling;
 	auto& germ = registry.enemyGerms.get(entity);
 	germ.mode = (rand() % 10) + 1;
 
@@ -492,9 +492,9 @@ Entity createEnemyAStar(RenderSystem* renderer, vec2 position) {
 	// Set enemy attributes
 	auto& enemyCom = registry.enemies.get(entity);
 	enemyCom.damage = 1;
-	enemyCom.hp = 5;
-	enemyCom.loot = 4;
-	enemyCom.speed = 300.f * defaultResolution.scaling;
+	enemyCom.hp = 8;
+	enemyCom.loot = 2;
+	enemyCom.speed = 200.f * defaultResolution.scaling;
 
 	registry.renderRequests.insert(
 		entity,
@@ -583,9 +583,9 @@ Entity createEnemySwarm(RenderSystem* renderer, vec2 position) {
 	swarm.projectileSpeed = swarm.projectileSpeed * defaultResolution.scaling;
 	auto& enemyCom = registry.enemies.get(entity);
 	enemyCom.damage = 1;
-	enemyCom.hp = 3;
+	enemyCom.hp = 6;
 	enemyCom.max_hp = enemyCom.hp;
-	enemyCom.loot = 1;
+	enemyCom.loot = 2;
 	enemyCom.speed = 100.f * defaultResolution.scaling;
 	motion.velocity = vec2(0, 0);
 
@@ -615,9 +615,9 @@ Entity createEnemyCoordHead(RenderSystem* renderer, vec2 position) {
 	auto& head = registry.enemyCoordHeads.emplace(entity);
 	head.minDistFromTail *= defaultResolution.scaling;
 	enemyCom.damage = 1;
-	enemyCom.hp = 4;
+	enemyCom.hp = 15;
 	enemyCom.max_hp = enemyCom.hp;
-	enemyCom.loot = 1;
+	enemyCom.loot = 4;
 	enemyCom.speed = 100.f * defaultResolution.scaling;
 	motion.velocity = vec2(0, 0);
 
@@ -650,7 +650,7 @@ Entity createEnemyCoordTail(RenderSystem* renderer, vec2 position) {
 	enemyCom.damage = 1;
 	enemyCom.hp = 100;
 	enemyCom.max_hp = enemyCom.hp;
-	enemyCom.loot = 1;
+	enemyCom.loot = 0;
 	enemyCom.speed = 100.f * defaultResolution.scaling;
 	motion.velocity = vec2(0, 0);
 
@@ -678,9 +678,9 @@ Entity createEnemyBoss(RenderSystem* renderer, vec2 position) {
 	registry.enemyBoss.emplace(entity);
 	// Set enemy attributes
 	enemyCom.damage = 1;
-	enemyCom.hp = 10;
+	enemyCom.hp = 55;
 	enemyCom.max_hp = enemyCom.hp;
-	enemyCom.loot = 1;
+	enemyCom.loot = 99;
 	enemyCom.speed = 0.f;
 	motion.velocity = vec2(0.f, 0.f);
 
@@ -712,9 +712,9 @@ Entity createEnemyMinions(RenderSystem* renderer, vec2 position) {
 	swarm.projectileSpeed = swarm.projectileSpeed * defaultResolution.scaling;
 	auto& enemyCom = registry.enemies.get(entity);
 	enemyCom.damage = 1;
-	enemyCom.hp = 3;
+	enemyCom.hp = 11;
 	enemyCom.max_hp = enemyCom.hp;
-	enemyCom.loot = 1;
+	enemyCom.loot = 2;
 	enemyCom.speed = 100.f * defaultResolution.scaling;
 	motion.velocity = vec2(0, 0);
 
@@ -738,13 +738,13 @@ Entity createEnemyBossHand(RenderSystem* renderer, vec2 position) {
 	// Set enemy attributes
 	EnemySwarm& hand = registry.enemySwarms.emplace(entity);
 	EnemyBossHand& boss = registry.enemyBossHand.emplace(entity);
-	hand.projectileSpeed = 400.f* defaultResolution.scaling;
+	hand.projectileSpeed = 300.f* defaultResolution.scaling;
 	auto& enemyCom = registry.enemies.get(entity);
-	enemyCom.damage = 2;
-	enemyCom.hp = 10;
+	enemyCom.damage = 1;
+	enemyCom.hp = 30;
 	enemyCom.max_hp = enemyCom.hp;
-	enemyCom.loot = 10;
-	enemyCom.speed = 500.f * defaultResolution.scaling;
+	enemyCom.loot = 2;
+	enemyCom.speed = 400.f * defaultResolution.scaling;
 	motion.velocity = vec2(enemyCom.speed, 0);
 
 	registry.renderRequests.insert(
