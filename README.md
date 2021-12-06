@@ -9,7 +9,7 @@ Documented changes to account for the potential lag faced by some users: https:/
 
 -Advanced Decision-Making (FC): The algorithm implemented calculates H Cost (distance between the enemy and end goal) and a G Cost (distance between the enemy and next position). What happens is at the current position of the enemy, they will calculate the G+H cost of the positions up/left/right/down of it. whichever one has the lowest G+H cost, we will add to the queue. After we finish calculating and adding until we get to the player's position, we will slowly push all positions as positions to move to, creating a path to the player from the enemy that the enemy follows.
 
--Cooperative Planning (LT):
+-Cooperative Planning (LT): Planning the action of 2 parts of 1 type of enemy (the head part and the tail part) towardws a common goal of killing the player(s). The communication is non-trivial because both the head and tail will have to stay a certain distance from each other while the head runs away from the player and the tail chases the player. This set of action is triggered by the tail checking if the head is within a distance from the player (player 1 if player 1 is alive, otherwise player 2). If the tail sees that the head is far from the player(s), then the head and tail will just move randomly. Also, the player needs to kill the head in order to kill the head and the tail. This part is tricky because the player may think that they need to kill the tail which is chasing the player but what they do not realize is that the tail's hp is very high whereas the head's hp is more realistic to kill.
 
 -Advanced Vertex/Geometry Shader (BZ): All effects are added using vertex shaders. Added shop items bouncing effect for flavour. Added player and enemy hit shaking effect. Added enemy knock back effect that work for both sword and waterball. Added death animation for enemies getting cut in half by sword. This was done by adding two more vertices which separated the two triangles in the quad so we can animate them getting separated. Added enemy death animation shrink. This was done by separating the scale matrix from the transform matrix and creating a new scale matrix in the vertex shader. Added player animation flopping to the side. This was done by separating the rotation matrix from the transform matrix and forming a new rotation matrix in the vertex shader.
 
@@ -35,7 +35,7 @@ Memory Management:
 Graphic Assets (JK):  Created background and new sprites, custom for the boss/final level. Sprites include, original minion, hand, boss, final background, coins, leave piles.
 
 Bug and Feature Fixes:  
--Level Transition Fix (LT):
+-Level Transition Fix (LT): Removed the screen darken factor because there were quite a few bugs introduced by this feature that we realized. Also, it was more realistic to have this screen darken factor when we didn't have the shop.
 
 -Sword Swing Fix (BZ): Fixed sword swing's angular velocity calculation so it doesn't over calculate and waste cpu usage.
 
