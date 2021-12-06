@@ -5,6 +5,7 @@
 void PhysicsSystem::step(float elapsed_ms, float window_width_px, float window_height_px)
 {
 	moveEntities(elapsed_ms);
+	rotateSwords(elapsed_ms);
 	checkForCollision();
 	drawDebugMode();
 }
@@ -16,7 +17,6 @@ bool inline checkIfFundsArePresent(int playerMoney, int cost) {
 void PhysicsSystem::handle_collision() {
 	// Loop over all collisions detected by the physics system
 	auto& collisionsRegistry = registry.collisions;
-	Title& title = registry.titles.components[0];
 	for (uint i = 0; i < collisionsRegistry.components.size(); i++) {
 		// The entity and its collider
 		Entity entity = collisionsRegistry.entities[i];
@@ -24,57 +24,18 @@ void PhysicsSystem::handle_collision() {
 
 		// Checking collision of projectiles with other entities (enemies or enemies run)
 		if (registry.projectiles.has(entity)) {
-			if (registry.enemies.has(entity_other)) {
-				Enemy& enemyCom = registry.enemies.get(entity_other);
-				Player& playerCom = registry.players.get(registry.projectiles.get(entity).belongToPlayer);
-				PlayerStat& playerStatCom = registry.playerStats.get(playerCom.playerStat);
+			if (registry.enemies.has(entity_other) && !registry.enemies.get(entity_other).isDead) {
+				Entity playerEntity = registry.projectiles.get(entity).belongToPlayer;
+				Motion& projectileMotion = registry.motions.get(entity);
+				enemyHitStatUpdate(entity_other, playerEntity, projectileMotion.velocity);
 				registry.remove_all_components_of(entity);
-				if (!enemyCom.isInvin) {
-					enemyCom.hp -= playerStatCom.damage;
-					if (enemyCom.hp <= 0) {
-						playerStatCom.money += enemyCom.loot;
-						title.p2money = playerStatCom.money;
-						title.updateWindowTitle();
-						registry.remove_all_components_of(entity_other);
-					} else {
-						enemyCom.isInvin = true;
-						enemyCom.invinTimerInMs = enemyCom.invinFrame;
-						enemyHitHandling(entity_other);
-					}
-				}
 			}
 		}
 
 		if (registry.swords.has(entity)) {
-			if (registry.enemies.has(entity_other)) {
-				Enemy& enemyCom = registry.enemies.get(entity_other);
-				Player& playerCom = registry.players.get(registry.swords.get(entity).belongToPlayer);
-				PlayerStat& playerStatCom = registry.playerStats.get(playerCom.playerStat);
-				if (!enemyCom.isInvin) {
-					enemyCom.hp -= playerStatCom.damage;
-					if (enemyCom.hp <= 0) {
-						playerStatCom.money += enemyCom.loot;
-						title.p1money = playerStatCom.money;
-						title.updateWindowTitle();
-						registry.remove_all_components_of(entity_other);
-					}
-					else {
-						enemyCom.isInvin = true;
-						enemyCom.invinTimerInMs = enemyCom.invinFrame;
-						enemyHitHandling(entity_other);
-					}
-				}
-			}
-		}
-
-		// Checking collision of enemies or enemies run with walls or blocks
-		if (registry.enemies.has(entity)) {
-			if (registry.blocks.has(entity_other) || registry.walls.has(entity_other)) {
-				// start a timer and pass the enemies/enemies run's current position
-				if (!registry.stuckTimers.has(entity)) {
-					registry.stuckTimers.emplace(entity);
-					registry.stuckTimers.get(entity).stuck_pos = vec2(registry.motions.get(entity).position.x, registry.motions.get(entity).position.y);
-				}
+			if (registry.enemies.has(entity_other) && !registry.enemies.get(entity_other).isDead) {
+				Entity playerEntity = registry.swords.get(entity).belongToPlayer;
+				enemyHitStatUpdate(entity_other, playerEntity, vec2(0, 0));
 			}
 		}
 
@@ -88,16 +49,22 @@ void PhysicsSystem::handle_collision() {
 				// Check if player can afford powerup 
 				int powerUpCost = registry.powerups.get(entity).cost; 
 				if (checkIfFundsArePresent(playerStatCom.money, powerUpCost)) {
-					handlePowerUpCollisions(playerCom, playerStatCom,entity,title, isPlayerOne, 
-						isPlayerTwo, powerUpCost);
+					handlePowerUpCollisions(playerCom, playerStatCom, entity, isPlayerOne, isPlayerTwo, powerUpCost);
 				}
-				title.updateWindowTitle();
+				if (entity_other.getId() == registry.players.entities.front()) {
+					updateHudCoin(KNIGHT);
+				}
+				else {
+					updateHudCoin(WIZARD);
+				}
 			}
 		}
 
-		if (registry.players.has(entity)) {
+		if (registry.players.has(entity) && !registry.players.get(entity).isDead) {
 			// Check Player - Enemy collisions 
-			if (registry.enemies.has(entity_other)) {
+			bool enemyConditionCheck = registry.enemies.has(entity_other) && !registry.enemies.get(entity_other).isDead
+				&& !registry.enemiesTutorial.has(entity_other) && !registry.enemyBoss.has(entity_other); 
+			if (enemyConditionCheck) {
 				int enemyDamage = registry.enemies.get(entity_other).damage;
 				resolvePlayerDamage(entity, enemyDamage);
 			}
@@ -116,62 +83,62 @@ void PhysicsSystem::handle_collision() {
 	registry.collisions.clear();
 }
 
-void PhysicsSystem::handlePowerUpCollisions(Player& playerCom, PlayerStat& playerStatCom, Entity entity,  Title& title, 
-	bool isPlayerOne, bool isPlayerTwo, int powerUpCost) 
+void PhysicsSystem::handlePowerUpCollisions(Player& playerCom, PlayerStat& playerStatCom, Entity entity, bool isPlayerOne, bool isPlayerTwo, int powerUpCost) 
 {
 	playerStatCom.money -= powerUpCost;
-	if (isPlayerOne) {
-		title.p1money = playerStatCom.money;
-	}
-	else if (isPlayerTwo) {
-		title.p2money = playerStatCom.money;
-	}
 	if (registry.hpPowerup.has(entity)) {
 		HpPowerUp& hpPowerup = registry.hpPowerup.get(entity);
 		playerStatCom.maxHp += hpPowerup.hpUpFactor;
 		playerCom.hp += hpPowerup.hpUpFactor;
-		registry.remove_all_components_of(entity);
 		if (isPlayerOne) {
-			title.p1hp = playerCom.hp;
+			updateHudHp(KNIGHT);
 		}
 		else if (isPlayerTwo) {
-			title.p2hp = playerCom.hp;
+			updateHudHp(WIZARD);
 		}
 	}
 
 	if (registry.damagePowerUp.has(entity)) {
 		DamagePowerUp& damagePowerup = registry.damagePowerUp.get(entity);
 		playerStatCom.damage += damagePowerup.damageUpFactor;
-		registry.remove_all_components_of(entity);
 	}
 	if (registry.movementSpeedPowerup.has(entity)) {
 		MovementSpeedPowerUp& movementSpeedPowerup = registry.movementSpeedPowerup.get(entity);
 		playerStatCom.movementSpeed += (movementSpeedPowerup.movementSpeedUpFactor * defaultResolution.scaling);
-		registry.remove_all_components_of(entity);
 	}
 
 	if (registry.attackSpeedPowerUp.has(entity)) {
 		AtackSpeedPowerUp& attackSpeedPowerup = registry.attackSpeedPowerUp.get(entity);
 		playerStatCom.attackDelay -= (attackSpeedPowerup.delayReductionFactor * playerStatCom.attackDelay);
 		playerStatCom.projectileSpeed += (attackSpeedPowerup.projectileSpeedUpFactor * defaultResolution.scaling);
-		registry.remove_all_components_of(entity);
 	}
-
+	for (Entity numberEntity : registry.powerups.get(entity).priceNumbers) {
+		registry.remove_all_components_of(numberEntity);
+	}
+	registry.remove_all_components_of(entity);
+	Mix_PlayChannel(-1, buy_sound, 0);
 }
 
 void PhysicsSystem::resolvePlayerDamage(Entity playerEntity, int enemyDamage) {
-	Title& title = registry.titles.components[0];
 	Player& player = registry.players.get(playerEntity);
-	if (!player.isInvin) {
+	Motion& playerMotion = registry.motions.get(playerEntity);
+	if (!player.isInvin && !player.isDead) {
 		player.hp -= enemyDamage;
-		// if hp - 1 is <= 0 then initiate death unless already dying 
+		if (playerEntity.getId() == registry.players.entities.front()) {
+			Mix_PlayChannel(-1, knight_hit_sound, 0);
+		}
+		else {
+			Mix_PlayChannel(-1, wizard_hit_sound, 0);
+		}
 		if (player.hp <= 0) {
 			player.hp = 0;
 			player.isDead = true;
+			registry.deadPlayers.emplace(playerEntity);
+			playerMotion.velocity = vec2(0, 0);
 		}
 		else {
 			player.isInvin = true;
-			player.invinTimerInMs = player.invinFrame;
+			player.invinTimerInMs = 0;
 			if (twoPlayer.inTwoPlayerMode && playerEntity.getId() == registry.players.entities.back().getId()) {
 				registry.renderRequests.remove(playerEntity);
 				registry.renderRequests.insert(
@@ -183,16 +150,15 @@ void PhysicsSystem::resolvePlayerDamage(Entity playerEntity, int enemyDamage) {
 				registry.wizardAnimations.get(playerEntity).animationMode = registry.wizardAnimations.get(playerEntity).hurtMode;
 			}
 			else {
-				// TODO: Implement knight hit animation with fragment shader
 			}
 		}
 	}
-	if (playerEntity.getId() == registry.players.entities[0].getId()) 
-		title.p1hp = player.hp;
-	else if (twoPlayer.inTwoPlayerMode)
-		title.p2hp = player.hp;
-	
-	title.updateWindowTitle();
+	if (playerEntity.getId() == registry.players.entities[0].getId()) {
+		updateHudHp(KNIGHT);
+	}
+	else if (twoPlayer.inTwoPlayerMode) {
+		updateHudHp(WIZARD);
+	}
 }
 
 // Returns the local bounding coordinates scaled by the current size of the entity
@@ -273,6 +239,7 @@ bool PhysicsSystem::collides(const Entity entity, const Entity other_entity)
 	}
 	const Motion& motion = registry.motions.get(entity);
 	const Motion& other_motion = registry.motions.get(other_entity);
+
 	return doesRadiusCollide(motion, other_motion);
 }
 
@@ -331,8 +298,6 @@ void PhysicsSystem::drawBoundingBoxDebug(const Motion& motion) {
 }
 
 void PhysicsSystem::bounceEnemyRun(Entity curEntity) {
-	// if enemyrun within MAX_DIST_WZ_EN of either wizard
-		// change enemyrun direction 
 	if (registry.enemiesrun.has(curEntity)) {
 		Motion& motion_en = registry.motions.get(curEntity);
 		Enemy& enemyCom = registry.enemies.get(curEntity);
@@ -373,6 +338,10 @@ void PhysicsSystem::bounceEnemies(Entity curEntity, bool hitABlock) {
 		if (registry.projectiles.has(curEntity) || registry.enemyProjectiles.has(curEntity)) {
 			registry.remove_all_components_of(curEntity);
 		}
+		else if (registry.enemyBossHand.has(curEntity)) {
+			Motion& enemyBossMotion = registry.motions.get(curEntity);
+			enemyBossMotion.velocity.x *= -1;
+		}
 		else if (registry.enemyBlobs.has(curEntity)) {
 			Motion& enemyMotion = registry.motions.get(curEntity);
 			enemyMotion.velocity.y *= -1;
@@ -406,7 +375,6 @@ void PhysicsSystem::bounceEnemies(Entity curEntity, bool hitABlock) {
 			float wallBounceVelocityDecreaseFactor = -0.8f;
 			motion.velocity = vec2(motion.velocity.x * wallBounceVelocityDecreaseFactor, motion.velocity.y * wallBounceVelocityDecreaseFactor);
 		}
-
 	}
 }
 
@@ -433,30 +401,33 @@ void PhysicsSystem::moveEntities(float elapsed_ms) {
 	{
 		Motion& motion = registry.motions.components[i];
 		Entity entity = registry.motions.entities[i];
-		float step_seconds = 1.0f * (elapsed_ms / 1000.f);
-		vec2 nextPosition = vec2(motion.position.x + motion.velocity.x * step_seconds,
-			motion.position.y + motion.velocity.y * step_seconds);
-		bool hitABlock = hitBlockOrWall(nextPosition, motion);
-		if (!hitABlock) {
-			motion.position = nextPosition;
+		if(!registry.enemyBoss.has(entity)){
+			float step_seconds = 1.0f * (elapsed_ms / 1000.f);
+			vec2 nextPosition = vec2(motion.position.x + motion.velocity.x * step_seconds,
+				motion.position.y + motion.velocity.y * step_seconds);
+			bool hitABlock = hitBlockOrWall(nextPosition, motion);
+			if (!hitABlock) {
+				motion.position = nextPosition;
+			}
+			bounceEnemies(entity, hitABlock);
+			bounceEnemyRun(entity);
 		}
-		bounceEnemies(entity, hitABlock);
-		bounceEnemyRun(entity);
-		rotateSword(entity, elapsed_ms);
+		
+		
 	}
 }
 
-void PhysicsSystem::rotateSword(Entity entity, float elapsed_ms) {
-	float pivot_distance_modifier = 3.f / 4.f;
-	float step_seconds = 1.0f * (elapsed_ms / 1000.f);
+void PhysicsSystem::rotateSwords(float elapsed_ms) {
 	for (Entity entity : registry.swords.entities) {
+		float pivot_distance_modifier = 3.f / 4.f;
 		Sword& sword = registry.swords.get(entity);
 		if (registry.players.has(sword.belongToPlayer)) {
+			float swordAnimationFrameTimeInSecond = elapsed_ms / 1000.f;
 			Motion& parent_motion = registry.motions.get(sword.belongToPlayer);
 			Motion& motion = registry.motions.get(entity);
 			vec2 pivot = parent_motion.position;
 			pivot.x += SWORD_BB_WIDTH * pivot_distance_modifier;
-			motion.angle += sword.angular_velocity * step_seconds;
+			motion.angle += sword.angular_velocity * swordAnimationFrameTimeInSecond;
 			Transform T;
 			T.translate(parent_motion.position);
 			Transform R;
@@ -466,7 +437,7 @@ void PhysicsSystem::rotateSword(Entity entity, float elapsed_ms) {
 			mat3 matrix = T.mat * R.mat * T_inv.mat;
 			vec3 world_coord = matrix * vec3(pivot.x, pivot.y, 1);
 			motion.position = vec2(world_coord.x, world_coord.y);
-			sword.distance_traveled += sword.angular_velocity * step_seconds;
+			sword.distance_traveled += sword.angular_velocity * swordAnimationFrameTimeInSecond;
 			if (sword.distance_traveled > sword.max_distance)
 				registry.remove_all_components_of(entity);
 		}
@@ -531,16 +502,120 @@ void PhysicsSystem::enemyHitHandling(Entity enemyEntity) {
 				GEOMETRY_BUFFER_ID::SPRITE });
 		registry.enemyHunters.get(enemyEntity).isAnimatingHurt = true;
 	}
-	else if (registry.enemySwarms.has(enemyEntity)) {
+	else if (registry.enemySwarms.has(enemyEntity) && !registry.enemyBossHand.has(enemyEntity)) {
 		registry.renderRequests.remove(enemyEntity);
-		registry.renderRequests.insert(
-			enemyEntity,
-			{ TEXTURE_ASSET_ID::ENEMYSWARMHURT,
-				EFFECT_ASSET_ID::ENEMY,
-				GEOMETRY_BUFFER_ID::SPRITE });
+		if (bossMode.currentBossLevel == STAGE1) {
+			registry.renderRequests.insert(
+				enemyEntity,
+				{ TEXTURE_ASSET_ID::MINIONCRAZY,
+					EFFECT_ASSET_ID::ENEMY,
+					GEOMETRY_BUFFER_ID::SPRITE });
+		}
+		else {
+			registry.renderRequests.insert(
+				enemyEntity,
+				{ TEXTURE_ASSET_ID::ENEMYSWARMHURT,
+					EFFECT_ASSET_ID::ENEMY,
+					GEOMETRY_BUFFER_ID::SPRITE });
+		}
 		registry.enemySwarms.get(enemyEntity).isAnimatingHurt = true;
 	}
-	else {
-		// TODO:: Implement enemy hit handling for rest of the enemies with fragment shaders
+}
+
+void PhysicsSystem::enemyHitStatUpdate(Entity enemyEntity, Entity playerEntity, vec2 waterBallVelocity) {
+	Player& playerCom = registry.players.get(playerEntity);
+	PlayerStat& playerStatCom = registry.playerStats.get(playerCom.playerStat);
+	Enemy& enemyCom = registry.enemies.get(enemyEntity);
+	if (!enemyCom.isInvin) {
+		enemyCom.hp -= playerStatCom.damage;			
+		if (playerEntity.getId() == registry.players.entities.front()) {
+			Mix_PlayChannel(-1, slash_sound, 0);
+		}
+		else {
+			Mix_PlayChannel(-1, water_sound, 0);
+		}
+		if (enemyCom.hp <= 0) {
+			playerStatCom.money += enemyCom.loot;
+			if (playerStatCom.money > playerStatCom.playerMoneyLimit) {
+				playerStatCom.money = playerStatCom.playerMoneyLimit;
+			}
+			DeadEnemy& deadEnemy = registry.deadEnemies.emplace(enemyEntity);
+			Motion& enemyMotion = registry.motions.get(enemyEntity);
+			enemyMotion.velocity = vec2(0, 0);
+			if (playerEntity.getId() == registry.players.entities.front()) {
+				updateHudCoin(KNIGHT);
+				deadEnemy.gotCut = true;
+			}
+			else {
+				updateHudCoin(WIZARD);
+			}
+			enemyCom.isDead = true;
+
+			// if dead enemy is head, make tail die too
+			if (registry.enemyCoordHeads.has(enemyEntity)) {
+				Entity& tailEnemy = registry.enemyCoordHeads.get(enemyEntity).belongToTail;
+				DeadEnemy& deadTailEnemy = registry.deadEnemies.emplace(tailEnemy);
+				Motion& tailMotion = registry.motions.get(tailEnemy);
+				tailMotion.velocity = vec2(0, 0);
+				if (playerEntity.getId() == registry.players.entities.front()) {
+					deadTailEnemy.gotCut = true;
+				}
+				Enemy& enemyTailCom = registry.enemies.get(enemyEntity);
+				enemyTailCom.isDead = true;
+				enemyTailCom.hp = 0;
+			}
+		}
+		else {
+			enemyCom.isInvin = true;
+			enemyCom.invinTimerInMs = 0; 
+			enemyHitHandling(enemyEntity);
+			if (playerEntity.getId() == registry.players.entities.front()) {
+				calculateSwordKnockBack(enemyCom, playerEntity);
+			}
+			else {
+				calculateWaterBallKnockBack(enemyCom, playerEntity, waterBallVelocity);
+			}
+		}
 	}
+}
+
+void PhysicsSystem::calculateSwordKnockBack(Enemy& enemyCom, Entity playerEntity) {
+	Player& playerCom = registry.players.get(playerEntity);
+	PlayerStat& playerStat = registry.playerStats.get(playerCom.playerStat);
+	if (playerCom.attackDirection == UP) {
+		enemyCom.velocityOfPlayerHit = vec2(0.0, 1.0);
+	}
+	else if (playerCom.attackDirection == LEFT) {
+		enemyCom.velocityOfPlayerHit = vec2(-1.0, 0.0);
+	}
+	else if (playerCom.attackDirection == DOWN) {
+		enemyCom.velocityOfPlayerHit = vec2(0.0, -1.0);
+	}
+	else {
+		// playerCom.attackDirection == RIGHT
+		enemyCom.velocityOfPlayerHit = vec2(1.0, 0.0);
+	}
+	enemyCom.damageOfPlayerHit = playerStat.damage;
+}
+
+void PhysicsSystem::calculateWaterBallKnockBack(Enemy& enemyCom, Entity playerEntity, vec2 waterBallVelocity) {
+	Player& playerCom = registry.players.get(playerEntity);
+	PlayerStat& playerStat = registry.playerStats.get(playerCom.playerStat);
+	vec2 normalizedDirection = vec2(waterBallVelocity.x / sqrt(pow(waterBallVelocity.x, 2) + pow(waterBallVelocity.y, 2)),
+		waterBallVelocity.y / sqrt(pow(waterBallVelocity.x, 2) + pow(waterBallVelocity.y, 2)));
+	enemyCom.velocityOfPlayerHit = vec2(normalizedDirection.x, normalizedDirection.y * -1);
+	enemyCom.damageOfPlayerHit = playerStat.damage;
+}
+
+void PhysicsSystem::initializeSounds() {
+	// SOURCE for buy_sound: https://opengameart.org/content/inventory-sound-effects
+	// SOURCE for knight_hit_sound: https://opengameart.org/content/punch
+	// SOURCE for wizard_hit_sound: https://opengameart.org/content/punch-slap-n-kick
+	// SOURCE for water_sound: https://mixkit.co/free-sound-effects/splash/ "Fish flapping"
+	// SOURCE for slash_sound: https://mixkit.co/free-sound-effects/sword/ "Metal hit woosh"
+	water_sound = Mix_LoadWAV(audio_path("water.wav").c_str());
+	slash_sound = Mix_LoadWAV(audio_path("slash.wav").c_str());
+	buy_sound = Mix_LoadWAV(audio_path("coin.wav").c_str());
+	wizard_hit_sound = Mix_LoadWAV(audio_path("wizard_hit.wav").c_str());
+	knight_hit_sound = Mix_LoadWAV(audio_path("knight_hit.wav").c_str());
 }

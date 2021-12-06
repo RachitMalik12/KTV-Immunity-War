@@ -18,6 +18,8 @@ HelpMode helpMode;
 StoryMode storyMode;
 Step stepProgress;
 MenuMode menuMode;
+GameHUD gameHud;
+BossMode bossMode;
 
 // Entry point
 int main()
@@ -41,6 +43,7 @@ int main()
 	// initialize the main systems
 	int w, h;
 	glfwGetWindowSize(window, &w, &h);
+	physics.initializeSounds();
 	renderer.init(w, h, window);
 	world.init(&renderer);
 	AISystem ai(&renderer);
@@ -60,7 +63,7 @@ int main()
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
 
-		// TODO: JASMINE (MAKE IT SO THAT CLICKING IN SOME RANGE WILL BRING IT TO STORY MODE)
+		// create the main menu first time
 		if (menuMode.menuType == 1) {
 			world.createMenu();
 		}

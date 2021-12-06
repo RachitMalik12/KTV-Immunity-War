@@ -6,59 +6,63 @@ void AISystem::step(float elapsed_ms, float width, float height) {
 	stepEnemyBacteria(elapsed_ms, width, height);
 	stepEnemyChase(elapsed_ms);
 	stepEnemySwarm(elapsed_ms);
+	stepEnemyCoord(elapsed_ms, width, height);
 	stepEnemyGerm(elapsed_ms);
+	stepEnemyAStar(elapsed_ms, width, height);
+	stepEnemyBoss(elapsed_ms);
 }
 
 void AISystem::stepEnemyHunter(float elapsed_ms) {
 	for (Entity hunterEntity : registry.enemyHunters.entities) {
 		EnemyHunter& hunter = registry.enemyHunters.get(hunterEntity);
 		Enemy& hunterStatus = registry.enemies.get(hunterEntity);
-		if (hunterStatus.hp <= 2) {
-			hunter.currentState = hunter.fleeingMode;
-		}
-		if (hunter.currentState == hunter.fleeingMode && hunter.isFleeing == false) {
-			registry.motions.get(hunterEntity).velocity = vec2(2.0f * hunterStatus.speed, 0);
-			hunter.isFleeing = true;
-			registry.renderRequests.remove(hunterEntity);
-			registry.renderRequests.insert(
-				hunterEntity,
-				{ TEXTURE_ASSET_ID::ENEMYHUNTERFLEE,
-					EFFECT_ASSET_ID::ENEMY,
-					GEOMETRY_BUFFER_ID::SPRITE });
-			hunter.isAnimatingHurt = false;
-		}
-		else {
-			if (hunter.timeToUpdateAi) {
-				if (hunter.currentState == hunter.searchingMode) {
-					if (isEnemyInRangeOfThePlayers(hunterEntity)) {
-						hunter.currentState = hunter.huntingMode;
-						registry.renderRequests.remove(hunterEntity);
-						registry.renderRequests.insert(
-							hunterEntity,
-							{ TEXTURE_ASSET_ID::ENEMYHUNTERMAD,
-								EFFECT_ASSET_ID::ENEMY,
-								GEOMETRY_BUFFER_ID::SPRITE });
-						hunter.isAnimatingHurt = false;
-					}
-					else {
-						setEnemyWonderingRandomly(hunterEntity);
-					}
-				}
-				if (hunter.currentState == hunter.huntingMode) {
-					setEnemyChasingThePlayer(hunterEntity);
-				}
-				hunter.timeToUpdateAi = false;
-				hunter.aiUpdateTimer = hunter.aiUpdateTime;
+		if (!hunterStatus.isDead) {
+			if (hunterStatus.hp <= 2) {
+				hunter.currentState = hunter.fleeingMode;
+			}
+			if (hunter.currentState == hunter.fleeingMode && hunter.isFleeing == false) {
+				registry.motions.get(hunterEntity).velocity = vec2(2.0f * hunterStatus.speed, 0);
+				hunter.isFleeing = true;
+				registry.renderRequests.remove(hunterEntity);
+				registry.renderRequests.insert(
+					hunterEntity,
+					{ TEXTURE_ASSET_ID::ENEMYHUNTERFLEE,
+						EFFECT_ASSET_ID::ENEMY,
+						GEOMETRY_BUFFER_ID::SPRITE });
+				hunter.isAnimatingHurt = false;
 			}
 			else {
-				hunter.aiUpdateTimer -= elapsed_ms;
-				if (hunter.aiUpdateTimer < 0) {
-					hunter.timeToUpdateAi = true;
+				if (hunter.timeToUpdateAi) {
+					if (hunter.currentState == hunter.searchingMode) {
+						if (isEnemyInRangeOfThePlayers(hunterEntity)) {
+							hunter.currentState = hunter.huntingMode;
+							registry.renderRequests.remove(hunterEntity);
+							registry.renderRequests.insert(
+								hunterEntity,
+								{ TEXTURE_ASSET_ID::ENEMYHUNTERMAD,
+									EFFECT_ASSET_ID::ENEMY,
+									GEOMETRY_BUFFER_ID::SPRITE });
+							hunter.isAnimatingHurt = false;
+						}
+						else {
+							setEnemyWonderingRandomly(hunterEntity);
+						}
+					}
+					if (hunter.currentState == hunter.huntingMode) {
+						setEnemyChasingThePlayer(hunterEntity);
+					}
+					hunter.timeToUpdateAi = false;
+					hunter.aiUpdateTimer = hunter.aiUpdateTime;
+				}
+				else {
+					hunter.aiUpdateTimer -= elapsed_ms;
+					if (hunter.aiUpdateTimer < 0) {
+						hunter.timeToUpdateAi = true;
+					}
 				}
 			}
+			resolveHunterAnimation(hunterEntity, hunterStatus, hunter);
 		}
-
-		resolveHunterAnimation(hunterEntity, hunterStatus, hunter);
 	}
 }
 
@@ -257,7 +261,6 @@ void AISystem::stepEnemyGerm(float elapsed_ms) {
 
 			// BTNode (node that is a condition, and if condition is met, will run the child node that is passed in)
 			BTIfCondition chase = BTIfCondition(&chasePlayer, conditionChasePlayer);
-			
 			// BTNode (leaf node, a process that will be run if reached)
 			Explode explode;
 
@@ -305,10 +308,12 @@ void AISystem::createAdj() {
 
 void AISystem::stepEnemyBacteria(float elapsed_ms, float width, float height) {
 	for (Entity bacteriaEntity : registry.enemyBacterias.entities) {
-		registry.enemyBacterias.get(bacteriaEntity).next_bacteria_BFS_calculation -= elapsed_ms;
-		registry.enemyBacterias.get(bacteriaEntity).next_bacteria_PATH_calculation -= elapsed_ms;
-		auto& motions_registry = registry.motions;
-		if (registry.enemyBacterias.get(bacteriaEntity).next_bacteria_BFS_calculation < 0.f) {
+		Enemy& enemy = registry.enemies.get(bacteriaEntity);
+		if (!enemy.isDead) {
+			registry.enemyBacterias.get(bacteriaEntity).next_bacteria_BFS_calculation -= elapsed_ms;
+			registry.enemyBacterias.get(bacteriaEntity).next_bacteria_PATH_calculation -= elapsed_ms;
+			auto& motions_registry = registry.motions;
+			if (registry.enemyBacterias.get(bacteriaEntity).next_bacteria_BFS_calculation < 0.f) {
 				EnemyBacteria& bacteria = registry.enemyBacterias.get(bacteriaEntity);
 				Motion& player1Motion = motions_registry.get(registry.players.entities[0]);
 
@@ -345,13 +350,17 @@ void AISystem::stepEnemyBacteria(float elapsed_ms, float width, float height) {
 						handlePath(width, height, bacteriaEntity);
 					}
 				}
+			}
 		}
 	}
 	for (Entity bacteriaEntity : registry.enemyBacterias.entities) {
-		if (registry.enemyBacterias.get(bacteriaEntity).next_bacteria_PATH_calculation < 0.f) {
-			EnemyBacteria& bacteria = registry.enemyBacterias.get(bacteriaEntity);
-			registry.enemyBacterias.get(bacteriaEntity).next_bacteria_PATH_calculation = bacteria.pathUpdateTime;
-			findPath(bacteriaEntity);
+		Enemy& enemy = registry.enemies.get(bacteriaEntity);
+		if (!enemy.isDead) {
+			if (registry.enemyBacterias.get(bacteriaEntity).next_bacteria_PATH_calculation < 0.f) {
+				EnemyBacteria& bacteria = registry.enemyBacterias.get(bacteriaEntity);
+				registry.enemyBacterias.get(bacteriaEntity).next_bacteria_PATH_calculation = bacteria.pathUpdateTime;
+				findPath(bacteriaEntity);
+			}
 		}
 	}
 
@@ -361,7 +370,8 @@ void AISystem::stepEnemyChase(float elapsed_ms) {
 	// update enemy chase so it chases the player
 	for (Entity entity : registry.enemyChase.entities) {
 		EnemyChase& chase = registry.enemyChase.get(entity);
-		if (chase.timeToUpdateAi) {
+		Enemy& enemy = registry.enemies.get(entity);
+		if (chase.timeToUpdateAi && !enemy.isDead) {
 			auto& enemyCom = registry.enemies.get(entity);
 			Motion& motion = registry.motions.get(entity);
 			Entity playerEntity = pickAPlayer();
@@ -613,27 +623,40 @@ void AISystem::stepEnemySwarm(float elapsed_ms) {
 	for (Entity swarmEntity : registry.enemySwarms.entities) {
 		EnemySwarm& swarm = registry.enemySwarms.get(swarmEntity);
 		Enemy& swarmStatus = registry.enemies.get(swarmEntity);
-		if (swarm.timeToUpdateAi) {
-			swarmSpreadOut(swarmEntity);
-			swarmFireProjectileAtPlayer(swarmEntity);
-			swarm.timeToUpdateAi = false;
-			swarm.aiUpdateTimer = swarm.aiUpdateTime;
-		}
-		else {
-			swarm.aiUpdateTimer -= elapsed_ms;
-			if (swarm.aiUpdateTimer < 0) {
-				swarm.timeToUpdateAi = true;
+		if (!swarmStatus.isDead) {
+			if (swarm.timeToUpdateAi) {
+				if (bossMode.currentBossLevel != STAGE2) {
+					swarmSpreadOut(swarmEntity);
+				}
+				swarmFireProjectileAtPlayer(swarmEntity);
+				swarm.timeToUpdateAi = false;
+				swarm.aiUpdateTimer = 0;
 			}
-		}
+			else {
+				swarm.aiUpdateTimer += elapsed_ms;
+				if (swarm.aiUpdateTimer > swarm.aiUpdateTime) {
+					swarm.timeToUpdateAi = true;
+				}
+			}
 
-		if (swarm.isAnimatingHurt && !swarmStatus.isInvin) {
-			registry.renderRequests.remove(swarmEntity);
-			registry.renderRequests.insert(
-				swarmEntity,
-				{ TEXTURE_ASSET_ID::ENEMYSWARM,
-					EFFECT_ASSET_ID::ENEMY,
-					GEOMETRY_BUFFER_ID::SPRITE });
-			swarm.isAnimatingHurt = false;
+			if (swarm.isAnimatingHurt && !swarmStatus.isInvin) {
+				registry.renderRequests.remove(swarmEntity);
+				if (bossMode.currentBossLevel == STAGE1) {
+					registry.renderRequests.insert(
+						swarmEntity,
+						{ TEXTURE_ASSET_ID::MINION,
+							EFFECT_ASSET_ID::ENEMY,
+							GEOMETRY_BUFFER_ID::SPRITE });
+				}
+				else {
+					registry.renderRequests.insert(
+						swarmEntity,
+						{ TEXTURE_ASSET_ID::ENEMYSWARM,
+							EFFECT_ASSET_ID::ENEMY,
+							GEOMETRY_BUFFER_ID::SPRITE });
+				}
+				swarm.isAnimatingHurt = false;
+			}
 		}
 	}
 }
@@ -697,7 +720,107 @@ void AISystem::swarmFireProjectileAtPlayer(Entity swarmEntity) {
 	vec2 diff = playerMotion.position - swarmMotion.position;
 	float angle = atan2(diff.y, diff.x);
 	vec2 velocity = vec2(cos(angle) * swarm.projectileSpeed, sin(angle) * swarm.projectileSpeed);
-	createEnemyProjectile(renderer, swarmMotion.position, velocity, angle, swarmEntity);
+	if (bossMode.currentBossLevel == STAGE2) {
+		createHandProjectile(renderer, swarmMotion.position, velocity, angle, swarmEntity);
+	}
+	else {
+		createEnemyProjectile(renderer, swarmMotion.position, velocity, angle, swarmEntity);
+	}
+}
+
+void AISystem::stepEnemyCoord(float elapsed_ms, float width, float height) {
+	for (Entity headEntity : registry.enemyCoordHeads.entities) {
+		EnemyCoordHead& head = registry.enemyCoordHeads.get(headEntity);
+		if (head.timeToUpdateAi) {
+			Enemy& headStatus = registry.enemies.get(headEntity);
+			Entity tailEntity = head.belongToTail;
+			if (!headStatus.isDead) {
+				moveAwayfromOtherCoord(headEntity, tailEntity, elapsed_ms);
+			}
+			head.aiUpdateTimer = 0;
+			head.timeToUpdateAi = false;
+		}
+		else {
+			head.aiUpdateTimer += elapsed_ms;
+			if (head.aiUpdateTimer > head.aiUpdateTime) {
+				head.timeToUpdateAi = true;
+			}
+		}
+	}
+}
+
+void AISystem::moveAwayfromOtherCoord(Entity enemyEntity, Entity otherEnemyEntity, float elapsed_ms) {
+	if (registry.motions.has(otherEnemyEntity)) {
+		Motion& enemyMotion = registry.motions.get(enemyEntity);
+		Motion& otherEnemyMotion = registry.motions.get(otherEnemyEntity);
+		EnemyCoordHead& enemyHead = registry.enemyCoordHeads.get(enemyEntity);
+		float distance = sqrt(pow(enemyMotion.position.x - otherEnemyMotion.position.x, 2) +
+			pow(enemyMotion.position.y - otherEnemyMotion.position.y, 2));
+		// if head tail too close, move away from each other to maintain distance
+		if (distance < enemyHead.minDistFromTail) {
+			vec2 directionFromEnemyToOtherEnemy =
+				vec2(otherEnemyMotion.position.x - enemyMotion.position.x, otherEnemyMotion.position.y - enemyMotion.position.y);
+			vec2 oppositeOfDirection = vec2(directionFromEnemyToOtherEnemy.x * -1.f, directionFromEnemyToOtherEnemy.y * -1.f);
+			vec2 normalizedOppositeDirection = vec2(oppositeOfDirection.x / sqrt(pow(oppositeOfDirection.x, 2) + pow(oppositeOfDirection.y, 2)),
+				oppositeOfDirection.y / sqrt(pow(oppositeOfDirection.x, 2) + pow(oppositeOfDirection.y, 2)));
+			Enemy& enemyStatus = registry.enemies.get(enemyEntity);
+			enemyMotion.velocity = vec2(normalizedOppositeDirection.x * enemyStatus.speed, normalizedOppositeDirection.y * enemyStatus.speed);
+			vec2 normalizedDirection = vec2(directionFromEnemyToOtherEnemy.x / sqrt(pow(directionFromEnemyToOtherEnemy.x, 2) + pow(directionFromEnemyToOtherEnemy.y, 2)),
+				directionFromEnemyToOtherEnemy.y / sqrt(pow(directionFromEnemyToOtherEnemy.x, 2) + pow(directionFromEnemyToOtherEnemy.y, 2)));
+			Enemy& otherEnemyStatus = registry.enemies.get(otherEnemyEntity);
+			otherEnemyMotion.velocity = vec2(normalizedDirection.x * otherEnemyStatus.speed, normalizedDirection.y * otherEnemyStatus.speed);
+		}
+		else {
+			Entity playerOneEntity = registry.players.entities.front();
+			if (twoPlayer.inTwoPlayerMode) {
+				Entity playerTwoEntity = registry.players.entities.back();
+				Player& player1 = registry.players.get(playerOneEntity);
+				Player& player2 = registry.players.get(playerTwoEntity);
+				if (!player1.isDead) {
+					Motion& player1Motion = registry.motions.get(registry.players.entities.front());
+					handleCoordEnemyUpdate(player1Motion, enemyMotion, otherEnemyMotion, enemyEntity, otherEnemyEntity);
+				}
+				else {
+					Motion& player2Motion = registry.motions.get(registry.players.entities.back());
+					handleCoordEnemyUpdate(player2Motion, enemyMotion, otherEnemyMotion, enemyEntity, otherEnemyEntity);
+				}
+			}
+			else {
+				Entity playerOneEntity = registry.players.entities.front();
+				Player& player1 = registry.players.get(playerOneEntity);
+				// head running away from player
+				Motion& player1Motion = registry.motions.get(registry.players.entities.front());
+				// if head too close to player, then tail chases player, otherwise they both move randomly
+				float distance = sqrt(pow(enemyMotion.position.x - player1Motion.position.x, 2) +
+					pow(enemyMotion.position.y - player1Motion.position.y, 2));
+				if (distance < 300.f) {
+					handleCoordEnemyUpdate(player1Motion, enemyMotion, otherEnemyMotion, enemyEntity, otherEnemyEntity);
+				}
+				else {
+					setEnemyWonderingRandomly(enemyEntity);
+					setEnemyWonderingRandomly(otherEnemyEntity);
+				}
+			}
+		}
+	}
+}
+
+void AISystem::handleCoordEnemyUpdate(Motion& playerMotion, Motion& enemyMotion, Motion& otherEnemyMotion, Entity enemyEntity, Entity otherEnemyEntity) {
+	// head moving away from player
+	vec2 directionHeadToPlayer =
+		vec2(playerMotion.position.x - enemyMotion.position.x, playerMotion.position.y - enemyMotion.position.y);
+	vec2 oppositeOfDirection = vec2(directionHeadToPlayer.x * -1.f, directionHeadToPlayer.y * -1.f);
+	vec2 normalizedOppositeDirection = vec2(oppositeOfDirection.x / sqrt(pow(oppositeOfDirection.x, 2) + pow(oppositeOfDirection.y, 2)),
+		oppositeOfDirection.y / sqrt(pow(oppositeOfDirection.x, 2) + pow(oppositeOfDirection.y, 2)));
+	Enemy& enemyStatus = registry.enemies.get(enemyEntity);
+	enemyMotion.velocity = vec2(normalizedOppositeDirection.x * enemyStatus.speed, normalizedOppositeDirection.y * enemyStatus.speed);
+	// tail running towards player
+	vec2 directionTailToPlayer =
+		vec2(playerMotion.position.x - otherEnemyMotion.position.x, playerMotion.position.y - otherEnemyMotion.position.y);
+	vec2 normalizedDirection = vec2(directionTailToPlayer.x / sqrt(pow(directionTailToPlayer.x, 2) + pow(directionTailToPlayer.y, 2)),
+		directionTailToPlayer.y / sqrt(pow(directionTailToPlayer.x, 2) + pow(directionTailToPlayer.y, 2)));
+	Enemy& otherEnemyStatus = registry.enemies.get(otherEnemyEntity);
+	otherEnemyMotion.velocity = vec2(normalizedDirection.x * otherEnemyStatus.speed, normalizedDirection.y * otherEnemyStatus.speed);
 }
 
 Entity AISystem::pickAPlayer() {
@@ -719,4 +842,200 @@ Entity AISystem::pickAPlayer() {
 		}
 	}
 	return playerEntity;
+}
+
+int AISystem::findMin(vec2 upSumCost, vec2 rightSumCost, vec2 downSumCost, vec2 leftSumCost) {
+	float currMin = INT_MAX;
+	int currMinPosition = -1;
+	// UP
+	if (upSumCost.x + upSumCost.y < currMin) {
+		currMin = upSumCost.x + upSumCost.y;
+		currMinPosition = 0;
+	}	// RIGHT
+	if (rightSumCost.x + rightSumCost.y < currMin) {
+		currMin = rightSumCost.x + rightSumCost.y;
+		currMinPosition = 1;
+	}	// DOWN
+	if (downSumCost.x + downSumCost.y < currMin) {
+		currMin = downSumCost.x + downSumCost.y;
+		currMinPosition = 2;
+	}	// LEFT
+	if (leftSumCost.x + leftSumCost.y < currMin) {
+		currMin = leftSumCost.x + leftSumCost.y;
+		currMinPosition = 3;
+	}
+	return currMinPosition;
+}
+
+vec2 AISystem::findFinalPosition(vec2 currNode, Entity& enemy, float width, float height, int currMinPosition) {
+	int finX = currNode.x;
+	int finY = currNode.y;
+
+	// depending on the min direction, choose that one, and made it the finX, finY
+	switch (currMinPosition) {
+	case 0: // up
+		if (currNode.y - registry.enemyAStars.get(enemy).stepSizes > 0.f) {
+			finY = currNode.y - registry.enemyAStars.get(enemy).stepSizes;
+		}
+		break;
+	case 1: // right
+		if (currNode.x + registry.enemyAStars.get(enemy).stepSizes < width) {
+			finX = currNode.x + registry.enemyAStars.get(enemy).stepSizes;
+		}
+		break;
+	case 2: // down
+		if (currNode.y + registry.enemyAStars.get(enemy).stepSizes < height) {
+			finY = currNode.y + registry.enemyAStars.get(enemy).stepSizes;
+		}
+		break;
+	case 3: // left
+		if (currNode.x - registry.enemyAStars.get(enemy).stepSizes > 0.f) {
+			finX = currNode.x - registry.enemyAStars.get(enemy).stepSizes;
+		}
+		break;
+	default:
+		break;
+	}
+
+	return { finX, finY };
+
+}
+
+vec2 AISystem::nextNode(vec2 currNode, Entity& player, Entity& enemy, float width, float height) {
+	Motion& motionAStar = registry.motions.get(enemy);
+	Motion& motionPlayer = registry.motions.get(player);
+	// Calculate H Cost value (distance between current node and the end position) and G Cost (distance between current node and the NEXT position)
+	// Add the sum of these two.
+	vec2 upHCost = abs(calculateHCost(motionPlayer, { currNode.x, currNode.y - registry.enemyAStars.get(enemy).stepSizes }));
+	vec2 upSumCost = abs(calculateGCost(enemy, 0)) + upHCost;
+
+	// RIGHT
+	vec2 rightHCost = abs(calculateHCost(motionPlayer, { currNode.x + registry.enemyAStars.get(enemy).stepSizes, currNode.y }));
+	vec2 rightSumCost = abs(calculateGCost(enemy, 1)) + rightHCost;
+
+	// DOWN
+	vec2 downHCost = abs(calculateHCost(motionPlayer, { currNode.x, currNode.y + registry.enemyAStars.get(enemy).stepSizes }));
+	vec2 downSumCost = abs(calculateGCost(enemy, 2)) + downHCost;
+
+	// LEFT
+	vec2 leftHCost = abs(calculateHCost(motionPlayer, { currNode.x - registry.enemyAStars.get(enemy).stepSizes, currNode.y }));
+	vec2 leftSumCost = abs(calculateGCost(enemy, 3)) + leftHCost;
+	// Find the min of all the values
+	
+	int currMinPosition = findMin(upSumCost, rightSumCost, downSumCost, leftSumCost);
+	vec2 finalPosition = findFinalPosition(currNode, enemy, width, height, currMinPosition);
+
+	// push the next node the queue and return the node
+	std::pair<int, int> currPosition = { finalPosition.x , finalPosition.y };
+	registry.enemyAStars.get(enemy).traversalQueue.push(currPosition);
+	return { finalPosition.x, finalPosition.y };
+}
+
+// Distance between enemy and endgoal
+vec2 AISystem::calculateHCost(const Motion& player, vec2 currNode) {
+	float distanceX = abs(player.position.x - currNode.x);
+	float distanceY = abs(player.position.y - currNode.y);
+
+	return { distanceX, distanceY };
+}
+
+// Distance between enemy and next position
+vec2 AISystem::calculateGCost(Entity& enemy, int dir) {
+	float distanceX = 0.f;
+	float distanceY = 0.f;
+	if (dir == 0) {			// up
+		distanceY = registry.enemyAStars.get(enemy).stepSizes;
+	}
+	else if (dir == 1) {	// right
+		distanceX = registry.enemyAStars.get(enemy).stepSizes;
+	}
+	else if (dir == 2) {	// down
+		distanceY = registry.enemyAStars.get(enemy).stepSizes;
+	}
+	else if (dir == 3) {	// left
+		distanceX = registry.enemyAStars.get(enemy).stepSizes;
+	}
+
+	return { distanceX, distanceY };
+}
+
+void AISystem::handleAStarPathCalculation(Entity& player, Entity& enemy, float width, float height) {
+	Motion& motionAStar = registry.motions.get(enemy);
+	Motion& motionPlayer = registry.motions.get(player);
+	vec2 finNode = { motionPlayer.position.x, motionPlayer.position.y };
+
+	vec2 currNode = { motionAStar.position.x, motionAStar.position.y };
+	while (abs(currNode.x - finNode.x) > registry.enemyAStars.get(enemy).distanceCloseToPlayer 
+		&& abs(currNode.y - finNode.y) > registry.enemyAStars.get(enemy).distanceCloseToPlayer) {
+		currNode = nextNode(currNode, player, enemy, width, height);
+	}
+}
+
+void AISystem::pathCalculationInit(Entity& enemyAStar, float width, float height) {
+	EnemyAStar& aStarEnemy = registry.enemyAStars.get(enemyAStar);
+	aStarEnemy.finishedPathCalculation = false;
+	aStarEnemy.next_AStar_behaviour_calculation = aStarEnemy.AStarBehaviourUpdateTime;
+	Entity player = pickAPlayer();
+	Motion& playerMotion = registry.motions.get(player);
+	handleAStarPathCalculation(player, enemyAStar, width, height);
+}
+
+void AISystem::stepMovement(Entity& enemyAStar) {
+	EnemyAStar& aStarEnemy = registry.enemyAStars.get(enemyAStar);
+	Motion AStarMotion = registry.motions.get(enemyAStar);
+	aStarEnemy.next_bacteria_movement = aStarEnemy.movementUpdateTime;
+	if (!aStarEnemy.traversalQueue.empty()) {
+		std::pair<int, int> currPosition = { -1 , -1 };
+		currPosition = aStarEnemy.traversalQueue.front();
+		aStarEnemy.traversalQueue.pop();
+		moveToSpot(AStarMotion.position.x, AStarMotion.position.y, currPosition.first, currPosition.second, enemyAStar);
+	}
+}
+
+void AISystem::stepEnemyAStar(float elapsed_ms, float width, float height) {
+	for (Entity& entityAStar : registry.enemyAStars.entities) {  
+		Enemy& enemy = registry.enemies.get(entityAStar);
+		Motion AStarMotion = registry.motions.get(entityAStar);
+		EnemyAStar& aStarEnemy = registry.enemyAStars.get(entityAStar);
+		if (!enemy.isDead) {
+			aStarEnemy.next_AStar_behaviour_calculation -= elapsed_ms;
+			aStarEnemy.next_bacteria_movement -= elapsed_ms;
+			if (aStarEnemy.next_AStar_behaviour_calculation < 0.f) {
+				pathCalculationInit(entityAStar, width, height);
+			}
+
+			if (aStarEnemy.next_bacteria_movement < 0.f) {
+				stepMovement(entityAStar);
+			}
+		}
+	}
+}
+
+void AISystem::bossFireProjectileAtPlayer(Entity entity) {
+	EnemyBoss& boss = registry.enemyBoss.get(entity);
+	Motion& bossMotion = registry.motions.get(entity);
+	Motion& playerMotion = registry.motions.get(pickAPlayer());
+	vec2 diff = playerMotion.position - bossMotion.position;
+	float angle = atan2(diff.y, diff.x);
+	vec2 velocity = vec2(cos(angle) * boss.projectileSpeed, sin(angle) * boss.projectileSpeed);
+	createHandProjectile(renderer, vec2(bossMotion.position.x, BOSS_BB_HEIGHT * defaultResolution.scaling), velocity, angle, entity);
+}
+
+
+void AISystem::stepEnemyBoss(float elapsed_ms) {
+	if (bossMode.currentBossLevel == STAGE3 && registry.enemyBoss.entities.size() > 0) {
+		Entity bossEntity = registry.enemyBoss.entities.front();
+		EnemyBoss& boss = registry.enemyBoss.get(bossEntity);
+		if (boss.timeToUpdateAi) {
+			bossFireProjectileAtPlayer(bossEntity);
+			boss.timeToUpdateAi = false;
+			boss.aiUpdateTimer = 0;
+		}
+		else {
+			boss.aiUpdateTimer += elapsed_ms;
+			if (boss.aiUpdateTimer > boss.aiUpdateInterval) {
+				boss.timeToUpdateAi = true;
+			}
+		}
+	}
 }

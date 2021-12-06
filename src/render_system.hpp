@@ -43,6 +43,7 @@ class RenderSystem {
 	// SOURCE for enemy.png: https://www.klipartz.com/ru/search?q=%D0%B2%D0%B8%D1%80%D1%83%D1%81
 	// SOURCE for enemychase.png: https://commons.wikimedia.org/wiki/File:Average_prokaryote_cell-_unlabled.svg
 	// SOURCE for keys on help.png: https://support.apple.com/en-us/HT201236
+	// SOURCE for tail: https://roblox.fandom.com/wiki/Catalog:Earth_Dragon_Tail
 	const std::array<std::string, texture_count> texture_paths = {
 			textures_path("tree_red.png"),
 			textures_path("tree_orange.png"),
@@ -80,8 +81,27 @@ class RenderSystem {
 			textures_path("attackSpeedUp.png"),
 			textures_path("movementUp.png"), 
 			textures_path("dmgUp.png"),
-			textures_path("background_new.png")
-
+			textures_path("background_new.png"),
+			textures_path("numbers.png"),
+			textures_path("coin.png"),
+			textures_path("hp.png"),
+			textures_path("knightIcon.png"),
+			textures_path("wizard_earring.png"), 
+			textures_path("caps_letters.png"), 
+			textures_path("small_letters.png"), 
+			textures_path("tutorial.png"), 
+			textures_path("shop-arrow.png"),
+			textures_path("AStarEnemy.png"),
+			textures_path("bg_final.png"),
+			textures_path("hand.png"),
+			textures_path("minion.png"),
+			textures_path("minioncrazy.png"),
+			textures_path("bossfireball.png"),
+			textures_path("boss.png"),
+			textures_path("enemyhead.png"),
+			textures_path("enemytail.png"),
+			textures_path("end_1.png"),
+			textures_path("end_2.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -93,7 +113,11 @@ class RenderSystem {
 		shader_path("water"),
 		shader_path("knight"),
 		shader_path("wizard"),
-		shader_path("enemy")
+		shader_path("enemy"),
+		shader_path("number"),
+		shader_path("powerup"),
+		shader_path("letter"),
+		shader_path("boss")
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
@@ -135,6 +159,8 @@ private:
 	void playerOneTransition(bool leaveShop);
 	void playerTwoTransition(bool leaveShop, vec2 player2Pos);
 	void textureEffectSetup(const GLuint program, Entity entity);
+	void enemyEffects(const GLuint program, Entity entity);
+	void playerEffects(const GLuint program, Entity entity);
 
 	// Window handle
 	GLFWwindow* window;

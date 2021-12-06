@@ -4,16 +4,12 @@
 #include <SDL.h>
 
 #include "tiny_ecs_registry.hpp"
+#include "world_init.hpp"
 
 void RenderSystem::drawTexturedMesh(Entity entity,
 									const mat3 &projection)
 {
 	Motion &motion = registry.motions.get(entity);
-
-	Transform transform;
-	transform.translate(motion.position);
-	transform.rotate(motion.angle);
-	transform.scale(motion.scale);
 
 	assert(registry.renderRequests.has(entity));
 	const RenderRequest &render_request = registry.renderRequests.get(entity);
@@ -66,11 +62,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		GLint yFrame = glGetUniformLocation(program, "yFrame");
 		glUniform1i(xFrame, knightAnimation.xFrame);
 		glUniform1i(yFrame, knightAnimation.yFrame);
-		GLfloat colorScale = glGetUniformLocation(program, "color_scale");
-		float color_scale_value = registry.playerStats.get(registry.players.get(entity).playerStat).maxHp - registry.players.get(entity).hp;
-		glUniform1f(colorScale, color_scale_value);
-		GLint inInvin = glGetUniformLocation(program, "inInvin");
-		glUniform1i(inInvin, registry.players.get(entity).isInvin);
+		playerEffects(program, entity);
 		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::WIZARD) {
@@ -84,20 +76,35 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glUniform1i(frameIdle, wizardAnimation.frameIdle);
 		glUniform1i(frameAttack, wizardAnimation.frameAttack);
 		glUniform1i(animationMode, wizardAnimation.animationMode);
-		GLfloat colorScale = glGetUniformLocation(program, "color_scale");
-		float color_scale_value = registry.playerStats.get(registry.players.get(entity).playerStat).maxHp - registry.players.get(entity).hp;
-		glUniform1f(colorScale, color_scale_value);
+		playerEffects(program, entity);
 		gl_has_errors();
 	}
-	else if (render_request.used_effect == EFFECT_ASSET_ID::ENEMY)
+	else if (render_request.used_effect == EFFECT_ASSET_ID::ENEMY || render_request.used_effect == EFFECT_ASSET_ID::BOSS)
 	{
 		textureEffectSetup(program, entity);
 		gl_has_errors();
-		GLfloat colorScale = glGetUniformLocation(program, "color_scale");
-		float color_scale_value = registry.enemies.get(entity).max_hp - registry.enemies.get(entity).hp;
-		glUniform1f(colorScale, color_scale_value);
-		GLint inInvin = glGetUniformLocation(program, "inInvin");
-		glUniform1i(inInvin, registry.enemies.get(entity).isInvin);
+		enemyEffects(program, entity);
+		gl_has_errors();
+	}
+	else if (render_request.used_effect == EFFECT_ASSET_ID::NUMBER)
+	{
+		textureEffectSetup(program, entity);
+		GLint frame = glGetUniformLocation(program, "frame");
+		glUniform1i(frame, registry.numbers.get(entity).frame);
+		gl_has_errors();
+	}
+	else if (render_request.used_effect == EFFECT_ASSET_ID::LETTER)
+	{
+		textureEffectSetup(program, entity);
+		GLint frame = glGetUniformLocation(program, "frame");
+		glUniform1i(frame, registry.letters.get(entity).frame);
+		gl_has_errors();
+	}
+	else if (render_request.used_effect == EFFECT_ASSET_ID::POWERUP)
+	{
+		textureEffectSetup(program, entity);
+		GLfloat time_loc = glGetUniformLocation(program, "time");
+		glUniform1f(time_loc, (float)(glfwGetTime() * 10.0f));
 		gl_has_errors();
 	}
 	else
@@ -150,6 +157,27 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 	GLint currProgram;
 	glGetIntegerv(GL_CURRENT_PROGRAM, &currProgram);
+
+	Transform transformSeparate;
+	transformSeparate.translate(motion.position);
+	GLuint translate_loc = glGetUniformLocation(currProgram, "translate");
+	glUniformMatrix3fv(translate_loc, 1, GL_FALSE, (float *)&transformSeparate.mat);
+	transformSeparate.reset();
+
+	transformSeparate.rotate(motion.angle);
+	GLuint rotation_loc = glGetUniformLocation(currProgram, "rotation");
+	glUniformMatrix3fv(rotation_loc, 1, GL_FALSE, (float *)&transformSeparate.mat);
+	transformSeparate.reset();
+
+	transformSeparate.scale(motion.scale);
+	GLuint scale_loc = glGetUniformLocation(currProgram, "scale");
+	glUniformMatrix3fv(scale_loc, 1, GL_FALSE, (float *)&transformSeparate.mat);
+
+	Transform transform;
+	transform.translate(motion.position);
+	transform.rotate(motion.angle);
+	transform.scale(motion.scale);
+
 	// Setting uniform values to the currently bound program
 	GLuint transform_loc = glGetUniformLocation(currProgram, "transform");
 	glUniformMatrix3fv(transform_loc, 1, GL_FALSE, (float *)&transform.mat);
@@ -193,11 +221,9 @@ void RenderSystem::drawToScreen()
 	const GLuint water_program = effects[(GLuint)EFFECT_ASSET_ID::WATER];
 	// Set clock
 	GLuint time_uloc = glGetUniformLocation(water_program, "time");
-	GLuint dead_timer_uloc = glGetUniformLocation(water_program, "darken_screen_factor");
 	GLuint brighten_timer_uloc = glGetUniformLocation(water_program, "brighten_screen_factor");
 	glUniform1f(time_uloc, (float)(glfwGetTime() * 10.0f));
 	ScreenState& screen = registry.screenStates.get(screen_state_entity);
-	glUniform1f(dead_timer_uloc, screen.darken_screen_factor);
 	glUniform1f(brighten_timer_uloc, screen.brighten_screen_factor);
 	gl_has_errors();
 	// Set the vertex position and vertex texture coordinates (both stored in the
@@ -278,8 +304,14 @@ void RenderSystem::playerOneTransition(bool leaveShop) {
 	Entity player2Entity = registry.players.entities[1];
 	if (leaveShop) {
 		registry.inShops.remove(player2Entity);
+		gameHud.currentLocation = BATTLE_ROOM;
+		HUDLocationSwitch(gameHud.playerOneHudEntity);
+		HUDLocationSwitch(gameHud.playerTwoHudEntity);
 	} else {
 		registry.inShops.emplace(player2Entity);
+		gameHud.currentLocation = SHOP_ROOM;
+		HUDLocationSwitch(gameHud.playerOneHudEntity);
+		HUDLocationSwitch(gameHud.playerTwoHudEntity);
 	}
 	registry.motions.get(player2Entity).velocity = vec2(0, 0);
 	if (registry.mouseDestinations.has(player2Entity))
@@ -299,9 +331,15 @@ void RenderSystem::playerTwoTransition(bool leaveShop, vec2 player2Pos) {
 	if (leaveShop) {
 		registry.motions.get(player2Entity).position.y -= defaultResolution.shopBufferZone * 3;
 		registry.inShops.remove(player2Entity);
+		gameHud.currentLocation = BATTLE_ROOM;
+		HUDLocationSwitch(gameHud.playerOneHudEntity);
+		HUDLocationSwitch(gameHud.playerTwoHudEntity);
 	} else {
 		registry.motions.get(player2Entity).position.y += defaultResolution.shopBufferZone * 3;
 		registry.inShops.emplace(player2Entity);
+		gameHud.currentLocation = SHOP_ROOM;
+		HUDLocationSwitch(gameHud.playerOneHudEntity);
+		HUDLocationSwitch(gameHud.playerTwoHudEntity);
 	}
 	registry.motions.get(player2Entity).velocity = vec2(0, 0);
 	if (registry.mouseDestinations.has(player2Entity)) {
@@ -376,12 +414,16 @@ mat3 RenderSystem::createProjectionMatrix(float left, float top)
 			// In the shop 
 			if (!registry.inShops.has(p1)) {
 				registry.inShops.emplace(p1);
+				gameHud.currentLocation = SHOP_ROOM;
+				HUDLocationSwitch(gameHud.playerOneHudEntity);
 			}
 		}
 		else if (player1Pos.y - h < defaultResolution.shopBufferZone) {
 			projMat = { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f} };
 			if (registry.inShops.has(p1)) {
 				registry.inShops.remove(p1);
+				gameHud.currentLocation = BATTLE_ROOM;
+				HUDLocationSwitch(gameHud.playerOneHudEntity);
 			}
 		}
 		else {
@@ -419,4 +461,46 @@ void RenderSystem::textureEffectSetup(const GLuint program, Entity entity) {
 
 	glBindTexture(GL_TEXTURE_2D, texture_id);
 	gl_has_errors();
+}
+
+void RenderSystem::enemyEffects(const GLuint program, Entity entity) {
+	GLfloat colorScale = glGetUniformLocation(program, "color_scale");
+	Enemy& enemy = registry.enemies.get(entity);
+	float color_scale_value = enemy.max_hp - enemy.hp;
+	glUniform1f(colorScale, color_scale_value);
+	GLint inInvin = glGetUniformLocation(program, "inInvin");
+	glUniform1i(inInvin, registry.enemies.get(entity).isInvin);
+	GLfloat time_loc = glGetUniformLocation(program, "time");
+	glUniform1f(time_loc, (float)(glfwGetTime() * 10.0f));
+	GLint hitVelocityLoc = glGetUniformLocation(program, "velocityOfPlayerHit");
+	glUniform2f(hitVelocityLoc, enemy.velocityOfPlayerHit.x, enemy.velocityOfPlayerHit.y);
+	GLint playerDamageLoc = glGetUniformLocation(program, "playerDamage");
+	glUniform1i(playerDamageLoc, enemy.damageOfPlayerHit);
+	GLint isDeadLoc = glGetUniformLocation(program, "isDead");
+	glUniform1i(isDeadLoc, enemy.isDead);
+	if (enemy.isDead) {
+		DeadEnemy& deadEnemy = registry.deadEnemies.get(entity);
+		GLint gotCutLoc = glGetUniformLocation(program, "gotCut");
+		glUniform1i(gotCutLoc, deadEnemy.gotCut);
+		GLfloat animationTimeLoc = glGetUniformLocation(program, "animationTime");
+		glUniform1f(animationTimeLoc, deadEnemy.deathTimer / deadEnemy.deathAnimationTime);
+	}
+}
+
+void RenderSystem::playerEffects(const GLuint program, Entity entity) {
+	Player& player = registry.players.get(entity);
+	GLfloat colorScale = glGetUniformLocation(program, "color_scale");
+	float color_scale_value = registry.playerStats.get(player.playerStat).maxHp - player.hp;
+	glUniform1f(colorScale, color_scale_value);
+	GLint inInvin = glGetUniformLocation(program, "inInvin");
+	glUniform1i(inInvin, player.isInvin);
+	GLfloat time_loc = glGetUniformLocation(program, "time");
+	glUniform1f(time_loc, (float)(glfwGetTime() * 10.0f));
+	GLint isDeadLoc = glGetUniformLocation(program, "isDead");
+	glUniform1i(isDeadLoc, player.isDead);
+	if (player.isDead) {
+		DeadPlayer& deadPlayer = registry.deadPlayers.get(entity);
+		GLfloat animationTimeLoc = glGetUniformLocation(program, "animationTime");
+		glUniform1f(animationTimeLoc, deadPlayer.deathTimer / deadPlayer.deathAnimationTime);
+	}
 }
