@@ -4,6 +4,9 @@
 Required Features:  
 -Gameplay III (ALL):
 
+- Delay agnostic design (RM & LT): Documented data related to zoom delay and from cross play session to show the game is delay agnostic and the lag is minimum. 
+Documented changes to account for the potential lag faced by some users: https://docs.google.com/document/d/1GNYXo2HXgTYso2Dm1yZy9DnFG0UcxIwP-YOs_e9Npxk/edit?usp=sharing
+
 -Advanced Decision-Making (FC): The algorithm implemented calculates H Cost (distance between the enemy and end goal) and a G Cost (distance between the enemy and next position). What happens is at the current position of the enemy, they will calculate the G+H cost of the positions up/left/right/down of it. whichever one has the lowest G+H cost, we will add to the queue. After we finish calculating and adding until we get to the player's position, we will slowly push all positions as positions to move to, creating a path to the player from the enemy that the enemy follows.
 
 -Cooperative Planning (LT):
@@ -32,10 +35,6 @@ Graphic Assets (JK):  Created background and new sprites, custom for the boss/fi
 
 Bug and Feature Fixes:  
 -Level Transition Fix (LT):
-
--Menu Lighting Fix (LT):
-
--Save and Load Scaling Fix (RM):
 
 Revised Project Proposal:  
 Feature Changes:  
