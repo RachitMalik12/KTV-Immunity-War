@@ -460,9 +460,9 @@ Entity createEnemyGerm(RenderSystem* renderer, vec2 position) {
 	// Set enemy attributes
 	auto& enemyCom = registry.enemies.get(entity);
 	enemyCom.damage = 1;
-	enemyCom.hp = 5;
-	enemyCom.loot = 4;
-	enemyCom.speed = 200.f * defaultResolution.scaling;
+	enemyCom.hp = 7;
+	enemyCom.loot = 2;
+	enemyCom.speed = 125.f * defaultResolution.scaling;
 	auto& germ = registry.enemyGerms.get(entity);
 	germ.mode = (rand() % 10) + 1;
 

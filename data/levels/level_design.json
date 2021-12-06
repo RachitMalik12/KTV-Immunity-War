@@ -251,7 +251,7 @@
       "level_type": 0
     },
     {
-      "enemies": [ 6 ],
+      "enemies": [ 4, 2 ],
       "blocks": 3,
       "block_positions": [
         {
@@ -268,12 +268,12 @@
         }
       ],
       "player_position": {
-        "x": 600,
+        "x": 700,
         "y": 400
       },
       "player2_position": {
-        "x": 600,
-        "y": 200
+        "x": 700,
+        "y": 600
       },
       "enemy_positions": [
         [
@@ -290,20 +290,22 @@
             "y": 100
           },
           {
-            "x": 200,
-            "y": 100
-          },
-          {
             "x": 700,
             "y": 100
+          }
+        ],
+        [
+          {
+            "x": 300,
+            "y": 200
           },
           {
-            "x": 100,
-            "y": 100
+            "x": 900,
+            "y": 600
           }
         ]
       ],
-      "enemy_types": [ 6 ],
+      "enemy_types": [ 6, 3 ],
       "level_type": 0
     },
     {
