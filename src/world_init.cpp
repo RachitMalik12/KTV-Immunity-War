@@ -615,9 +615,9 @@ Entity createEnemyCoordHead(RenderSystem* renderer, vec2 position) {
 	auto& head = registry.enemyCoordHeads.emplace(entity);
 	head.minDistFromTail *= defaultResolution.scaling;
 	enemyCom.damage = 1;
-	enemyCom.hp = 4;
+	enemyCom.hp = 15;
 	enemyCom.max_hp = enemyCom.hp;
-	enemyCom.loot = 1;
+	enemyCom.loot = 4;
 	enemyCom.speed = 100.f * defaultResolution.scaling;
 	motion.velocity = vec2(0, 0);
 
@@ -650,7 +650,7 @@ Entity createEnemyCoordTail(RenderSystem* renderer, vec2 position) {
 	enemyCom.damage = 1;
 	enemyCom.hp = 100;
 	enemyCom.max_hp = enemyCom.hp;
-	enemyCom.loot = 1;
+	enemyCom.loot = 0;
 	enemyCom.speed = 100.f * defaultResolution.scaling;
 	motion.velocity = vec2(0, 0);
 
@@ -678,9 +678,9 @@ Entity createEnemyBoss(RenderSystem* renderer, vec2 position) {
 	registry.enemyBoss.emplace(entity);
 	// Set enemy attributes
 	enemyCom.damage = 1;
-	enemyCom.hp = 10;
+	enemyCom.hp = 40;
 	enemyCom.max_hp = enemyCom.hp;
-	enemyCom.loot = 1;
+	enemyCom.loot = 99;
 	enemyCom.speed = 0.f;
 	motion.velocity = vec2(0.f, 0.f);
 
@@ -712,9 +712,9 @@ Entity createEnemyMinions(RenderSystem* renderer, vec2 position) {
 	swarm.projectileSpeed = swarm.projectileSpeed * defaultResolution.scaling;
 	auto& enemyCom = registry.enemies.get(entity);
 	enemyCom.damage = 1;
-	enemyCom.hp = 3;
+	enemyCom.hp = 10;
 	enemyCom.max_hp = enemyCom.hp;
-	enemyCom.loot = 1;
+	enemyCom.loot = 2;
 	enemyCom.speed = 100.f * defaultResolution.scaling;
 	motion.velocity = vec2(0, 0);
 
@@ -738,13 +738,13 @@ Entity createEnemyBossHand(RenderSystem* renderer, vec2 position) {
 	// Set enemy attributes
 	EnemySwarm& hand = registry.enemySwarms.emplace(entity);
 	EnemyBossHand& boss = registry.enemyBossHand.emplace(entity);
-	hand.projectileSpeed = 400.f* defaultResolution.scaling;
+	hand.projectileSpeed = 300.f* defaultResolution.scaling;
 	auto& enemyCom = registry.enemies.get(entity);
-	enemyCom.damage = 2;
-	enemyCom.hp = 10;
+	enemyCom.damage = 1;
+	enemyCom.hp = 20;
 	enemyCom.max_hp = enemyCom.hp;
-	enemyCom.loot = 10;
-	enemyCom.speed = 500.f * defaultResolution.scaling;
+	enemyCom.loot = 2;
+	enemyCom.speed = 400.f * defaultResolution.scaling;
 	motion.velocity = vec2(enemyCom.speed, 0);
 
 	registry.renderRequests.insert(
